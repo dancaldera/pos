@@ -18,6 +18,7 @@ import {
   ShoppingCartIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { formatCurrency } from '@/utils/format-currency';
 
 interface CartItem extends OrderItemInput {
   productName: string;
@@ -364,10 +365,6 @@ const NewOrder: React.FC = () => {
       setIsSubmitting(false);
       setPaymentModalOpen(false);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   if (loading) {

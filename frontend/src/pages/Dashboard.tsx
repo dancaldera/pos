@@ -39,6 +39,7 @@ import {
   ChartOptions
 } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { formatCurrency } from '@/utils/format-currency';
 
 // Register ChartJS components
 ChartJS.register(
@@ -227,10 +228,6 @@ const Dashboard: React.FC = () => {
   };
 
   const cardClass = "transition-all duration-200 transform hover:scale-105";
-  
-  const formatCurrency = (amount: number) => {
-    return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {

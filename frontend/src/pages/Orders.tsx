@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/utils/format-currency";
 import {
   ArrowPathIcon,
   CurrencyDollarIcon,
@@ -227,10 +228,6 @@ const Orders: React.FC = () => {
   };
 
   const { translate } = useLanguage();
-  
-  const formatCurrency = (amount: number) => {
-    return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -25,6 +25,7 @@ import {
   MinusIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
+import { formatCurrency } from '@/utils/format-currency';
 
 // Status and payment colors
 const statusColors = {
@@ -279,10 +280,6 @@ const OrderDetail: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString(language === 'en' ? 'en-US' : 'es-MX');
-  };
-
-  const formatCurrency = (amount: number) => {
-    return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   if (loading) {

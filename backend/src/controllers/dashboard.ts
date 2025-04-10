@@ -173,6 +173,12 @@ export const getSalesData = async (req: Request, res: Response, next: NextFuncti
     // Use a simpler SQL query
     const formattedStartDate = startDate.toISOString().split('T')[0];
     
+    type OrderRow = {
+      [key: string]: unknown;
+      date: string;
+      amount: string;
+    };
+
     const result = await db.execute(sql`
       SELECT 
         created_at::text as date,
@@ -184,7 +190,7 @@ export const getSalesData = async (req: Request, res: Response, next: NextFuncti
     `);
 
     // Process the data in JavaScript instead of SQL
-    const orders = result.rows.map(row => ({
+    const orders = (result.rows as OrderRow[]).map(row => ({
       date: new Date(row.date),
       amount: Number(row.amount)
     }));

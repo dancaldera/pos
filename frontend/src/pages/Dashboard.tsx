@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [paymentStats, setPaymentStats] = useState<PaymentStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [salesPeriod, setSalesPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [salesPeriod, setSalesPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const [monthlyGrowth, setMonthlyGrowth] = useState<number | null>(null);
 
   useEffect(() => {
@@ -141,9 +141,7 @@ const Dashboard: React.FC = () => {
     const labels = salesData.map(point => {
       const date = new Date(point.date);
       
-      if (salesPeriod === 'daily') {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      } else if (salesPeriod === 'weekly') {
+      if (salesPeriod === 'weekly') {
         return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
       } else {
         return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
@@ -160,13 +158,6 @@ const Dashboard: React.FC = () => {
           backgroundColor: 'rgba(53, 162, 235, 0.5)',
           tension: 0.3,
         },
-        {
-          label: 'Orders',
-          data: salesData.map(point => point.count * 100), // Multiplying to make it visible
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.5)',
-          tension: 0.3,
-        }
       ]
     };
   };
@@ -392,8 +383,7 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm font-medium text-gray-600">
-                {salesPeriod === 'daily' ? 'Daily' : 
-                 salesPeriod === 'weekly' ? 'Weekly' : 'Monthly'} Growth
+                {salesPeriod === 'weekly' ? 'Weekly' : 'Monthly'} Growth
               </p>
               <p className="text-2xl font-bold text-gray-900">
                 {isLoading || monthlyGrowth === null ? '...' : 
@@ -405,7 +395,6 @@ const Dashboard: React.FC = () => {
                   onChange={(e) => setSalesPeriod(e.target.value as any)}
                   className="text-xs border rounded p-1"
                 >
-                  <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
                 </select>
@@ -455,7 +444,7 @@ const Dashboard: React.FC = () => {
       {/* Charts and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Sales Chart */}
-        <Card title={`${salesPeriod === 'daily' ? 'Daily' : salesPeriod === 'weekly' ? 'Weekly' : 'Monthly'} Sales`}>
+        <Card title={`${salesPeriod === 'weekly' ? 'Weekly' : 'Monthly'} Sales`}>
           <div className="h-80">
             {isLoading || salesData.length === 0 ? (
               <div className="h-full flex items-center justify-center">

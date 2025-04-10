@@ -109,12 +109,13 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     }
     console.log('Parsed tax rate:', parsedTaxRate);
     
+    // Create settings values object
     const settingsValues = {
       businessName,
       address: address || null,
       phone: phone || null,
       email: email || null,
-      taxRate: parsedTaxRate,
+      taxRate: parsedTaxRate.toString(), // Convert to string for numeric field
       currency: currencyValue,
       logoUrl,
       receiptFooter: receiptFooter || null,

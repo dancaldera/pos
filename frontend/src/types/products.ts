@@ -20,6 +20,8 @@ export interface Product {
   stock: number;
   lowStockAlert: number | null;
   active: boolean;
+  hasVariants: boolean;
+  variants: string[] | null;
   createdAt: string;
   updatedAt: string;
   category?: Category;
@@ -36,6 +38,8 @@ export interface ProductFormData {
   stock: number;
   lowStockAlert?: number;
   active: boolean;
+  hasVariants: boolean;
+  variants?: string[];
   image?: File | null;
   removeImage?: boolean;
 }

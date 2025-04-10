@@ -22,6 +22,9 @@ interface CartItem extends OrderItemInput {
   productName: string;
   price: number;
   subtotal: number;
+  variant?: string;
+  hasVariants?: boolean;
+  availableVariants?: string[];
 }
 
 const NewOrder: React.FC = () => {
@@ -36,6 +39,8 @@ const NewOrder: React.FC = () => {
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [variantModalOpen, setVariantModalOpen] = useState(false);
+  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const [orderNotes, setOrderNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
@@ -117,10 +122,7 @@ const NewOrder: React.FC = () => {
       )
     : customers;
 
-  const addToCart = (product: Product) => {
-    // Check if product is already in cart
-    const existingItemIndex = cartItems.findIndex(item => item.productId === product.id);
-    
+  const addToCart = (product: Product, selectedVariant?: string) => {
     // Ensure price is a number
     const productPrice = typeof product.price === 'string' 
       ? parseFloat(product.price) 
@@ -128,26 +130,85 @@ const NewOrder: React.FC = () => {
       
     console.log('Adding product with price:', productPrice, 'Type:', typeof productPrice);
     
-    if (existingItemIndex >= 0) {
-      // Update quantity if already in cart
-      const newCartItems = [...cartItems];
-      newCartItems[existingItemIndex].quantity += 1;
-      newCartItems[existingItemIndex].subtotal = 
-        newCartItems[existingItemIndex].quantity * newCartItems[existingItemIndex].price;
-      setCartItems(newCartItems);
-    } else {
-      // Add new item to cart
-      setCartItems([
-        ...cartItems,
-        {
-          productId: product.id,
-          productName: product.name,
-          quantity: 1,
-          price: productPrice,
-          subtotal: productPrice,
-          notes: '',
+    // For products with variants, handle differently
+    if (product.hasVariants && product.variants && product.variants.length > 0) {
+      // If a specific variant is selected or there's only one variant, add it directly
+      if (selectedVariant || product.variants.length === 1) {
+        const variant = selectedVariant || product.variants[0];
+        
+        // Check if this specific product+variant is already in cart
+        const existingItemIndex = cartItems.findIndex(
+          item => item.productId === product.id && item.variant === variant
+        );
+        
+        if (existingItemIndex >= 0) {
+          // Update quantity if this variant is already in cart
+          const newCartItems = [...cartItems];
+          newCartItems[existingItemIndex].quantity += 1;
+          newCartItems[existingItemIndex].subtotal = 
+            newCartItems[existingItemIndex].quantity * newCartItems[existingItemIndex].price;
+          setCartItems(newCartItems);
+        } else {
+          // Add new variant item to cart
+          setCartItems([
+            ...cartItems,
+            {
+              productId: product.id,
+              productName: product.name,
+              variant,
+              quantity: 1,
+              price: productPrice,
+              subtotal: productPrice,
+              notes: '',
+            }
+          ]);
         }
-      ]);
+      } else {
+        // If no variant is selected and there are multiple, show modal or selection UI
+        // For products with variants but no selection, open variant selection
+        // This could be implemented as a modal or dropdown
+        setCartItems([
+          ...cartItems,
+          {
+            productId: product.id,
+            productName: product.name,
+            quantity: 1,
+            price: productPrice,
+            subtotal: productPrice,
+            notes: '',
+            hasVariants: true,
+            availableVariants: product.variants
+          }
+        ]);
+      }
+    } else {
+      // Standard product without variants - original behavior
+      // Check if product is already in cart
+      const existingItemIndex = cartItems.findIndex(item => 
+        item.productId === product.id && !item.variant
+      );
+      
+      if (existingItemIndex >= 0) {
+        // Update quantity if already in cart
+        const newCartItems = [...cartItems];
+        newCartItems[existingItemIndex].quantity += 1;
+        newCartItems[existingItemIndex].subtotal = 
+          newCartItems[existingItemIndex].quantity * newCartItems[existingItemIndex].price;
+        setCartItems(newCartItems);
+      } else {
+        // Add new item to cart
+        setCartItems([
+          ...cartItems,
+          {
+            productId: product.id,
+            productName: product.name,
+            quantity: 1,
+            price: productPrice,
+            subtotal: productPrice,
+            notes: '',
+          }
+        ]);
+      }
     }
   };
 
@@ -205,7 +266,35 @@ const NewOrder: React.FC = () => {
     setPaymentModalOpen(true);
   };
 
+  const selectVariant = (itemIndex: number, variant: string) => {
+    const newCartItems = [...cartItems];
+    const item = newCartItems[itemIndex];
+    
+    // Update the item with the selected variant
+    newCartItems[itemIndex] = {
+      ...item,
+      variant,
+      hasVariants: false, // No longer needs variant selection
+    };
+    
+    setCartItems(newCartItems);
+    setVariantModalOpen(false);
+    setSelectedItemIndex(null);
+  };
+  
+  const openVariantModal = (index: number) => {
+    setSelectedItemIndex(index);
+    setVariantModalOpen(true);
+  };
+
   const handleSubmitOrder = async (skipPayment: boolean = false) => {
+    // Check if any items need variant selection
+    const itemsNeedingVariants = cartItems.filter(item => item.hasVariants);
+    if (itemsNeedingVariants.length > 0) {
+      alert('Please select variants for all products before proceeding');
+      return;
+    }
+    
     if (cartItems.length === 0) {
       alert('Please add at least one item to the order');
       return;
@@ -220,6 +309,7 @@ const NewOrder: React.FC = () => {
         quantity: Number(item.quantity),
         price: Number(item.price),
         subtotal: Number(item.subtotal),
+        variant: item.variant || undefined,
         notes: item.notes || undefined,
       }));
       
@@ -335,6 +425,11 @@ const NewOrder: React.FC = () => {
                   <div>
                     <div className="font-medium">{product.name}</div>
                     {product.sku && <div className="text-xs text-gray-500">SKU: {product.sku}</div>}
+                    {product.hasVariants && product.variants && product.variants.length > 0 && (
+                      <div className="text-xs text-blue-600 mt-1">
+                        {product.variants.length} variants available
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <span className="font-bold text-blue-600">{formatCurrency(product.price)}</span>
@@ -346,7 +441,7 @@ const NewOrder: React.FC = () => {
                       {product.stock <= 0 ? 'Out of stock' : `${product.stock} in stock`}
                     </span>
                   </div>
-                  {product.stock > 0 && (
+                  {product.stock > 0 && !product.hasVariants && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -359,6 +454,24 @@ const NewOrder: React.FC = () => {
                       <PlusIcon className="h-4 w-4 mr-1" />
                       Add to Order
                     </Button>
+                  )}
+                  {product.stock > 0 && product.hasVariants && product.variants && product.variants.length > 0 && (
+                    <div className="grid grid-cols-2 gap-1 mt-2">
+                      {product.variants.map((variant, idx) => (
+                        <Button
+                          key={idx}
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product, variant);
+                          }}
+                          className={idx === 0 && product.variants!.length === 1 ? "col-span-2" : ""}
+                        >
+                          {variant}
+                        </Button>
+                      ))}
+                    </div>
                   )}
                 </div>
               ))
@@ -432,7 +545,20 @@ const NewOrder: React.FC = () => {
                   <div key={index} className="p-3 flex justify-between items-center">
                     <div className="flex-1">
                       <div className="font-medium">{item.productName}</div>
-                      <div className="text-sm text-gray-500">
+                      {item.variant && (
+                        <div className="text-xs text-blue-600 font-medium mt-0.5">
+                          Variant: {item.variant}
+                        </div>
+                      )}
+                      {item.hasVariants && (
+                        <button
+                          onClick={() => openVariantModal(index)}
+                          className="text-xs text-blue-600 underline font-medium mt-0.5"
+                        >
+                          Select variant
+                        </button>
+                      )}
+                      <div className="text-sm text-gray-500 mt-0.5">
                         {formatCurrency(item.price)} each
                       </div>
                     </div>
@@ -440,6 +566,7 @@ const NewOrder: React.FC = () => {
                       <button
                         onClick={() => updateItemQuantity(index, item.quantity - 1)}
                         className="p-1 rounded-full hover:bg-gray-100"
+                        disabled={item.hasVariants}
                       >
                         <MinusIcon className="h-4 w-4 text-gray-500" />
                       </button>
@@ -447,6 +574,7 @@ const NewOrder: React.FC = () => {
                       <button
                         onClick={() => updateItemQuantity(index, item.quantity + 1)}
                         className="p-1 rounded-full hover:bg-gray-100"
+                        disabled={item.hasVariants}
                       >
                         <PlusIcon className="h-4 w-4 text-gray-500" />
                       </button>
@@ -568,6 +696,36 @@ const NewOrder: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      </Modal>
+
+      {/* Variant Selection Modal */}
+      <Modal
+        isOpen={variantModalOpen}
+        onClose={() => setVariantModalOpen(false)}
+        title="Select Variant"
+        size="sm"
+      >
+        <div className="py-4">
+          {selectedItemIndex !== null && cartItems[selectedItemIndex] && (
+            <div>
+              <h3 className="font-medium text-gray-900 mb-3">
+                {cartItems[selectedItemIndex].productName}
+              </h3>
+              <div className="grid grid-cols-1 gap-2">
+                {cartItems[selectedItemIndex].availableVariants?.map((variant, idx) => (
+                  <Button
+                    key={idx}
+                    variant="outline"
+                    fullWidth
+                    onClick={() => selectVariant(selectedItemIndex, variant)}
+                  >
+                    {variant}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </Modal>
 

@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, timestamp, boolean, pgEnum, uuid, numeric, foreignKey } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, timestamp, boolean, pgEnum, uuid, numeric, foreignKey, json } from 'drizzle-orm/pg-core';
 import { createId } from '../utils/id.js';
 
 // Enums
@@ -42,6 +42,8 @@ export const products = pgTable('products', {
   stock: integer('stock').notNull().default(0),
   lowStockAlert: integer('low_stock_alert'),
   active: boolean('active').notNull().default(true),
+  hasVariants: boolean('has_variants').notNull().default(false),
+  variants: json('variants').$type<string[]>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -81,6 +83,7 @@ export const orderItems = pgTable('order_items', {
   orderId: varchar('order_id', { length: 21 }).references(() => orders.id, { onDelete: 'cascade' }).notNull(),
   productId: varchar('product_id', { length: 21 }).references(() => products.id, { onDelete: 'set null' }),
   productName: varchar('product_name', { length: 100 }).notNull(),
+  variant: varchar('variant', { length: 50 }),
   quantity: integer('quantity').notNull(),
   unitPrice: numeric('unit_price', { precision: 10, scale: 2 }).notNull(),
   subtotal: numeric('subtotal', { precision: 10, scale: 2 }).notNull(),

@@ -66,10 +66,19 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 
     // Build the order clause
     let orderClause;
-    if (sortOrder.toLowerCase() === 'asc') {
-      orderClause = asc(products[sortBy as keyof typeof products] as any);
+    // Special case for category sorting
+    if (sortBy === 'category') {
+      if (sortOrder.toLowerCase() === 'asc') {
+        orderClause = asc(categories.name);
+      } else {
+        orderClause = desc(categories.name);
+      }
     } else {
-      orderClause = desc(products[sortBy as keyof typeof products] as any);
+      if (sortOrder.toLowerCase() === 'asc') {
+        orderClause = asc(products[sortBy as keyof typeof products] as any);
+      } else {
+        orderClause = desc(products[sortBy as keyof typeof products] as any);
+      }
     }
 
     // Get the total count
@@ -80,14 +89,25 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 
     const total = Number(countResult[0].count);
 
-    // Get the products
+    // Get the products with their categories
     const productsList = await db
-      .select()
+      .select({
+        product: products,
+        categoryName: categories.name,
+      })
       .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
       .where(whereClause)
       .orderBy(orderClause)
       .limit(limit)
-      .offset(offset);
+      .offset(offset)
+      .then(results => {
+        // Transform the result to include category information
+        return results.map(({ product, categoryName }) => ({
+          ...product,
+          category: product.categoryId ? { id: product.categoryId, name: categoryName } : null,
+        }));
+      });
 
     res.status(200).json({
       success: true,
@@ -199,6 +219,24 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       imageUrl = await uploadFile(req.file, 'products');
     }
 
+    // Handle variants data
+    const hasVariants = req.body.hasVariants === 'true' || req.body.hasVariants === true;
+    let variants = null;
+    
+    if (hasVariants && req.body.variants) {
+      try {
+        // Parse the variants JSON string
+        variants = JSON.parse(req.body.variants);
+        
+        // Validate that variants is an array
+        if (!Array.isArray(variants)) {
+          variants = null;
+        }
+      } catch (error) {
+        console.error('Error parsing variants:', error);
+      }
+    }
+    
     // Prepare values with null handling for empty strings
     const productValues = {
       name,
@@ -212,6 +250,8 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       lowStockAlert: lowStockAlert || null,
       active,
       imageUrl,
+      hasVariants,
+      variants,
     };
 
     // Create the product
@@ -365,6 +405,24 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       imageUrl = await uploadFile(req.file, 'products');
     }
 
+    // Handle variants data
+    const hasVariants = req.body.hasVariants === 'true' || req.body.hasVariants === true;
+    let variants = null;
+    
+    if (hasVariants && req.body.variants) {
+      try {
+        // Parse the variants JSON string
+        variants = JSON.parse(req.body.variants);
+        
+        // Validate that variants is an array
+        if (!Array.isArray(variants)) {
+          variants = null;
+        }
+      } catch (error) {
+        console.error('Error parsing variants:', error);
+      }
+    }
+    
     // Prepare update values
     const updateValues: any = {};
 
@@ -379,6 +437,15 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
     if (lowStockAlert !== undefined) updateValues.lowStockAlert = lowStockAlert || null;
     if (active !== undefined) updateValues.active = active === true || active === 'true';
     updateValues.imageUrl = imageUrl;
+    
+    // Always update variants related fields if hasVariants is specified
+    if (req.body.hasVariants !== undefined) {
+      updateValues.hasVariants = hasVariants;
+      updateValues.variants = variants;
+    } else if (variants !== null) {
+      // If only variants were updated without changing hasVariants status
+      updateValues.variants = variants;
+    }
 
     // Update the product
     const [updatedProduct] = await db

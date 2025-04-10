@@ -30,6 +30,8 @@ const Products: React.FC = () => {
     stock: 0,
     lowStockAlert: 0,
     active: true,
+    hasVariants: false,
+    variants: [],
     image: null,
     removeImage: false
   });
@@ -126,6 +128,8 @@ const Products: React.FC = () => {
       stock: 0,
       lowStockAlert: 0,
       active: true,
+      hasVariants: false,
+      variants: [],
       image: null,
       removeImage: false
     });
@@ -147,6 +151,8 @@ const Products: React.FC = () => {
       stock: product.stock,
       lowStockAlert: product.lowStockAlert || 0,
       active: product.active,
+      hasVariants: product.hasVariants || false,
+      variants: product.variants || [],
       image: null,
       removeImage: false
     });
@@ -220,6 +226,19 @@ const Products: React.FC = () => {
     if (formData.stock < 0) {
       errors.stock = 'Stock cannot be negative';
     }
+    
+    // Validate variants if hasVariants is true
+    if (formData.hasVariants) {
+      // Filter out empty variants or very short ones
+      const validVariants = (formData.variants || []).filter(v => v.trim().length > 1);
+      
+      if (validVariants.length === 0) {
+        errors.variants = 'At least one valid variant is required';
+      } else {
+        // Update formData with only valid variants
+        formData.variants = validVariants;
+      }
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -239,6 +258,12 @@ const Products: React.FC = () => {
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'image' && value) {
           productFormData.append('image', value);
+        } else if (key === 'variants' && Array.isArray(value)) {
+          // Handle variants array properly by converting to JSON string
+          productFormData.append('variants', JSON.stringify(value));
+        } else if (key === 'hasVariants') {
+          // Ensure boolean is properly passed
+          productFormData.append('hasVariants', value ? 'true' : 'false');
         } else if (key !== 'image' && value !== null && value !== undefined) {
           productFormData.append(key, String(value));
         }
@@ -344,10 +369,10 @@ const Products: React.FC = () => {
       ) : (
         <>
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table headers={['Image', 'Name', 'Category', 'Price', 'Stock', 'Status', 'Actions']}>
+            <Table headers={['Image', 'Name', 'Category', 'Price', 'Stock', 'Variants', 'Status', 'Actions']}>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
                     No products found. Create a new product to get started.
                   </td>
                 </tr>
@@ -392,6 +417,20 @@ const Products: React.FC = () => {
                         <div className="text-xs text-gray-500">
                           Alert: {product.lowStockAlert}
                         </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {product.hasVariants && product.variants && product.variants.length > 0 ? (
+                        <div className="text-sm text-gray-900">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {product.variants.length} variants
+                          </span>
+                          <div className="mt-1 text-xs text-gray-500 max-w-[150px] truncate">
+                            {product.variants.join(', ')}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">No variants</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -704,6 +743,88 @@ const Products: React.FC = () => {
                 <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
                   Active (available for sale)
                 </label>
+              </div>
+              
+              {/* Product Variants */}
+              <div className="mt-4">
+                <div className="flex items-center mb-2">
+                  <input
+                    type="checkbox"
+                    id="hasVariants"
+                    name="hasVariants"
+                    checked={formData.hasVariants}
+                    onChange={(e) => 
+                      setFormData({
+                        ...formData,
+                        hasVariants: e.target.checked
+                      })
+                    }
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="hasVariants" className="ml-2 block text-sm text-gray-700">
+                    Product has variants/flavors
+                  </label>
+                </div>
+                
+                {formData.hasVariants && (
+                  <div className={`mt-3 border rounded-md p-3 ${
+                    formErrors.variants ? 'border-red-500' : 'border-gray-200'
+                  }`}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Variants/Flavors
+                    </label>
+                    {formErrors.variants && (
+                      <p className="text-sm text-red-600 mb-2">{formErrors.variants}</p>
+                    )}
+                    <div className="space-y-2 mb-2">
+                      {(formData.variants || []).map((variant, index) => (
+                        <div key={index} className="flex items-center">
+                          <input
+                            type="text"
+                            value={variant}
+                            onChange={(e) => {
+                              const newVariants = [...(formData.variants || [])];
+                              newVariants[index] = e.target.value;
+                              setFormData({
+                                ...formData,
+                                variants: newVariants
+                              });
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Variant name"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newVariants = [...(formData.variants || [])];
+                              newVariants.splice(index, 1);
+                              setFormData({
+                                ...formData,
+                                variants: newVariants
+                              });
+                            }}
+                            className="ml-2 p-2 text-red-500 hover:text-red-700"
+                          >
+                            <XIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          variants: [...(formData.variants || []), '']
+                        });
+                      }}
+                      className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Add Variant
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

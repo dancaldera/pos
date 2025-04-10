@@ -11,6 +11,7 @@ export interface OrderItem {
   orderId: string;
   productId: string | null;
   productName: string;
+  variant: string | null;
   quantity: number;
   unitPrice: number;
   subtotal: number;
@@ -55,6 +56,7 @@ export interface Order {
 
 export interface OrderItemInput {
   productId: string;
+  variant?: string;
   quantity: number;
   notes?: string;
 }

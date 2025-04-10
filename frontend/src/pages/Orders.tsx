@@ -1,38 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  getOrders, 
-  updateOrderStatus, 
-  cancelOrder,
-  getReceipt
-} from '../api/orders';
-import { Order, OrderStatus, PaymentStatus } from '../types/orders';
-import Table from '../components/ui/Table';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { 
-  MagnifyingGlassIcon, 
-  PlusIcon, 
-  EyeIcon, 
-  XMarkIcon, 
-  CheckCircleIcon,
+import {
+  ArrowPathIcon,
   CurrencyDollarIcon,
-  DocumentTextIcon,
-  ArrowPathIcon
-} from '@heroicons/react/24/outline';
+  EyeIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { cancelOrder, getOrders, updateOrderStatus } from "../api/orders";
+import Button from "../components/ui/Button";
+import Modal from "../components/ui/Modal";
+import Table from "../components/ui/Table";
+import { useAuth } from "../context/AuthContext";
+import { Order, OrderStatus } from "../types/orders";
 
 // Order status colors and badges
 const statusColors = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
+  pending: "bg-yellow-100 text-yellow-800",
+  completed: "bg-green-100 text-green-800",
+  cancelled: "bg-red-100 text-red-800",
 };
 
 const paymentStatusColors = {
-  paid: 'bg-green-100 text-green-800',
-  partial: 'bg-orange-100 text-orange-800',
-  unpaid: 'bg-red-100 text-red-800',
+  paid: "bg-green-100 text-green-800",
+  partial: "bg-orange-100 text-orange-800",
+  unpaid: "bg-red-100 text-red-800",
 };
 
 const Orders: React.FC = () => {
@@ -43,37 +36,37 @@ const Orders: React.FC = () => {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [newStatus, setNewStatus] = useState<OrderStatus>('pending');
-  const [cancelReason, setCancelReason] = useState('');
-  const [search, setSearch] = useState('');
+  const [newStatus, setNewStatus] = useState<OrderStatus>("pending");
+  const [cancelReason, setCancelReason] = useState("");
+  const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
-    status: '',
-    paymentStatus: '',
-    startDate: '',
-    endDate: '',
+    status: "",
+    paymentStatus: "",
+    startDate: "",
+    endDate: "",
   });
   const [searchParams, setSearchParams] = useState({
     page: 1,
     limit: 10,
-    search: '',
-    status: '',
-    paymentStatus: '',
-    startDate: '',
-    endDate: '',
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
+    search: "",
+    status: "",
+    paymentStatus: "",
+    startDate: "",
+    endDate: "",
+    sortBy: "createdAt",
+    sortOrder: "desc",
   });
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
     totalPages: 1,
-    total: 0
+    total: 0,
   });
   const [submitLoading, setSubmitLoading] = useState(false);
 
   // Check if user is admin or manager
-  const isAdmin = authState.user?.role === 'admin';
-  const isManager = authState.user?.role === 'manager';
+  const isAdmin = authState.user?.role === "admin";
+  const isManager = authState.user?.role === "manager";
   const canManageOrders = isAdmin || isManager;
 
   // Fetch orders on mount and when search params change
@@ -90,10 +83,10 @@ const Orders: React.FC = () => {
         page: response.pagination.page,
         limit: response.pagination.limit,
         totalPages: response.pagination.totalPages,
-        total: response.total
+        total: response.total,
       });
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
     }
@@ -107,15 +100,17 @@ const Orders: React.FC = () => {
     setSearchParams({
       ...searchParams,
       search,
-      page: 1 // Reset to first page when searching
+      page: 1, // Reset to first page when searching
     });
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
     setFilters({
       ...filters,
-      [name]: value
+      [name]: value,
     });
   };
 
@@ -123,39 +118,39 @@ const Orders: React.FC = () => {
     setSearchParams({
       ...searchParams,
       ...filters,
-      page: 1 // Reset to first page when filtering
+      page: 1, // Reset to first page when filtering
     });
   };
 
   const resetFilters = () => {
     setFilters({
-      status: '',
-      paymentStatus: '',
-      startDate: '',
-      endDate: '',
+      status: "",
+      paymentStatus: "",
+      startDate: "",
+      endDate: "",
     });
     setSearchParams({
       ...searchParams,
-      status: '',
-      paymentStatus: '',
-      startDate: '',
-      endDate: '',
-      search: '',
-      page: 1
+      status: "",
+      paymentStatus: "",
+      startDate: "",
+      endDate: "",
+      search: "",
+      page: 1,
     });
-    setSearch('');
+    setSearch("");
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
     setSearchParams({
       ...searchParams,
-      page: newPage
+      page: newPage,
     });
   };
 
   const handleNewOrder = () => {
-    navigate('/orders/new');
+    navigate("/orders/new");
   };
 
   const viewOrderDetails = (orderId: string) => {
@@ -170,25 +165,25 @@ const Orders: React.FC = () => {
 
   const openCancelModal = (order: Order) => {
     setSelectedOrder(order);
-    setCancelReason('');
+    setCancelReason("");
     setCancelModalOpen(true);
   };
 
   const handleStatusChange = async () => {
     if (!selectedOrder) return;
-    
+
     try {
       setSubmitLoading(true);
       const response = await updateOrderStatus(selectedOrder.id, newStatus);
       setStatusModalOpen(false);
-      
+
       // Update the order in the list
-      const updatedOrders = orders.map(order => 
+      const updatedOrders = orders.map((order) =>
         order.id === selectedOrder.id ? { ...order, status: newStatus } : order
       );
       setOrders(updatedOrders);
     } catch (error) {
-      console.error('Error updating order status:', error);
+      console.error("Error updating order status:", error);
     } finally {
       setSubmitLoading(false);
     }
@@ -196,43 +191,45 @@ const Orders: React.FC = () => {
 
   const handleCancelOrder = async () => {
     if (!selectedOrder) return;
-    
+
     try {
       setSubmitLoading(true);
       await cancelOrder(selectedOrder.id, cancelReason);
       setCancelModalOpen(false);
-      
+
       // Update the order in the list
-      const updatedOrders = orders.map(order => 
-        order.id === selectedOrder.id ? { ...order, status: 'cancelled' } : order
+      const updatedOrders = orders.map((order) =>
+        order.id === selectedOrder.id
+          ? { ...order, status: "cancelled" }
+          : order
       );
-      setOrders(updatedOrders);
+      setOrders(updatedOrders as Order[]);
     } catch (error) {
-      console.error('Error cancelling order:', error);
+      console.error("Error cancelling order:", error);
     } finally {
       setSubmitLoading(false);
     }
   };
 
-  const handleGetReceipt = async (orderId: string) => {
-    try {
-      const response = await getReceipt(orderId);
-      if (response.success && response.data.receiptUrl) {
-        window.open(`/uploads/${response.data.receiptUrl}`, '_blank');
-      }
-    } catch (error) {
-      console.error('Error generating receipt:', error);
-    }
-  };
+  // const handleGetReceipt = async (orderId: string) => {
+  //   try {
+  //     const response = await getReceipt(orderId);
+  //     if (response.success && response.data.receiptUrl) {
+  //       window.open(`/uploads/${response.data.receiptUrl}`, '_blank');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error generating receipt:', error);
+  //   }
+  // };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -240,10 +237,7 @@ const Orders: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Orders</h1>
-        <Button 
-          variant="primary" 
-          onClick={handleNewOrder}
-        >
+        <Button variant="primary" onClick={handleNewOrder}>
           <PlusIcon className="h-5 w-5 mr-1" />
           New Order
         </Button>
@@ -260,7 +254,7 @@ const Orders: React.FC = () => {
                 className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 value={search}
                 onChange={handleSearchChange}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
               <button
                 className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
@@ -332,18 +326,10 @@ const Orders: React.FC = () => {
         </div>
 
         <div className="flex justify-end mt-4 space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={resetFilters}
-          >
+          <Button variant="outline" size="sm" onClick={resetFilters}>
             Reset Filters
           </Button>
-          <Button 
-            variant="primary" 
-            size="sm" 
-            onClick={applyFilters}
-          >
+          <Button variant="primary" size="sm" onClick={applyFilters}>
             Apply Filters
           </Button>
         </div>
@@ -358,20 +344,32 @@ const Orders: React.FC = () => {
       ) : (
         <>
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table 
-              headers={['Order #', 'Date', 'Customer', 'Items', 'Total', 'Status', 'Payment', 'Actions']}
+            <Table
+              headers={[
+                "Order #",
+                "Date",
+                "Customer",
+                "Items",
+                "Total",
+                "Status",
+                "Payment",
+                "Actions",
+              ]}
             >
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No orders found. Create a new order to get started.
                   </td>
                 </tr>
               ) : (
-                orders.map(order => (
+                orders.map((order) => (
                   <tr key={order.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div 
+                      <div
                         className="font-bold text-blue-600 hover:text-blue-900 cursor-pointer"
                         onClick={() => viewOrderDetails(order.id)}
                       >
@@ -385,7 +383,9 @@ const Orders: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {order.customer ? order.customer.name : 'Walk-in Customer'}
+                        {order.customer
+                          ? order.customer.name
+                          : "Walk-in Customer"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -400,14 +400,26 @@ const Orders: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          statusColors[order.status]
+                        }`}
+                      >
+                        {order.status.charAt(0).toUpperCase() +
+                          order.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${paymentStatusColors[order.paymentStatus]}`}>
-                        {order.paymentStatus === 'paid' ? 'Paid' : 
-                         order.paymentStatus === 'partial' ? 'Partial' : 'Unpaid'}
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          paymentStatusColors[order.paymentStatus]
+                        }`}
+                      >
+                        {order.paymentStatus === "paid"
+                          ? "Paid"
+                          : order.paymentStatus === "partial"
+                          ? "Partial"
+                          : "Unpaid"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -419,8 +431,8 @@ const Orders: React.FC = () => {
                         >
                           <EyeIcon className="h-5 w-5" />
                         </button>
-                        
-                        {order.status !== 'cancelled' && (
+
+                        {/* {order.status !== 'cancelled' && (
                           <button
                             onClick={() => handleGetReceipt(order.id)}
                             className="text-green-600 hover:text-green-900"
@@ -428,9 +440,9 @@ const Orders: React.FC = () => {
                           >
                             <DocumentTextIcon className="h-5 w-5" />
                           </button>
-                        )}
-                        
-                        {canManageOrders && order.status !== 'cancelled' && (
+                        )} */}
+
+                        {canManageOrders && order.status !== "cancelled" && (
                           <>
                             <button
                               onClick={() => openStatusModal(order)}
@@ -439,24 +451,36 @@ const Orders: React.FC = () => {
                             >
                               <ArrowPathIcon className="h-5 w-5" />
                             </button>
-                            
-                            {order.paymentStatus !== 'paid' && (
+
+                            {order.paymentStatus !== "paid" && (
                               <button
-                                onClick={() => navigate(`/orders/${order.id}/payment`)}
+                                onClick={() =>
+                                  navigate(`/orders/${order.id}/payment`)
+                                }
                                 className="text-purple-600 hover:text-purple-900"
                                 title="Add Payment"
                               >
                                 <CurrencyDollarIcon className="h-5 w-5" />
                               </button>
                             )}
-                            
+
                             <button
                               onClick={() => openCancelModal(order)}
                               className="text-red-600 hover:text-red-900"
-                              disabled={order.status === 'completed'}
-                              title={order.status === 'completed' ? "Can't cancel completed orders" : "Cancel Order"}
+                              disabled={order.status === "completed"}
+                              title={
+                                order.status === "completed"
+                                  ? "Can't cancel completed orders"
+                                  : "Cancel Order"
+                              }
                             >
-                              <XMarkIcon className={`h-5 w-5 ${order.status === 'completed' ? 'opacity-50 cursor-not-allowed' : ''}`} />
+                              <XMarkIcon
+                                className={`h-5 w-5 ${
+                                  order.status === "completed"
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                              />
                             </button>
                           </>
                         )}
@@ -472,7 +496,9 @@ const Orders: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} orders
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+                of {pagination.total} orders
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -524,7 +550,8 @@ const Orders: React.FC = () => {
       >
         <div className="py-4">
           <p className="mb-4">
-            Update the status for order <span className="font-bold">#{selectedOrder?.orderNumber}</span>
+            Update the status for order{" "}
+            <span className="font-bold">#{selectedOrder?.orderNumber}</span>
           </p>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -570,11 +597,12 @@ const Orders: React.FC = () => {
       >
         <div className="py-4">
           <p className="text-gray-600 mb-4">
-            Are you sure you want to cancel order <span className="font-bold">#{selectedOrder?.orderNumber}</span>?
+            Are you sure you want to cancel order{" "}
+            <span className="font-bold">#{selectedOrder?.orderNumber}</span>?
             <br />
             <br />
-            Cancelling will return items to inventory if the order is not already completed.
-            This action cannot be undone.
+            Cancelling will return items to inventory if the order is not
+            already completed. This action cannot be undone.
           </p>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

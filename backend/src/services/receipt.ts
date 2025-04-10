@@ -77,8 +77,8 @@ export const generateReceipt = async (
     orderItems.forEach((item) => {
       doc.fontSize(10).text(item.productName, itemX, tableY);
       doc.text(item.quantity.toString(), quantityX, tableY);
-      doc.text(`${settings.currency} ${item.unitPrice.toFixed(2)}`, priceX, tableY);
-      doc.text(`${settings.currency} ${item.subtotal.toFixed(2)}`, amountX, tableY);
+      doc.text(`${settings.currency} ${Number(item.unitPrice).toFixed(2)}`, priceX, tableY);
+      doc.text(`${settings.currency} ${Number(item.subtotal).toFixed(2)}`, amountX, tableY);
       tableY = doc.y + 15;
     });
     
@@ -90,21 +90,21 @@ export const generateReceipt = async (
     let totalsY = tableY + 10;
     
     doc.fontSize(10).text('Subtotal:', totalsX, totalsY);
-    doc.text(`${settings.currency} ${order.subtotal.toFixed(2)}`, amountX, totalsY);
+    doc.text(`${settings.currency} ${Number(order.subtotal).toFixed(2)}`, amountX, totalsY);
     totalsY += 15;
     
     doc.text('Tax:', totalsX, totalsY);
-    doc.text(`${settings.currency} ${order.tax.toFixed(2)}`, amountX, totalsY);
+    doc.text(`${settings.currency} ${Number(order.tax).toFixed(2)}`, amountX, totalsY);
     totalsY += 15;
     
-    if (order.discount > 0) {
+    if (Number(order.discount) > 0) {
       doc.text('Discount:', totalsX, totalsY);
-      doc.text(`${settings.currency} ${order.discount.toFixed(2)}`, amountX, totalsY);
+      doc.text(`${settings.currency} ${Number(order.discount).toFixed(2)}`, amountX, totalsY);
       totalsY += 15;
     }
     
     doc.fontSize(12).text('Total:', totalsX, totalsY);
-    doc.text(`${settings.currency} ${order.total.toFixed(2)}`, amountX, totalsY);
+    doc.text(`${settings.currency} ${Number(order.total).toFixed(2)}`, amountX, totalsY);
     
     // Add footer message
     doc.moveDown();
@@ -117,8 +117,8 @@ export const generateReceipt = async (
     // Return a promise that resolves when the file is written
     return new Promise((resolve, reject) => {
       writeStream.on('finish', () => {
-        // Return the file path
-        resolve(`/uploads/receipts/receipt-${order.orderNumber}.pdf`);
+        // Return the file path without /uploads prefix since it's already handled by Express
+        resolve(`/receipts/receipt-${order.orderNumber}.pdf`);
       });
       
       writeStream.on('error', reject);

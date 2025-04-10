@@ -543,45 +543,53 @@ export const getReceipt = async (req: Request, res: Response, next: NextFunction
     const { id } = req.params;
 
     // Get the order from the database with all related data
-    const order = await db.query.orders.findFirst({
-      where: eq(orders.id, id),
-      with: {
-        customer: true,
-      },
-    });
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, id))
+      .limit(1);
 
     if (!order) {
       throw new NotFoundError(`Order with ID ${id} not found`);
     }
 
-    // Convert string numeric values to numbers for type compatibility
-    const orderWithNumericValues = {
+    // Get customer if exists
+    let customer = null;
+    if (order.customerId) {
+      [customer] = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.id, order.customerId))
+        .limit(1);
+    }
+
+    const orderWithCustomer = {
       ...order,
-      subtotal: order.subtotal,
-      tax: order.tax,
-      discount: order.discount,
-      total: order.total,
+      customer,
     } as Order;
 
-    // Get the order items
-    const items = await db.query.orderItems.findMany({
-      where: eq(orderItems.orderId, id),
-    });
+    // Get the order items and convert numeric strings to numbers
+    const items = await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, id));
 
-    // Convert string numeric values to numbers for type compatibility
     const itemsWithNumericValues = items.map(item => ({
       ...item,
       unitPrice: Number(item.unitPrice),
       subtotal: Number(item.subtotal),
-    })) as OrderItemType[];
+    })) as OrderItem[];
 
-    // Get the business settings
-    const businessSettings = await db.query.settings.findFirst();
+    // Get the business settings and convert numeric strings to numbers
+    const [businessSettings] = await db
+      .select()
+      .from(settings)
+      .limit(1);
+
     if (!businessSettings) {
       throw new BadRequestError('Business settings not found');
     }
 
-    // Convert taxRate from string to number for type compatibility
     const businessSettingsWithNumericValues = {
       ...businessSettings,
       taxRate: Number(businessSettings.taxRate),
@@ -589,8 +597,8 @@ export const getReceipt = async (req: Request, res: Response, next: NextFunction
 
     // Generate the receipt
     const receiptPath = await generateReceipt(
-      orderWithNumericValues, 
-      itemsWithNumericValues, 
+      orderWithCustomer,
+      itemsWithNumericValues,
       businessSettingsWithNumericValues
     );
 

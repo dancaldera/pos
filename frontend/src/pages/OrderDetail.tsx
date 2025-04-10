@@ -74,7 +74,8 @@ const OrderDetail: React.FC = () => {
   // Check if user is admin or manager
   const isAdmin = authState.user?.role === 'admin';
   const isManager = authState.user?.role === 'manager';
-  const canManageOrders = isAdmin || isManager;
+  const isWaitress = authState.user?.role === 'waitress';
+  const canManageOrders = isAdmin || isManager || isWaitress;
 
   useEffect(() => {
     fetchOrder();
@@ -333,11 +334,11 @@ const OrderDetail: React.FC = () => {
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
             <h1 className="text-2xl font-bold text-gray-800">
-              {translate.orders('orderNumber').replace('{number}', order.orderNumber.toString())}
+              {translate.orders('orderNumber')} {order.orderNumber}
             </h1>
           </div>
           <p className="text-gray-500 mt-1">
-            {translate.orders('createdOn').replace('{date}', formatDate(order.createdAt))}
+            {translate.orders('createdOn')} {formatDate(order.createdAt)}
           </p>
         </div>
         

@@ -26,6 +26,6 @@ router.get('/:id/receipt', getReceipt);
 
 // Routes that require admin or manager access for status update
 router.put('/:id/status', authorize('admin', 'manager', 'waitress'), updateOrderStatus);
-router.put('/:id/cancel', authorize('admin', 'manager'), cancelOrder);
+router.put('/:id/cancel', authorize('admin', 'manager', "waitress"), cancelOrder);
 
 export default router;

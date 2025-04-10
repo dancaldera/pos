@@ -4,9 +4,12 @@ import {
   getOrder, 
   updateOrderStatus, 
   addPayment, 
-  cancelOrder
+  cancelOrder,
+  addItemsToOrder
 } from '../api/orders';
-import { Order, OrderStatus, PaymentMethod } from '../types/orders';
+import { Order, OrderStatus, PaymentMethod, OrderItemInput } from '../types/orders';
+import { getProducts } from '../api/products';
+import { Product } from '../types/products';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
@@ -16,7 +19,10 @@ import {
   ArrowPathIcon,
   XMarkIcon,
   ChevronDownIcon,
-  ChevronUpIcon
+  ChevronUpIcon,
+  PlusIcon,
+  MinusIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
 // Status and payment colors
@@ -53,6 +59,14 @@ const OrderDetail: React.FC = () => {
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
+  
+  // Add items modal state
+  const [addItemsModalOpen, setAddItemsModalOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Map<string, OrderItemInput>>(new Map());
 
   // Check if user is admin or manager
   const isAdmin = authState.user?.role === 'admin';
@@ -141,6 +155,108 @@ const OrderDetail: React.FC = () => {
     } catch (error: any) {
       console.error('Error adding payment:', error);
       alert(error?.response?.data?.message || 'Failed to process payment');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+  
+  const openAddItemsModal = async () => {
+    setAddItemsModalOpen(true);
+    setSelectedItems(new Map());
+    setProductSearch('');
+    
+    try {
+      setLoadingProducts(true);
+      const response = await getProducts({ active: true });
+      setProducts(response.data);
+      setFilteredProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+  
+  const handleProductSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProductSearch(e.target.value);
+    
+    // Filter products based on search
+    if (!e.target.value.trim()) {
+      setFilteredProducts(products);
+      return;
+    }
+    
+    const searchLower = e.target.value.toLowerCase();
+    const filtered = products.filter(
+      product => 
+        product.name.toLowerCase().includes(searchLower) ||
+        (product.sku && product.sku.toLowerCase().includes(searchLower)) ||
+        (product.barcode && product.barcode.toLowerCase().includes(searchLower))
+    );
+    setFilteredProducts(filtered);
+  };
+  
+  const toggleSelectProduct = (product: Product, variant?: string) => {
+    const currentItems = new Map(selectedItems);
+    const itemKey = variant ? `${product.id}-${variant}` : product.id;
+    
+    if (currentItems.has(itemKey)) {
+      // Remove if already selected
+      currentItems.delete(itemKey);
+    } else {
+      // Add with quantity 1
+      currentItems.set(itemKey, {
+        productId: product.id,
+        quantity: 1,
+        variant: variant,
+      });
+    }
+    
+    setSelectedItems(currentItems);
+  };
+  
+  const updateSelectedItemQuantity = (itemKey: string, quantity: number) => {
+    if (quantity < 1) return;
+    
+    const currentItems = new Map(selectedItems);
+    const item = currentItems.get(itemKey);
+    
+    if (item) {
+      const product = products.find(p => p.id === item.productId);
+      
+      // Check stock
+      if (product && product.stock < quantity) {
+        alert(`Sorry, only ${product.stock} units available for ${product.name}`);
+        return;
+      }
+      
+      // Update quantity
+      currentItems.set(itemKey, {
+        ...item,
+        quantity
+      });
+      
+      setSelectedItems(currentItems);
+    }
+  };
+  
+  const handleSubmitAddItems = async () => {
+    if (!order || selectedItems.size === 0) return;
+    
+    try {
+      setSubmitLoading(true);
+      
+      // Convert Map to array
+      const itemsToAdd = Array.from(selectedItems.values());
+      
+      await addItemsToOrder(order.id, itemsToAdd);
+      setAddItemsModalOpen(false);
+      
+      // Refresh order data
+      fetchOrder();
+    } catch (error: any) {
+      console.error('Error adding items:', error);
+      alert(error?.response?.data?.message || 'Failed to add items to order');
     } finally {
       setSubmitLoading(false);
     }
@@ -249,6 +365,16 @@ const OrderDetail: React.FC = () => {
                 <ArrowPathIcon className="h-5 w-5 mr-1" />
                 Update Status
               </Button>
+              
+              {order.status !== 'completed' && (
+                <Button
+                  variant="outline"
+                  onClick={openAddItemsModal}
+                >
+                  <PlusIcon className="h-5 w-5 mr-1" />
+                  Add Items
+                </Button>
+              )}
               
               {order.paymentStatus !== 'paid' && (
                 <Button
@@ -367,6 +493,11 @@ const OrderDetail: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <div className="flex-1">
                       <div className="font-medium">{item.productName}</div>
+                      {item.variant && (
+                        <div className="text-xs text-blue-600 font-medium">
+                          Variant: {item.variant}
+                        </div>
+                      )}
                       {showLineItemDetails && (
                         <div className="text-xs text-gray-500">
                           {item.productId ? `Product ID: ${item.productId}` : 'Custom item'}
@@ -573,6 +704,166 @@ const OrderDetail: React.FC = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter reason for cancellation"
             />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add Items Modal */}
+      <Modal
+        isOpen={addItemsModalOpen}
+        onClose={() => setAddItemsModalOpen(false)}
+        title="Add Items to Order"
+        size="lg"
+        footer={
+          <>
+            <Button
+              variant="primary"
+              onClick={handleSubmitAddItems}
+              isLoading={submitLoading}
+              className="ml-3"
+              disabled={selectedItems.size === 0}
+            >
+              Add {selectedItems.size} {selectedItems.size === 1 ? 'Item' : 'Items'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setAddItemsModalOpen(false)}
+              disabled={submitLoading}
+            >
+              Cancel
+            </Button>
+          </>
+        }
+      >
+        <div className="py-4 max-h-[70vh] overflow-hidden flex flex-col">
+          {/* Search */}
+          <div className="mb-4 relative">
+            <input
+              type="text"
+              placeholder="Search products by name, SKU, or barcode..."
+              className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              value={productSearch}
+              onChange={handleProductSearchChange}
+            />
+            <div className="absolute right-3 top-2.5 text-gray-400">
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </div>
+          </div>
+          
+          {/* Selected Items Summary */}
+          {selectedItems.size > 0 && (
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+              <div className="font-medium text-blue-800 mb-2">Selected Items ({selectedItems.size})</div>
+              <div className="max-h-32 overflow-y-auto">
+                {Array.from(selectedItems.entries()).map(([key, item]) => {
+                  const product = products.find(p => p.id === item.productId);
+                  return (
+                    <div key={key} className="flex justify-between items-center mb-2">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{product?.name}</div>
+                        {item.variant && <div className="text-xs text-blue-600">{item.variant}</div>}
+                      </div>
+                      <div className="flex items-center">
+                        <button
+                          onClick={() => updateSelectedItemQuantity(key, item.quantity - 1)}
+                          className="p-1 rounded-full hover:bg-blue-100"
+                        >
+                          <MinusIcon className="h-4 w-4 text-blue-600" />
+                        </button>
+                        <span className="mx-2 w-6 text-center text-sm">{item.quantity}</span>
+                        <button
+                          onClick={() => updateSelectedItemQuantity(key, item.quantity + 1)}
+                          className="p-1 rounded-full hover:bg-blue-100"
+                        >
+                          <PlusIcon className="h-4 w-4 text-blue-600" />
+                        </button>
+                        <button
+                          onClick={() => toggleSelectProduct(product!, item.variant)}
+                          className="ml-2 p-1 rounded-full hover:bg-blue-100"
+                        >
+                          <XMarkIcon className="h-4 w-4 text-red-500" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Products List */}
+          <div className="overflow-y-auto flex-1">
+            {loadingProducts ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-10 text-gray-500">
+                No products found. Try a different search term.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredProducts.map(product => (
+                  <div 
+                    key={product.id}
+                    className={`border rounded-lg p-3 ${
+                      product.stock <= 0 ? 'opacity-50 pointer-events-none' : ''
+                    } ${selectedItems.has(product.id) ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+                  >
+                    <div className="mb-1">
+                      <div className="font-medium">{product.name}</div>
+                      {product.sku && <div className="text-xs text-gray-500">SKU: {product.sku}</div>}
+                    </div>
+                    
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold text-blue-600">{formatCurrency(product.price)}</span>
+                      <span className={`text-xs ${
+                        product.stock <= 0 ? 'text-red-600' : 
+                        product.stock <= (product.lowStockAlert || 5) ? 'text-orange-600' : 
+                        'text-green-600'
+                      }`}>
+                        {product.stock <= 0 ? 'Out of stock' : `${product.stock} in stock`}
+                      </span>
+                    </div>
+                    
+                    {/* Handle variants */}
+                    {product.hasVariants && product.variants && product.variants.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-1 mt-2">
+                        {product.variants.map((variant, idx) => {
+                          const variantKey = `${product.id}-${variant}`;
+                          const isSelected = selectedItems.has(variantKey);
+                          
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => toggleSelectProduct(product, variant)}
+                              className={`px-2 py-1 text-xs rounded ${
+                                isSelected 
+                                  ? 'bg-blue-500 text-white' 
+                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                              }`}
+                            >
+                              {variant}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => toggleSelectProduct(product)}
+                        className={`w-full mt-2 px-3 py-1.5 text-sm rounded ${
+                          selectedItems.has(product.id)
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                        }`}
+                      >
+                        {selectedItems.has(product.id) ? 'Selected' : 'Add to Order'}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </Modal>

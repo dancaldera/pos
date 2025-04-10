@@ -7,6 +7,7 @@ import {
   addPayment,
   getReceipt,
   cancelOrder,
+  addItemsToOrder,
 } from '../controllers/orders.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
@@ -20,6 +21,7 @@ router.get('/', getOrders);
 router.get('/:id', getOrder);
 router.post('/', createOrder);
 router.post('/:id/payment', addPayment);
+router.post('/:id/items', addItemsToOrder);
 router.get('/:id/receipt', getReceipt);
 
 // Routes that require admin or manager access for status update

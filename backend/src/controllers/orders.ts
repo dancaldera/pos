@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../db/index.js';
-import { orders, orderItems, products, customers, payments, inventoryTransactions, settings } from '../db/schema.js';
+import { orders, orderItems, products, customers, payments, inventoryTransactions, settings, users } from '../db/schema.js';
 import { eq, desc, sql, and, or, like, gte, lte } from 'drizzle-orm';
 import { NotFoundError, BadRequestError } from '../utils/errors.js';
 import { generateReceipt } from '../services/receipt.js';
@@ -178,12 +178,28 @@ export const getOrder = async (req: Request, res: Response, next: NextFunction) 
       amount: Number(payment.amount),
     }));
 
+    // Get user (staff) who created the order
+    let user = null;
+    if (order.userId) {
+      [user] = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          role: users.role,
+        })
+        .from(users)
+        .where(eq(users.id, order.userId))
+        .limit(1);
+    }
+
     // Return the order with all details
     res.status(200).json({
       success: true,
       data: {
         ...orderWithNumericValues,
         customer,
+        user,
         items: itemsWithNumericValues,
         payments: paymentsWithNumericValues,
       },
@@ -684,6 +700,163 @@ export const cancelOrder = async (req: Request, res: Response, next: NextFunctio
       return res.status(200).json({
         success: true,
         data: updatedOrder,
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Add items to an existing order
+export const addItemsToOrder = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { items } = req.body;
+
+    // Validate input
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw new BadRequestError('Request must include at least one item');
+    }
+
+    // Start a transaction
+    return await db.transaction(async (tx) => {
+      // Get the order
+      const [order] = await tx
+        .select()
+        .from(orders)
+        .where(eq(orders.id, id))
+        .limit(1);
+
+      if (!order) {
+        throw new NotFoundError(`Order with ID ${id} not found`);
+      }
+
+      // Can't add items to cancelled orders
+      if (order.status === 'cancelled') {
+        throw new BadRequestError('Cannot add items to a cancelled order');
+      }
+
+      // Get the business settings for tax calculation
+      const settingsResult = await tx.query.settings.findFirst();
+      const taxRate = settingsResult ? Number(settingsResult.taxRate) : 0;
+
+      // Process new items
+      let additionalSubtotal = 0;
+      const newItems = [];
+
+      for (const item of items) {
+        // Validate item
+        if (!item.productId || !item.quantity || item.quantity <= 0) {
+          throw new BadRequestError('Each item must have a productId and positive quantity');
+        }
+
+        // Get the product
+        const product = await tx.query.products.findFirst({
+          where: eq(products.id, item.productId),
+        });
+
+        if (!product) {
+          throw new BadRequestError(`Product with ID ${item.productId} not found`);
+        }
+
+        if (!product.active) {
+          throw new BadRequestError(`Product ${product.name} is not active`);
+        }
+
+        // Check stock
+        if (product.stock < item.quantity) {
+          throw new BadRequestError(`Insufficient stock for ${product.name} (requested: ${item.quantity}, available: ${product.stock})`);
+        }
+
+        // Calculate item subtotal
+        const unitPrice = Number(product.price);
+        const itemSubtotal = unitPrice * item.quantity;
+        additionalSubtotal += itemSubtotal;
+
+        // Create new order item
+        const [newItem] = await tx.insert(orderItems).values({
+          orderId: id,
+          productId: product.id,
+          productName: product.name,
+          variant: item.variant || null,
+          quantity: item.quantity,
+          unitPrice: unitPrice.toString(),
+          subtotal: itemSubtotal.toString(),
+          notes: item.notes || null,
+        }).returning();
+
+        newItems.push(newItem);
+
+        // Update product stock
+        await tx
+          .update(products)
+          .set({
+            stock: product.stock - item.quantity,
+            updatedAt: new Date(),
+          })
+          .where(eq(products.id, product.id));
+
+        // Create inventory transaction
+        await tx.insert(inventoryTransactions).values({
+          productId: product.id,
+          quantity: -item.quantity,
+          type: 'sale',
+          reference: `Order ${order.orderNumber}`,
+          userId: req.user!.id,
+        });
+      }
+
+      // Update order totals
+      const oldSubtotal = Number(order.subtotal);
+      const newSubtotal = oldSubtotal + additionalSubtotal;
+      const newTax = newSubtotal * (taxRate / 100);
+      const newTotal = newSubtotal + newTax - Number(order.discount);
+
+      // Update the order
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({
+          subtotal: newSubtotal.toString(),
+          tax: newTax.toString(),
+          total: newTotal.toString(),
+          updatedAt: new Date(),
+          // If order was paid, now it's partial
+          paymentStatus: order.paymentStatus === 'paid' ? 'partial' : order.paymentStatus,
+        })
+        .where(eq(orders.id, id))
+        .returning();
+
+      // Get all order items
+      const allItems = await tx
+        .select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, id));
+
+      // Convert numeric values for response
+      const updatedOrderWithNumericValues = {
+        ...updatedOrder,
+        subtotal: Number(updatedOrder.subtotal),
+        tax: Number(updatedOrder.tax),
+        discount: Number(updatedOrder.discount),
+        total: Number(updatedOrder.total),
+      };
+
+      // Return the updated order with new items
+      res.status(200).json({
+        success: true,
+        data: {
+          order: updatedOrderWithNumericValues,
+          items: allItems.map(item => ({
+            ...item,
+            unitPrice: Number(item.unitPrice),
+            subtotal: Number(item.subtotal),
+          })),
+          newItems: newItems.map(item => ({
+            ...item,
+            unitPrice: Number(item.unitPrice),
+            subtotal: Number(item.subtotal),
+          })),
+        },
       });
     });
   } catch (error) {

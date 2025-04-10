@@ -42,3 +42,9 @@ export const cancelOrder = async (id: string, reason: string) => {
   const response = await apiClient.put(`/orders/${id}/cancel`, { reason });
   return response.data;
 };
+
+// Add items to an existing order
+export const addItemsToOrder = async (id: string, items: any[]) => {
+  const response = await apiClient.post(`/orders/${id}/items`, { items });
+  return response.data;
+};

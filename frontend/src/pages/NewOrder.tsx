@@ -5,7 +5,7 @@ import { getCustomers } from '../api/customers';
 import { useNavigate } from 'react-router-dom';
 import { Product } from '../types/products';
 import { Customer } from '../types/customers';
-import { OrderItemInput, PaymentMethod, PaymentStatus } from '../types/orders';
+import { OrderItemInput, OrderStatus, PaymentMethod, PaymentStatus } from '../types/orders';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -15,7 +15,8 @@ import {
   MinusIcon, 
   TrashIcon,
   UserIcon,
-  ShoppingCartIcon
+  ShoppingCartIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 interface CartItem extends OrderItemInput {
@@ -219,6 +220,8 @@ const NewOrder: React.FC = () => {
       const processedCartItems = cartItems.map(item => ({
         productId: item.productId,
         quantity: Number(item.quantity),
+        price: Number(item.price),
+        subtotal: Number(item.subtotal),
         notes: item.notes || undefined,
       }));
       

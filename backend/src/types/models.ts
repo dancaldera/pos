@@ -55,10 +55,10 @@ export type Order = {
   customerId: string | null;
   userId: string;
   status: 'pending' | 'completed' | 'cancelled';
-  subtotal: number;
-  tax: number;
-  discount: number;
-  total: number;
+  subtotal: string;
+  tax: string;
+  discount: string;
+  total: string;
   notes: string | null;
   paymentStatus: 'paid' | 'unpaid' | 'partial';
   paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'transfer' | null;

@@ -4,7 +4,7 @@ import { orders, orderItems, products, customers, payments, inventoryTransaction
 import { eq, desc, sql, and, or, like, gte, lte } from 'drizzle-orm';
 import { NotFoundError, BadRequestError } from '../utils/errors.js';
 import { generateReceipt } from '../services/receipt.js';
-import { Order, OrderItem as OrderItemType, Settings } from '../types/models.js';
+import { Order, OrderItem, OrderItem as OrderItemType, Settings } from '../types/models.js';
 
 // Get all orders with filtering and pagination
 export const getOrders = async (req: Request, res: Response, next: NextFunction) => {
@@ -76,23 +76,22 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
     const total = Number(countResult[0].count);
 
     // Get the orders with related data
-    const ordersList = await db.query.orders.findMany({
-      where: whereClause as any,
-      orderBy: orderClause as any,
-      limit,
-      offset,
-      with: {
-        customer: true,
-        user: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-      },
-    });
+    const ordersList = await db
+      .select()
+      .from(orders)
+      .where(whereClause as any)
+      .orderBy(orderClause as any)
+      .limit(limit)
+      .offset(offset);
+
+    // Convert numeric values from strings to numbers
+    const ordersWithNumericValues = ordersList.map(order => ({
+      ...order,
+      subtotal: Number(order.subtotal),
+      tax: Number(order.tax),
+      discount: Number(order.discount),
+      total: Number(order.total),
+    }));
 
     res.status(200).json({
       success: true,
@@ -103,7 +102,7 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
         limit,
         totalPages: Math.ceil(total / limit),
       },
-      data: ordersList,
+      data: ordersWithNumericValues,
     });
   } catch (error) {
     next(error);
@@ -115,21 +114,12 @@ export const getOrder = async (req: Request, res: Response, next: NextFunction) 
   try {
     const { id } = req.params;
 
-    // Get the order from the database with all related data
-    const order = await db.query.orders.findFirst({
-      where: eq(orders.id, id),
-      with: {
-        customer: true,
-        user: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-      },
-    });
+    // Get the order from the database
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, id))
+      .limit(1);
 
     if (!order) {
       throw new NotFoundError(`Order with ID ${id} not found`);
@@ -138,19 +128,27 @@ export const getOrder = async (req: Request, res: Response, next: NextFunction) 
     // Convert string numeric values to numbers for type compatibility
     const orderWithNumericValues = {
       ...order,
-      subtotal: Number(order.subtotal),
-      tax: Number(order.tax),
-      discount: Number(order.discount),
-      total: Number(order.total),
+      subtotal: order.subtotal,
+      tax: order.tax,
+      discount: order.discount,
+      total: order.total,
     } as Order;
 
+    // Get customer if exists
+    let customer = null;
+    if (order.customerId) {
+      [customer] = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.id, order.customerId))
+        .limit(1);
+    }
+
     // Get the order items
-    const items = await db.query.orderItems.findMany({
-      where: eq(orderItems.orderId, id),
-      with: {
-        product: true,
-      },
-    });
+    const items = await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, id));
 
     // Convert string numeric values to numbers for type compatibility
     const itemsWithNumericValues = items.map(item => ({
@@ -160,27 +158,34 @@ export const getOrder = async (req: Request, res: Response, next: NextFunction) 
     })) as OrderItemType[];
 
     // Get the payments
-    const orderPayments = await db.query.payments.findMany({
-      where: eq(payments.orderId, id),
-      with: {
-        user: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-      },
-    });
+    const orderPayments = await db
+      .select({
+        id: payments.id,
+        orderId: payments.orderId,
+        amount: payments.amount,
+        method: payments.method,
+        reference: payments.reference,
+        notes: payments.notes,
+        userId: payments.userId,
+        createdAt: payments.createdAt,
+      })
+      .from(payments)
+      .where(eq(payments.orderId, id));
+
+    // Convert payment amounts from strings to numbers
+    const paymentsWithNumericValues = orderPayments.map(payment => ({
+      ...payment,
+      amount: Number(payment.amount),
+    }));
 
     // Return the order with all details
     res.status(200).json({
       success: true,
       data: {
         ...orderWithNumericValues,
+        customer,
         items: itemsWithNumericValues,
-        payments: orderPayments,
+        payments: paymentsWithNumericValues,
       },
     });
   } catch (error) {
@@ -200,6 +205,8 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       paymentMethod,
       payment,
     } = req.body;
+
+    console.log("req.body", req.body);
 
     // Validate input
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -251,6 +258,9 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
           throw new BadRequestError(`Insufficient stock for ${product.name} (requested: ${item.quantity}, available: ${product.stock})`);
         }
 
+        console.log("product", product);
+        console.log("item", item);
+
         // Calculate item subtotal
         const unitPrice = Number(product.price);
         const itemSubtotal = unitPrice * item.quantity;
@@ -284,6 +294,8 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         paymentStatus,
         paymentMethod,
       }).returning();
+
+      console.log("newOrder", newOrder);
 
       // Create order items and update inventory
       for (const item of processedItems) {
@@ -334,12 +346,26 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
           userId: req.user!.id,
         });
 
-        // Update order payment status based on payment amount
-        const totalPaid = payment.amount;
+        // Get existing payments
+        const existingPayments = await tx.query.payments.findMany({
+          where: eq(payments.orderId, newOrder.id),
+        });
+
+        // Calculate total paid so far
+        const totalPaidSoFar = existingPayments.reduce(
+          (sum, payment) => sum + Number(payment.amount),
+          0
+        );
+
+        // Calculate new total paid
+        const newTotalPaid = totalPaidSoFar + payment.amount;
+
+        // Calculate total amount
         const totalAmount = Number(total);
-        // Use the enum value directly instead of a string
-        const newPaymentStatus = totalPaid >= totalAmount ? 'paid' : 'partial';
-        
+
+        // Update order payment status based on payment amount
+        const newPaymentStatus = newTotalPaid >= totalAmount ? 'paid' : newTotalPaid > 0 ? 'partial' : 'unpaid';
+
         await tx
           .update(orders)
           .set({ paymentStatus: newPaymentStatus })
@@ -349,50 +375,15 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         newOrder.paymentStatus = newPaymentStatus;
       }
 
-      // Get the complete order with all details
-      const completeOrder = await tx.query.orders.findFirst({
-        where: eq(orders.id, newOrder.id),
-        with: {
-          customer: true,
-          user: {
-            columns: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-            },
-          },
-        },
-      }) as unknown as Order;
-
-      const orderItemsList = await tx.query.orderItems.findMany({
-        where: eq(orderItems.orderId, newOrder.id),
-      }) as unknown as OrderItemType[];
-
-      const orderPayments = await tx.query.payments.findMany({
-        where: eq(payments.orderId, newOrder.id),
-        with: {
-          user: {
-            columns: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-            },
-          },
-        },
-      });
-
       return res.status(201).json({
         success: true,
         data: {
-          ...completeOrder,
-          items: orderItemsList,
-          payments: orderPayments,
+          ...newOrder,
         },
       });
     });
   } catch (error) {
+    console.error('Error creating order:', error);
     next(error);
   }
 };
@@ -430,10 +421,10 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
     // Convert string numeric values to numbers for type compatibility
     const updatedOrderWithNumericValues = {
       ...updatedOrder,
-      subtotal: Number(updatedOrder.subtotal),
-      tax: Number(updatedOrder.tax),
-      discount: Number(updatedOrder.discount),
-      total: Number(updatedOrder.total),
+      subtotal: updatedOrder.subtotal,
+      tax: updatedOrder.tax,
+      discount: updatedOrder.discount,
+      total: updatedOrder.total,
     } as Order;
 
     // Return the updated order
@@ -527,32 +518,16 @@ export const addPayment = async (req: Request, res: Response, next: NextFunction
       // Convert string numeric values to numbers for type compatibility
       const updatedOrderWithNumericValues = {
         ...updatedOrder,
-        subtotal: Number(updatedOrder.subtotal),
-        tax: Number(updatedOrder.tax),
-        discount: Number(updatedOrder.discount),
-        total: Number(updatedOrder.total),
+        subtotal: updatedOrder.subtotal,
+        tax: updatedOrder.tax,
+        discount: updatedOrder.discount,
+        total: updatedOrder.total,
       } as Order;
-
-      // Get the payment with user
-      const paymentWithUser = await tx.query.payments.findFirst({
-        where: eq(payments.id, newPayment.id),
-        with: {
-          user: {
-            columns: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-            },
-          },
-        },
-      });
 
       return res.status(200).json({
         success: true,
         data: {
           order: updatedOrderWithNumericValues,
-          payment: paymentWithUser,
           totalPaid: newTotalPaid,
         },
       });
@@ -582,10 +557,10 @@ export const getReceipt = async (req: Request, res: Response, next: NextFunction
     // Convert string numeric values to numbers for type compatibility
     const orderWithNumericValues = {
       ...order,
-      subtotal: Number(order.subtotal),
-      tax: Number(order.tax),
-      discount: Number(order.discount),
-      total: Number(order.total),
+      subtotal: order.subtotal,
+      tax: order.tax,
+      discount: order.discount,
+      total: order.total,
     } as Order;
 
     // Get the order items

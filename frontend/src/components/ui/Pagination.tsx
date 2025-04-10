@@ -18,7 +18,7 @@ const Pagination: React.FC<PaginationProps> = ({
   itemsPerPage,
   className = '',
 }) => {
-  const pageNumbers = [];
+  const pageNumbers: Array<number | string> = [];
   const maxPagesToShow = 5;
 
   // Create pagination range with ellipsis

@@ -10,7 +10,6 @@ import {
   SquaresPlusIcon,
   UserGroupIcon,
   ArchiveBoxIcon,
-  CheckCircleIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
 import { 
@@ -238,11 +237,6 @@ const Dashboard: React.FC = () => {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -250,19 +244,6 @@ const Dashboard: React.FC = () => {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800';
-      case 'partial':
-        return 'bg-orange-100 text-orange-800';
-      case 'unpaid':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';

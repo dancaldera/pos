@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import { Product } from '../types/products';
 import { Customer } from '../types/customers';
 import { OrderItemInput, OrderStatus, PaymentMethod, PaymentStatus } from '../types/orders';
-import { useAuth } from '../context/AuthContext';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import {
@@ -27,7 +26,6 @@ interface CartItem extends OrderItemInput {
 
 const NewOrder: React.FC = () => {
   const navigate = useNavigate();
-  const { state: authState } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);

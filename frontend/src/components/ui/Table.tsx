@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface TableProps {
-  headers: string[];
+  headers: (string | React.ReactNode)[];
   children: React.ReactNode;
   className?: string;
   headerClassName?: string;

@@ -4,8 +4,7 @@ import {
   getOrder, 
   updateOrderStatus, 
   addPayment, 
-  cancelOrder,
-  getReceipt
+  cancelOrder
 } from '../api/orders';
 import { Order, OrderStatus, PaymentMethod } from '../types/orders';
 import Button from '../components/ui/Button';
@@ -147,18 +146,18 @@ const OrderDetail: React.FC = () => {
     }
   };
 
-  const handleGetReceipt = async () => {
-    if (!order) return;
+  // const handleGetReceipt = async () => {
+  //   if (!order) return;
     
-    try {
-      const response = await getReceipt(order.id);
-      if (response.success && response.data.receiptUrl) {
-        window.open(`/uploads/${response.data.receiptUrl}`, '_blank');
-      }
-    } catch (error) {
-      console.error('Error generating receipt:', error);
-    }
-  };
+  //   try {
+  //     const response = await getReceipt(order.id);
+  //     if (response.success && response.data.receiptUrl) {
+  //       window.open(`/uploads/${response.data.receiptUrl}`, '_blank');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error generating receipt:', error);
+  //   }
+  // };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();

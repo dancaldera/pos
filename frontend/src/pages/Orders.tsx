@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { cancelOrder, getOrders, updateOrderStatus } from "../api/orders";
+import { cancelOrder, getOrders } from "../api/orders";
 import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import Table from "../components/ui/Table";
@@ -174,7 +174,6 @@ const Orders: React.FC = () => {
 
     try {
       setSubmitLoading(true);
-      const response = await updateOrderStatus(selectedOrder.id, newStatus);
       setStatusModalOpen(false);
 
       // Update the order in the list

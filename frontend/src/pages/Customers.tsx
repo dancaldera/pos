@@ -1,52 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  getCustomers, 
-  createCustomer, 
-  updateCustomer, 
-  deleteCustomer 
-} from '../api/customers';
-import { Customer } from '../types/customers';
-import Table from '../components/ui/Table';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import { 
-  PencilIcon, 
-  TrashIcon, 
-  PlusIcon, 
+import React, { useState, useEffect } from "react";
+import {
+  getCustomers,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+} from "../api/customers";
+import { Customer } from "../types/customers";
+import Table from "../components/ui/Table";
+import Button from "../components/ui/Button";
+import Modal from "../components/ui/Modal";
+import {
+  PencilIcon,
+  TrashIcon,
+  PlusIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
   EnvelopeIcon,
   MapPinIcon,
-  ShoppingBagIcon
-} from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
+} from "@heroicons/react/24/outline";
 
 const Customers: React.FC = () => {
-  const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
   });
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [searchParams, setSearchParams] = useState({
     page: 1,
     limit: 10,
-    search: '',
-    sortBy: 'name',
-    sortOrder: 'asc',
+    search: "",
+    sortBy: "name",
+    sortOrder: "asc",
   });
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
     totalPages: 1,
-    total: 0
+    total: 0,
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -65,10 +62,10 @@ const Customers: React.FC = () => {
         page: response.pagination.page,
         limit: response.pagination.limit,
         totalPages: response.pagination.totalPages,
-        total: response.total
+        total: response.total,
       });
     } catch (error) {
-      console.error('Error fetching customers:', error);
+      console.error("Error fetching customers:", error);
     } finally {
       setLoading(false);
     }
@@ -82,16 +79,19 @@ const Customers: React.FC = () => {
     setSearchParams({
       ...searchParams,
       search,
-      page: 1 // Reset to first page when searching
+      page: 1, // Reset to first page when searching
     });
   };
 
   const handleSortChange = (column: string) => {
-    const newSortOrder = searchParams.sortBy === column && searchParams.sortOrder === 'asc' ? 'desc' : 'asc';
+    const newSortOrder =
+      searchParams.sortBy === column && searchParams.sortOrder === "asc"
+        ? "desc"
+        : "asc";
     setSearchParams({
       ...searchParams,
       sortBy: column,
-      sortOrder: newSortOrder
+      sortOrder: newSortOrder,
     });
   };
 
@@ -99,17 +99,17 @@ const Customers: React.FC = () => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
     setSearchParams({
       ...searchParams,
-      page: newPage
+      page: newPage,
     });
   };
 
   const openCreateModal = () => {
     setCurrentCustomer(null);
     setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -119,9 +119,9 @@ const Customers: React.FC = () => {
     setCurrentCustomer(customer);
     setFormData({
       name: customer.name,
-      email: customer.email || '',
-      phone: customer.phone || '',
-      address: customer.address || '',
+      email: customer.email || "",
+      phone: customer.phone || "",
+      address: customer.address || "",
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -139,37 +139,39 @@ const Customers: React.FC = () => {
     // navigate(`/customers/${customerId}`);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+      errors.name = "Name is required";
     }
-    
+
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email is invalid';
+      errors.email = "Email is invalid";
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     try {
       setSubmitLoading(true);
-      
+
       // Remove empty strings to save as null
       const customerData = {
         name: formData.name,
@@ -177,7 +179,7 @@ const Customers: React.FC = () => {
         phone: formData.phone || null,
         address: formData.address || null,
       };
-      
+
       if (currentCustomer) {
         // Update customer
         await updateCustomer(currentCustomer.id, customerData);
@@ -185,20 +187,20 @@ const Customers: React.FC = () => {
         // Create customer
         await createCustomer(customerData);
       }
-      
+
       setIsModalOpen(false);
       fetchCustomers();
     } catch (error: any) {
-      console.error('Error saving customer:', error);
+      console.error("Error saving customer:", error);
       // Handle API error response
       if (error.response?.data?.message) {
-        if (error.response.data.message.includes('email already exists')) {
+        if (error.response.data.message.includes("email already exists")) {
           setFormErrors({
-            email: 'Email already registered to another customer'
+            email: "Email already registered to another customer",
           });
         } else {
           setFormErrors({
-            form: error.response.data.message
+            form: error.response.data.message,
           });
         }
       }
@@ -209,17 +211,24 @@ const Customers: React.FC = () => {
 
   const handleDelete = async () => {
     if (!currentCustomer) return;
-    
+
     try {
       setSubmitLoading(true);
       await deleteCustomer(currentCustomer.id);
       setIsDeleteModalOpen(false);
       fetchCustomers();
     } catch (error: any) {
-      console.error('Error deleting customer:', error);
+      console.error("Error deleting customer:", error);
       // Handle the case where customer has associated orders
-      if (error.response?.data?.message && error.response.data.message.includes('Cannot delete customer with associated orders')) {
-        alert('Cannot delete this customer because they have placed orders. Consider marking them as inactive instead.');
+      if (
+        error.response?.data?.message &&
+        error.response.data.message.includes(
+          "Cannot delete customer with associated orders"
+        )
+      ) {
+        alert(
+          "Cannot delete this customer because they have placed orders. Consider marking them as inactive instead."
+        );
       }
     } finally {
       setSubmitLoading(false);
@@ -232,20 +241,19 @@ const Customers: React.FC = () => {
 
   const getSortIcon = (column: string) => {
     if (searchParams.sortBy !== column) return null;
-    
-    return searchParams.sortOrder === 'asc' 
-      ? <span className="ml-1">↑</span> 
-      : <span className="ml-1">↓</span>;
+
+    return searchParams.sortOrder === "asc" ? (
+      <span className="ml-1">↑</span>
+    ) : (
+      <span className="ml-1">↓</span>
+    );
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
-        <Button 
-          variant="primary" 
-          onClick={openCreateModal}
-        >
+        <Button variant="primary" onClick={openCreateModal}>
           <PlusIcon className="h-5 w-5 mr-1" />
           Add Customer
         </Button>
@@ -262,7 +270,7 @@ const Customers: React.FC = () => {
                 className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 value={search}
                 onChange={handleSearchChange}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
               <button
                 className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
@@ -284,29 +292,40 @@ const Customers: React.FC = () => {
       ) : (
         <>
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table 
+            <Table
               headers={[
-                <div key="name" className="cursor-pointer flex items-center" onClick={() => handleSortChange('name')}>
-                  Name {getSortIcon('name')}
+                <div
+                  key="name"
+                  className="cursor-pointer flex items-center"
+                  onClick={() => handleSortChange("name")}
+                >
+                  Name {getSortIcon("name")}
                 </div>,
-                'Contact Info',
-                <div key="createdAt" className="cursor-pointer flex items-center" onClick={() => handleSortChange('createdAt')}>
-                  Customer Since {getSortIcon('createdAt')}
+                "Contact Info",
+                <div
+                  key="createdAt"
+                  className="cursor-pointer flex items-center"
+                  onClick={() => handleSortChange("createdAt")}
+                >
+                  Customer Since {getSortIcon("createdAt")}
                 </div>,
-                'Actions'
+                "Actions",
               ]}
             >
               {customers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={4}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No customers found. Create a new customer to get started.
                   </td>
                 </tr>
               ) : (
-                customers.map(customer => (
+                customers.map((customer) => (
                   <tr key={customer.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div 
+                      <div
                         className="font-medium text-blue-600 hover:text-blue-900 cursor-pointer"
                         onClick={() => viewCustomerDetails(customer.id)}
                       >
@@ -330,7 +349,9 @@ const Customers: React.FC = () => {
                         {customer.address && (
                           <div className="flex items-center text-sm text-gray-500">
                             <MapPinIcon className="h-4 w-4 mr-1" />
-                            <span className="truncate max-w-xs">{customer.address}</span>
+                            <span className="truncate max-w-xs">
+                              {customer.address}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -366,7 +387,9 @@ const Customers: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} customers
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+                of {pagination.total} customers
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -395,7 +418,7 @@ const Customers: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentCustomer ? 'Edit Customer' : 'Add New Customer'}
+        title={currentCustomer ? "Edit Customer" : "Add New Customer"}
         footer={
           <>
             <Button
@@ -404,7 +427,7 @@ const Customers: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              {currentCustomer ? 'Update Customer' : 'Create Customer'}
+              {currentCustomer ? "Update Customer" : "Create Customer"}
             </Button>
             <Button
               variant="outline"
@@ -434,7 +457,7 @@ const Customers: React.FC = () => {
               value={formData.name}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                formErrors.name ? 'border-red-500' : 'border-gray-300'
+                formErrors.name ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Enter customer name"
             />
@@ -454,7 +477,7 @@ const Customers: React.FC = () => {
               value={formData.email}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                formErrors.email ? 'border-red-500' : 'border-gray-300'
+                formErrors.email ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Enter email address"
             />
@@ -522,12 +545,15 @@ const Customers: React.FC = () => {
       >
         <div className="py-4">
           <p className="text-gray-600">
-            Are you sure you want to delete the customer{' '}
-            <span className="font-medium text-gray-900">{currentCustomer?.name}</span>?
+            Are you sure you want to delete the customer{" "}
+            <span className="font-medium text-gray-900">
+              {currentCustomer?.name}
+            </span>
+            ?
             <br />
             <br />
-            Note: You cannot delete a customer who has placed orders.
-            This action cannot be undone.
+            Note: You cannot delete a customer who has placed orders. This
+            action cannot be undone.
           </p>
         </div>
       </Modal>

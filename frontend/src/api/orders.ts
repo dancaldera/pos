@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Order, OrderCreateData } from '../types/orders';
+import { OrderCreateData } from '../types/orders';
 
 // Get all orders with optional filtering
 export const getOrders = async (params = {}) => {

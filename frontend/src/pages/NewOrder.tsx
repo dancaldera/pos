@@ -30,7 +30,7 @@ interface CartItem extends OrderItemInput {
 
 const NewOrder: React.FC = () => {
   const navigate = useNavigate();
-  const { translate, language } = useLanguage();
+  const { translate } = useLanguage();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);

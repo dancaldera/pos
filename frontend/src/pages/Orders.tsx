@@ -226,7 +226,7 @@ const Orders: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const { translate, language } = useLanguage();
+  const { translate } = useLanguage();
   
   const formatCurrency = (amount: number) => {
     return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');

@@ -245,7 +245,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const { translate, language } = useLanguage();
+  const { translate } = useLanguage();
 
   return (
     <div>

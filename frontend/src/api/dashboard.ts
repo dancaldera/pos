@@ -1,0 +1,85 @@
+import apiClient from './client';
+
+export interface DashboardStats {
+  totalProducts: number;
+  activeProducts: number;
+  totalCategories: number;
+  totalCustomers: number;
+  totalOrders: number;
+  completedOrders: number;
+  pendingOrders: number;
+  totalRevenue: number;
+  lowStockProducts: number;
+}
+
+export interface RecentOrder {
+  id: string;
+  orderNumber: number;
+  customerId: string | null;
+  userId: string;
+  status: string;
+  subtotal: number;
+  tax: number;
+  discount: number;
+  total: number;
+  paymentStatus: string;
+  createdAt: string;
+  customer?: {
+    name: string;
+  } | null;
+}
+
+export interface SalesDataPoint {
+  date: string;
+  sales: number;
+  count: number;
+}
+
+export interface TopProduct {
+  productId: string | null;
+  productName: string;
+  totalQuantity: number;
+  totalSales: number;
+}
+
+export interface PaymentStat {
+  method: string;
+  total: number;
+  count: number;
+}
+
+// Get dashboard statistics
+export const getDashboardStats = async () => {
+  const response = await apiClient.get('/dashboard/stats');
+  return response.data;
+};
+
+// Get recent orders
+export const getRecentOrders = async (limit = 5) => {
+  const response = await apiClient.get('/dashboard/recent-orders', {
+    params: { limit }
+  });
+  return response.data;
+};
+
+// Get sales data for charts
+export const getSalesData = async (period: 'daily' | 'weekly' | 'monthly' = 'weekly') => {
+  const response = await apiClient.get('/dashboard/sales-data', {
+    params: { period }
+  });
+  return response.data;
+};
+
+// Get top selling products
+export const getTopProducts = async (limit = 5) => {
+  const response = await apiClient.get('/dashboard/top-products', {
+    params: { limit }
+  });
+  return response.data;
+};
+
+// Get payment method statistics
+export const getPaymentStats = async () => {
+  const response = await apiClient.get('/dashboard/payment-stats');
+  return response.data;
+};

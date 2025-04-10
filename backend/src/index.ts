@@ -12,6 +12,7 @@ import productsRoutes from './routes/products.js';
 import customersRoutes from './routes/customers.js';
 import ordersRoutes from './routes/orders.js';
 import settingsRoutes from './routes/settings.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 // Create Express server
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api/customers', customersRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

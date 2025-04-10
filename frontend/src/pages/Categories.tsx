@@ -10,6 +10,7 @@ import Table from '../components/ui/Table';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { PencilIcon, TrashIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '../context/LanguageContext';
 
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -123,11 +124,13 @@ const Categories: React.FC = () => {
     });
   };
 
+  const { translate } = useLanguage();
+
   const validateForm = () => {
     const errors: Record<string, string> = {};
     
     if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+      errors.name = translate.categories('nameRequired');
     }
     
     setFormErrors(errors);
@@ -158,7 +161,7 @@ const Categories: React.FC = () => {
       if (error.response?.data?.message) {
         if (error.response.data.message.includes('already exists')) {
           setFormErrors({
-            name: error.response.data.message
+            name: translate.categories('nameExists')
           });
         }
       }
@@ -197,13 +200,13 @@ const Categories: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{translate.categories('title')}</h1>
         <Button 
           variant="primary" 
           onClick={openCreateModal}
         >
           <PlusIcon className="h-5 w-5 mr-1" />
-          Add Category
+          {translate.categories('addCategory')}
         </Button>
       </div>
 
@@ -214,7 +217,7 @@ const Categories: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search categories..."
+                placeholder={translate.categories('searchCategories')}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 value={search}
                 onChange={handleSearchChange}
@@ -235,7 +238,7 @@ const Categories: React.FC = () => {
       {loading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">Loading categories...</p>
+          <p className="mt-2 text-gray-600">{translate.common('loading')}</p>
         </div>
       ) : (
         <>
@@ -243,22 +246,22 @@ const Categories: React.FC = () => {
             <Table 
               headers={[
                 <div key="name" className="cursor-pointer flex items-center" onClick={() => handleSortChange('name')}>
-                  Name {getSortIcon('name')}
+                  {translate.common('name')} {getSortIcon('name')}
                 </div>,
-                'Description',
+                translate.common('description'),
                 <div key="productCount" className="cursor-pointer flex items-center" onClick={() => handleSortChange('productCount')}>
-                  Products {getSortIcon('productCount')}
+                  {translate.categories('productsInCategory')} {getSortIcon('productCount')}
                 </div>,
                 <div key="createdAt" className="cursor-pointer flex items-center" onClick={() => handleSortChange('createdAt')}>
-                  Created {getSortIcon('createdAt')}
+                  {translate.common('created')} {getSortIcon('createdAt')}
                 </div>,
-                'Actions'
+                translate.common('actions')
               ]}
             >
               {categories.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                    No categories found. Create a new category to get started.
+                    {translate.common('noResults')}
                   </td>
                 </tr>
               ) : (
@@ -308,7 +311,7 @@ const Categories: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} categories
+                {(pagination.page - 1) * pagination.limit + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} {translate.categories('title').toLowerCase()}
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -317,7 +320,7 @@ const Categories: React.FC = () => {
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
                 >
-                  Previous
+                  {translate.common('previous')}
                 </Button>
                 <Button
                   variant="outline"
@@ -325,7 +328,7 @@ const Categories: React.FC = () => {
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
                 >
-                  Next
+                  {translate.common('next')}
                 </Button>
               </div>
             </div>
@@ -337,7 +340,7 @@ const Categories: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentCategory ? 'Edit Category' : 'Add New Category'}
+        title={currentCategory ? translate.categories('editCategory') : translate.categories('addCategory')}
         footer={
           <>
             <Button
@@ -346,14 +349,14 @@ const Categories: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              {currentCategory ? 'Update Category' : 'Create Category'}
+              {currentCategory ? translate.common('save') : translate.common('add')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
@@ -361,7 +364,7 @@ const Categories: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category Name *
+              {translate.categories('categoryName')} *
             </label>
             <input
               type="text"
@@ -371,7 +374,7 @@ const Categories: React.FC = () => {
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                 formErrors.name ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Enter category name"
+              placeholder={translate.categories('categoryName')}
             />
             {formErrors.name && (
               <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
@@ -380,7 +383,7 @@ const Categories: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              {translate.categories('categoryDescription')}
             </label>
             <textarea
               name="description"
@@ -388,7 +391,7 @@ const Categories: React.FC = () => {
               onChange={handleInputChange}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter category description"
+              placeholder={translate.categories('categoryDescription')}
             />
           </div>
         </form>
@@ -398,7 +401,7 @@ const Categories: React.FC = () => {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Delete Category"
+        title={translate.common('delete')}
         footer={
           <>
             <Button
@@ -407,26 +410,23 @@ const Categories: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              Delete
+              {translate.common('delete')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
       >
         <div className="py-4">
           <p className="text-gray-600">
-            Are you sure you want to delete the category{' '}
-            <span className="font-medium text-gray-900">{currentCategory?.name}</span>?
+            {translate.categories('deleteConfirmation')}
             <br />
-            <br />
-            Note: You cannot delete a category that has products assigned to it.
-            This action cannot be undone.
+            <span className="font-medium text-gray-900">{currentCategory?.name}</span>
           </p>
         </div>
       </Modal>

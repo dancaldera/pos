@@ -13,6 +13,7 @@ import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import Table from "../components/ui/Table";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import { Order, OrderStatus } from "../types/orders";
 
 // Order status colors and badges
@@ -225,20 +226,19 @@ const Orders: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
+  const { translate, language } = useLanguage();
+  
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
+    return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Orders</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{translate.orders('title')}</h1>
         <Button variant="primary" onClick={handleNewOrder}>
           <PlusIcon className="h-5 w-5 mr-1" />
-          New Order
+          {translate.orders('newOrder')}
         </Button>
       </div>
 
@@ -249,7 +249,7 @@ const Orders: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by order number or notes..."
+                placeholder={translate.common('search') + "..."}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 value={search}
                 onChange={handleSearchChange}
@@ -268,7 +268,7 @@ const Orders: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
+              {translate.common('status')}
             </label>
             <select
               name="status"
@@ -276,15 +276,15 @@ const Orders: React.FC = () => {
               onChange={handleFilterChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="">{translate.common('all')} {translate.common('status')}</option>
+              <option value="pending">{translate.orders('pending')}</option>
+              <option value="completed">{translate.orders('completed')}</option>
+              <option value="cancelled">{translate.orders('cancelled')}</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Status
+              {translate.orders('paymentStatus')}
             </label>
             <select
               name="paymentStatus"
@@ -292,15 +292,15 @@ const Orders: React.FC = () => {
               onChange={handleFilterChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">All Payment Statuses</option>
-              <option value="paid">Paid</option>
-              <option value="partial">Partially Paid</option>
-              <option value="unpaid">Unpaid</option>
+              <option value="">{translate.common('all')} {translate.orders('paymentStatus')}</option>
+              <option value="paid">{translate.orders('paid')}</option>
+              <option value="partial">{translate.orders('partial')}</option>
+              <option value="unpaid">{translate.orders('unpaid')}</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date
+              {translate.reports('startDate')}
             </label>
             <input
               type="date"
@@ -312,7 +312,7 @@ const Orders: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              End Date
+              {translate.reports('endDate')}
             </label>
             <input
               type="date"
@@ -326,10 +326,10 @@ const Orders: React.FC = () => {
 
         <div className="flex justify-end mt-4 space-x-2">
           <Button variant="outline" size="sm" onClick={resetFilters}>
-            Reset Filters
+            {translate.common('cancel')}
           </Button>
           <Button variant="primary" size="sm" onClick={applyFilters}>
-            Apply Filters
+            {translate.common('search')}
           </Button>
         </div>
       </div>
@@ -338,21 +338,20 @@ const Orders: React.FC = () => {
       {loading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">Loading orders...</p>
+          <p className="mt-2 text-gray-600">{translate.common('loading')}</p>
         </div>
       ) : (
         <>
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <Table
               headers={[
-                "Order #",
-                "Date",
-                "Customer",
-                "Items",
-                "Total",
-                "Status",
-                "Payment",
-                "Actions",
+                translate.orders('orderNumber'),
+                translate.common('date'),
+                translate.orders('customer'),
+                translate.common('total'),
+                translate.common('status'),
+                translate.common('payment'),
+                translate.common('actions'),
               ]}
             >
               {orders.length === 0 ? (
@@ -361,7 +360,7 @@ const Orders: React.FC = () => {
                     colSpan={8}
                     className="px-6 py-4 text-center text-gray-500"
                   >
-                    No orders found. Create a new order to get started.
+                    {translate.common('noResults')}
                   </td>
                 </tr>
               ) : (
@@ -384,13 +383,7 @@ const Orders: React.FC = () => {
                       <div className="text-sm text-gray-900">
                         {order.customer
                           ? order.customer.name
-                          : "Walk-in Customer"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {/* Estimate items count based on total and average price */}
-                        ~{Math.ceil(order.total / 20)} items
+                          : translate.orders('walkInCustomer')}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -404,8 +397,7 @@ const Orders: React.FC = () => {
                           statusColors[order.status]
                         }`}
                       >
-                        {order.status.charAt(0).toUpperCase() +
-                          order.status.slice(1)}
+                        {translate.orders(order.status as 'pending' | 'completed' | 'cancelled')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -414,11 +406,7 @@ const Orders: React.FC = () => {
                           paymentStatusColors[order.paymentStatus]
                         }`}
                       >
-                        {order.paymentStatus === "paid"
-                          ? "Paid"
-                          : order.paymentStatus === "partial"
-                          ? "Partial"
-                          : "Unpaid"}
+                        {translate.orders(order.paymentStatus as 'paid' | 'partial' | 'unpaid')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -426,7 +414,7 @@ const Orders: React.FC = () => {
                         <button
                           onClick={() => viewOrderDetails(order.id)}
                           className="text-blue-600 hover:text-blue-900"
-                          title="View Details"
+                          title={translate.common('details')}
                         >
                           <EyeIcon className="h-5 w-5" />
                         </button>
@@ -435,7 +423,7 @@ const Orders: React.FC = () => {
                           <button
                             onClick={() => handleGetReceipt(order.id)}
                             className="text-green-600 hover:text-green-900"
-                            title="Download Receipt"
+                            title={translate.orders('printReceipt')}
                           >
                             <DocumentTextIcon className="h-5 w-5" />
                           </button>
@@ -446,7 +434,7 @@ const Orders: React.FC = () => {
                             <button
                               onClick={() => openStatusModal(order)}
                               className="text-orange-600 hover:text-orange-900"
-                              title="Change Status"
+                              title={translate.orders('updateStatus')}
                             >
                               <ArrowPathIcon className="h-5 w-5" />
                             </button>
@@ -457,7 +445,7 @@ const Orders: React.FC = () => {
                                   navigate(`/orders/${order.id}/payment`)
                                 }
                                 className="text-purple-600 hover:text-purple-900"
-                                title="Add Payment"
+                                title={translate.orders('addPayment')}
                               >
                                 <CurrencyDollarIcon className="h-5 w-5" />
                               </button>
@@ -469,8 +457,8 @@ const Orders: React.FC = () => {
                               disabled={order.status === "completed"}
                               title={
                                 order.status === "completed"
-                                  ? "Can't cancel completed orders"
-                                  : "Cancel Order"
+                                  ? translate.orders('cancelOrder')
+                                  : translate.orders('cancelOrder')
                               }
                             >
                               <XMarkIcon
@@ -495,9 +483,9 @@ const Orders: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                {(pagination.page - 1) * pagination.limit + 1} - {" "}
                 {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                of {pagination.total} orders
+                / {pagination.total} {translate.orders('title').toLowerCase()}
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -506,7 +494,7 @@ const Orders: React.FC = () => {
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
                 >
-                  Previous
+                  {translate.common('previous')}
                 </Button>
                 <Button
                   variant="outline"
@@ -514,7 +502,7 @@ const Orders: React.FC = () => {
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
                 >
-                  Next
+                  {translate.common('next')}
                 </Button>
               </div>
             </div>
@@ -526,7 +514,7 @@ const Orders: React.FC = () => {
       <Modal
         isOpen={statusModalOpen}
         onClose={() => setStatusModalOpen(false)}
-        title="Update Order Status"
+        title={translate.orders('updateStatus')}
         footer={
           <>
             <Button
@@ -535,35 +523,35 @@ const Orders: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              Update Status
+              {translate.orders('updateStatus')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setStatusModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
       >
         <div className="py-4">
           <p className="mb-4">
-            Update the status for order{" "}
+            {translate.orders('updateStatus')}{" "}
             <span className="font-bold">#{selectedOrder?.orderNumber}</span>
           </p>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Status
+              {translate.orders('orderStatus')}
             </label>
             <select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="pending">{translate.orders('pending')}</option>
+              <option value="completed">{translate.orders('completed')}</option>
+              <option value="cancelled">{translate.orders('cancelled')}</option>
             </select>
           </div>
         </div>
@@ -573,7 +561,7 @@ const Orders: React.FC = () => {
       <Modal
         isOpen={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
-        title="Cancel Order"
+        title={translate.orders('cancelOrder')}
         footer={
           <>
             <Button
@@ -582,37 +570,33 @@ const Orders: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              Cancel Order
+              {translate.orders('cancelOrder')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setCancelModalOpen(false)}
               disabled={submitLoading}
             >
-              Go Back
+              {translate.common('back')}
             </Button>
           </>
         }
       >
         <div className="py-4">
           <p className="text-gray-600 mb-4">
-            Are you sure you want to cancel order{" "}
-            <span className="font-bold">#{selectedOrder?.orderNumber}</span>?
-            <br />
-            <br />
-            Cancelling will return items to inventory if the order is not
-            already completed. This action cannot be undone.
+            {translate.orders('cancelConfirmation')}
+            <span className="font-bold"> #{selectedOrder?.orderNumber}</span>
           </p>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Reason for Cancellation
+              {translate.orders('cancelReason')}
             </label>
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter reason for cancellation"
+              placeholder={translate.orders('cancelReason')}
             />
           </div>
         </div>

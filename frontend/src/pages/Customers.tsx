@@ -18,6 +18,7 @@ import {
   EnvelopeIcon,
   MapPinIcon,
 } from "@heroicons/react/24/outline";
+import { useLanguage } from '../context/LanguageContext';
 
 const Customers: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -149,15 +150,17 @@ const Customers: React.FC = () => {
     });
   };
 
+  const { translate } = useLanguage();
+  
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = "Name is required";
+      errors.name = translate.customers('nameRequired');
     }
 
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = "Email is invalid";
+      errors.email = translate.common('error');
     }
 
     setFormErrors(errors);
@@ -196,7 +199,7 @@ const Customers: React.FC = () => {
       if (error.response?.data?.message) {
         if (error.response.data.message.includes("email already exists")) {
           setFormErrors({
-            email: "Email already registered to another customer",
+            email: translate.users('emailExists'),
           });
         } else {
           setFormErrors({
@@ -252,10 +255,10 @@ const Customers: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{translate.customers('title')}</h1>
         <Button variant="primary" onClick={openCreateModal}>
           <PlusIcon className="h-5 w-5 mr-1" />
-          Add Customer
+          {translate.customers('addCustomer')}
         </Button>
       </div>
 
@@ -266,7 +269,7 @@ const Customers: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search customers by name, email, or phone..."
+                placeholder={translate.customers('searchCustomers')}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 value={search}
                 onChange={handleSearchChange}
@@ -287,7 +290,7 @@ const Customers: React.FC = () => {
       {loading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">Loading customers...</p>
+          <p className="mt-2 text-gray-600">{translate.common('loading')}</p>
         </div>
       ) : (
         <>
@@ -299,17 +302,17 @@ const Customers: React.FC = () => {
                   className="cursor-pointer flex items-center"
                   onClick={() => handleSortChange("name")}
                 >
-                  Name {getSortIcon("name")}
+                  {translate.customers('customerName')} {getSortIcon("name")}
                 </div>,
-                "Contact Info",
+                translate.customers('customerDetails'),
                 <div
                   key="createdAt"
                   className="cursor-pointer flex items-center"
                   onClick={() => handleSortChange("createdAt")}
                 >
-                  Customer Since {getSortIcon("createdAt")}
+                  {translate.customers('lastOrder')} {getSortIcon("createdAt")}
                 </div>,
-                "Actions",
+                translate.common('actions'),
               ]}
             >
               {customers.length === 0 ? (
@@ -318,7 +321,7 @@ const Customers: React.FC = () => {
                     colSpan={4}
                     className="px-6 py-4 text-center text-gray-500"
                   >
-                    No customers found. Create a new customer to get started.
+                    {translate.common('noResults')}
                   </td>
                 </tr>
               ) : (
@@ -387,9 +390,9 @@ const Customers: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                {(pagination.page - 1) * pagination.limit + 1} - {" "}
                 {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                of {pagination.total} customers
+                / {pagination.total} {translate.customers('title').toLowerCase()}
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -398,7 +401,7 @@ const Customers: React.FC = () => {
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
                 >
-                  Previous
+                  {translate.common('previous')}
                 </Button>
                 <Button
                   variant="outline"
@@ -406,7 +409,7 @@ const Customers: React.FC = () => {
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
                 >
-                  Next
+                  {translate.common('next')}
                 </Button>
               </div>
             </div>
@@ -418,7 +421,7 @@ const Customers: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentCustomer ? "Edit Customer" : "Add New Customer"}
+        title={currentCustomer ? translate.customers('editCustomer') : translate.customers('addCustomer')}
         footer={
           <>
             <Button
@@ -427,14 +430,14 @@ const Customers: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              {currentCustomer ? "Update Customer" : "Create Customer"}
+              {currentCustomer ? translate.common('save') : translate.common('add')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
@@ -449,7 +452,7 @@ const Customers: React.FC = () => {
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name *
+              {translate.customers('customerName')} *
             </label>
             <input
               type="text"
@@ -459,7 +462,7 @@ const Customers: React.FC = () => {
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                 formErrors.name ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder="Enter customer name"
+              placeholder={translate.customers('customerName')}
             />
             {formErrors.name && (
               <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
@@ -469,7 +472,7 @@ const Customers: React.FC = () => {
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
+              {translate.customers('customerEmail')}
             </label>
             <input
               type="email"
@@ -479,7 +482,7 @@ const Customers: React.FC = () => {
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                 formErrors.email ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder="Enter email address"
+              placeholder={translate.customers('customerEmail')}
             />
             {formErrors.email && (
               <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
@@ -489,7 +492,7 @@ const Customers: React.FC = () => {
           {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
+              {translate.customers('customerPhone')}
             </label>
             <input
               type="tel"
@@ -497,14 +500,14 @@ const Customers: React.FC = () => {
               value={formData.phone}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter phone number"
+              placeholder={translate.customers('customerPhone')}
             />
           </div>
 
           {/* Address */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Address
+              {translate.customers('customerAddress')}
             </label>
             <textarea
               name="address"
@@ -512,7 +515,7 @@ const Customers: React.FC = () => {
               onChange={handleInputChange}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter customer address"
+              placeholder={translate.customers('customerAddress')}
             />
           </div>
         </form>
@@ -522,7 +525,7 @@ const Customers: React.FC = () => {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Delete Customer"
+        title={translate.common('delete')}
         footer={
           <>
             <Button
@@ -531,29 +534,25 @@ const Customers: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              Delete
+              {translate.common('delete')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
       >
         <div className="py-4">
           <p className="text-gray-600">
-            Are you sure you want to delete the customer{" "}
+            {translate.users('deleteConfirmation')}
+            <br />
             <span className="font-medium text-gray-900">
               {currentCustomer?.name}
             </span>
-            ?
-            <br />
-            <br />
-            Note: You cannot delete a customer who has placed orders. This
-            action cannot be undone.
           </p>
         </div>
       </Modal>

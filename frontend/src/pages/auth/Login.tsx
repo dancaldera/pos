@@ -6,10 +6,13 @@ import Alert from "../../components/ui/Alert";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
+import PageLanguageSelector from "../../components/PageLanguageSelector";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { translate } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -20,9 +23,9 @@ const LoginPage: React.FC = () => {
     },
     validationSchema: Yup.object({
       email: Yup.string()
-        .email("Invalid email address")
-        .required("Email is required"),
-      password: Yup.string().required("Password is required"),
+        .email(translate.common('error'))
+        .required(translate.auth('emailRequired')),
+      password: Yup.string().required(translate.auth('passwordRequired')),
     }),
     onSubmit: async (values) => {
       setIsLoading(true);
@@ -40,9 +43,12 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-        Login
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">
+          {translate.auth('login')}
+        </h2>
+        <PageLanguageSelector />
+      </div>
 
       {error && (
         <Alert type="error" message={error} onClose={() => setError(null)} />
@@ -50,7 +56,7 @@ const LoginPage: React.FC = () => {
 
       <form onSubmit={formik.handleSubmit} className="space-y-4">
         <Input
-          label="Email"
+          label={translate.auth('email')}
           id="email"
           name="email"
           type="email"
@@ -67,7 +73,7 @@ const LoginPage: React.FC = () => {
         />
 
         <Input
-          label="Password"
+          label={translate.auth('password')}
           id="password"
           name="password"
           type="password"
@@ -91,7 +97,7 @@ const LoginPage: React.FC = () => {
             isLoading={isLoading}
             disabled={isLoading}
           >
-            Login
+            {translate.auth('login')}
           </Button>
         </div>
       </form>

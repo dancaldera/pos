@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface ModalProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ const Modal: React.FC<ModalProps> = ({
     full: 'sm:max-w-screen-xl',
   };
 
+  const { translate } = useLanguage();
+  
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="fixed z-10 inset-0 overflow-y-auto" onClose={onClose}>
@@ -68,7 +71,7 @@ const Modal: React.FC<ModalProps> = ({
                     className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md"
                     onClick={onClose}
                   >
-                    <span className="sr-only">Close</span>
+                    <span className="sr-only">{translate.common('close')}</span>
                     <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>

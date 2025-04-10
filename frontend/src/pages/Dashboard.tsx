@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   ShoppingCartIcon,
   ArrowTrendingUpIcon,
@@ -151,7 +152,7 @@ const Dashboard: React.FC = () => {
       labels,
       datasets: [
         {
-          label: 'Sales',
+          label: translate.dashboard('totalSales'),
           data: salesData.map(point => point.sales),
           borderColor: 'rgb(53, 162, 235)',
           backgroundColor: 'rgba(53, 162, 235, 0.5)',
@@ -166,7 +167,7 @@ const Dashboard: React.FC = () => {
       labels: topProducts.map(product => product.productName),
       datasets: [
         {
-          label: 'Sales',
+          label: translate.dashboard('totalSales'),
           data: topProducts.map(product => product.totalSales),
           backgroundColor: [
             'rgba(255, 99, 132, 0.7)',
@@ -183,13 +184,10 @@ const Dashboard: React.FC = () => {
 
   const preparePaymentStatsChartData = () => {
     return {
-      labels: paymentStats.map(stat => {
-        const method = stat.method.replace('_', ' ');
-        return method.charAt(0).toUpperCase() + method.slice(1);
-      }),
+      labels: paymentStats.map(stat => stat.method),
       datasets: [
         {
-          label: 'Payment Methods',
+          label: translate.orders('paymentMethod'),
           data: paymentStats.map(stat => stat.total),
           backgroundColor: [
             'rgba(54, 162, 235, 0.7)',
@@ -231,10 +229,7 @@ const Dashboard: React.FC = () => {
   const cardClass = "transition-all duration-200 transform hover:scale-105";
   
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+    return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   const getStatusColor = (status: string) => {
@@ -250,12 +245,14 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const { translate, language } = useLanguage();
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {state.user?.name}</p>
+          <h1 className="text-2xl font-bold text-gray-900">{translate.dashboard('title')}</h1>
+          <p className="text-gray-600">{translate.dashboard('welcome')}, {state.user?.name}</p>
         </div>
         <div className="mt-4 md:mt-0">
           <Link 
@@ -263,7 +260,7 @@ const Dashboard: React.FC = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium flex items-center"
           >
             <ShoppingCartIcon className="w-5 h-5 mr-2" />
-            New Order
+            {translate.orders('newOrder')}
           </Link>
         </div>
       </div>
@@ -275,12 +272,12 @@ const Dashboard: React.FC = () => {
           <Card className={`${cardClass} border-l-4 border-indigo-500`}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">Products</p>
+                <p className="text-sm font-medium text-gray-600">{translate.products('title')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {isLoading ? '...' : stats?.totalProducts || 0}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {isLoading ? '' : `${stats?.activeProducts || 0} active`}
+                  {isLoading ? '' : `${stats?.activeProducts || 0} ${translate.common('active').toLowerCase()}`}
                 </p>
               </div>
               <div className="bg-indigo-100 p-3 rounded-full">
@@ -295,7 +292,7 @@ const Dashboard: React.FC = () => {
           <Card className={`${cardClass} border-l-4 border-purple-500`}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">Categories</p>
+                <p className="text-sm font-medium text-gray-600">{translate.categories('title')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {isLoading ? '...' : stats?.totalCategories || 0}
                 </p>
@@ -312,7 +309,7 @@ const Dashboard: React.FC = () => {
           <Card className={`${cardClass} border-l-4 border-blue-500`}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">Customers</p>
+                <p className="text-sm font-medium text-gray-600">{translate.customers('title')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {isLoading ? '...' : stats?.totalCustomers || 0}
                 </p>
@@ -329,12 +326,12 @@ const Dashboard: React.FC = () => {
           <Card className={`${cardClass} border-l-4 border-green-500`}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">Orders</p>
+                <p className="text-sm font-medium text-gray-600">{translate.orders('title')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {isLoading ? '...' : stats?.totalOrders || 0}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {isLoading ? '' : `${stats?.completedOrders || 0} completed`}
+                  {isLoading ? '' : `${stats?.completedOrders || 0} ${translate.orders('completed').toLowerCase()}`}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
@@ -348,7 +345,7 @@ const Dashboard: React.FC = () => {
         <Card className={`${cardClass} border-l-4 border-yellow-500`}>
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-sm font-medium text-gray-600">{translate.dashboard('totalSales')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {isLoading ? '...' : formatCurrency(stats?.totalRevenue || 0)}
               </p>
@@ -364,7 +361,7 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm font-medium text-gray-600">
-                {salesPeriod === 'weekly' ? 'Weekly' : 'Monthly'} Growth
+                {salesPeriod === 'weekly' ? translate.dashboard('weeklySales') : translate.dashboard('monthlySales')}
               </p>
               <p className="text-2xl font-bold text-gray-900">
                 {isLoading || monthlyGrowth === null ? '...' : 
@@ -376,8 +373,8 @@ const Dashboard: React.FC = () => {
                   onChange={(e) => setSalesPeriod(e.target.value as any)}
                   className="text-xs border rounded p-1"
                 >
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
+                  <option value="weekly">{translate.dashboard('thisWeek')}</option>
+                  <option value="monthly">{translate.dashboard('thisMonth')}</option>
                 </select>
               </div>
             </div>
@@ -392,7 +389,7 @@ const Dashboard: React.FC = () => {
           <Card className={`${cardClass} border-l-4 border-orange-500`}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">Pending Orders</p>
+                <p className="text-sm font-medium text-gray-600">{translate.orders('pending')} {translate.orders('title')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {isLoading ? '...' : stats?.pendingOrders || 0}
                 </p>
@@ -409,7 +406,7 @@ const Dashboard: React.FC = () => {
           <Card className={`${cardClass} border-l-4 border-red-500`}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">Low Stock Items</p>
+                <p className="text-sm font-medium text-gray-600">{translate.products('lowStock')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {isLoading ? '...' : stats?.lowStockProducts || 0}
                 </p>
@@ -425,12 +422,12 @@ const Dashboard: React.FC = () => {
       {/* Charts and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Sales Chart */}
-        <Card title={`${salesPeriod === 'weekly' ? 'Weekly' : 'Monthly'} Sales`}>
+        <Card title={salesPeriod === 'weekly' ? translate.dashboard('weeklySales') : translate.dashboard('monthlySales')}>
           <div className="h-80">
             {isLoading || salesData.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-gray-500 italic">
-                  {isLoading ? 'Loading sales data...' : 'No sales data available'}
+                  {isLoading ? translate.common('loading') : translate.reports('noData')}
                 </p>
               </div>
             ) : (
@@ -440,12 +437,12 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {/* Recent Orders */}
-        <Card title="Recent Orders">
+        <Card title={translate.dashboard('recentOrders')}>
           <div className="h-80 overflow-y-auto">
             {isLoading || recentOrders.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-gray-500 italic">
-                  {isLoading ? 'Loading recent orders...' : 'No recent orders'}
+                  {isLoading ? translate.common('loading') : translate.common('noResults')}
                 </p>
               </div>
             ) : (
@@ -453,16 +450,16 @@ const Dashboard: React.FC = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Order #
+                      {translate.orders('orderNumber')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
+                      {translate.orders('customer')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total
+                      {translate.common('total')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                      {translate.common('status')}
                     </th>
                   </tr>
                 </thead>
@@ -475,14 +472,14 @@ const Dashboard: React.FC = () => {
                         </Link>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {order.customer?.name || 'Walk-in Customer'}
+                        {order.customer?.name || translate.orders('walkInCustomer')}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {formatCurrency(order.total)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          {translate.orders(order.status as 'pending' | 'completed' | 'cancelled')}
                         </span>
                       </td>
                     </tr>
@@ -497,12 +494,12 @@ const Dashboard: React.FC = () => {
       {/* Additional Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Products Chart */}
-        <Card title="Top Selling Products">
+        <Card title={translate.dashboard('topProducts')}>
           <div className="h-80">
             {isLoading || topProducts.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-gray-500 italic">
-                  {isLoading ? 'Loading top products...' : 'No product data available'}
+                  {isLoading ? translate.common('loading') : translate.reports('noData')}
                 </p>
               </div>
             ) : (
@@ -512,12 +509,12 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {/* Payment Methods Chart */}
-        <Card title="Payment Methods">
+        <Card title={translate.orders('paymentMethod')}>
           <div className="h-80">
             {isLoading || paymentStats.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-gray-500 italic">
-                  {isLoading ? 'Loading payment data...' : 'No payment data available'}
+                  {isLoading ? translate.common('loading') : translate.reports('noData')}
                 </p>
               </div>
             ) : (

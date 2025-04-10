@@ -5,6 +5,7 @@ import Table from '../components/ui/Table';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -131,29 +132,31 @@ const Users: React.FC = () => {
     }
   };
 
+  const { translate } = useLanguage();
+
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+      errors.name = translate.users('nameRequired');
     }
 
     if (!formData.email.trim()) {
-      errors.email = 'Email is required';
+      errors.email = translate.users('emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email is invalid';
+      errors.email = translate.common('error');
     }
 
     // If creating new user or password field is filled
     if (!currentUser || formData.password) {
       if (!currentUser && !formData.password) {
-        errors.password = 'Password is required for new users';
+        errors.password = translate.users('passwordRequired');
       } else if (formData.password.length < 6) {
-        errors.password = 'Password must be at least 6 characters';
+        errors.password = translate.common('error');
       }
 
       if (formData.password !== formData.confirmPassword) {
-        errors.confirmPassword = 'Passwords do not match';
+        errors.confirmPassword = translate.common('error');
       }
     }
 
@@ -194,7 +197,7 @@ const Users: React.FC = () => {
         if (error.response.data.message.includes('Email already registered')) {
           setFormErrors({
             ...formErrors,
-            email: 'Email already registered',
+            email: translate.users('emailExists'),
           });
         } else {
           setFormErrors({
@@ -231,10 +234,10 @@ const Users: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{translate.users('title')}</h1>
         <Button variant="primary" onClick={openCreateModal}>
           <PlusIcon className="h-5 w-5 mr-1" />
-          Add User
+          {translate.users('addUser')}
         </Button>
       </div>
 
@@ -243,7 +246,7 @@ const Users: React.FC = () => {
         <div className="relative">
           <input
             type="text"
-            placeholder="Search users by name, email, or role..."
+            placeholder={translate.users('searchUsers')}
             className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
             value={search}
             onChange={handleSearchChange}
@@ -258,19 +261,24 @@ const Users: React.FC = () => {
       {loading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">Loading users...</p>
+          <p className="mt-2 text-gray-600">{translate.common('loading')}</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <Table
-            headers={['Name', 'Email', 'Role', 'Status', 'Created', 'Actions']}
+            headers={[
+              translate.common('name'), 
+              translate.auth('email'), 
+              translate.users('userRole'), 
+              translate.common('status'), 
+              translate.common('created'), 
+              translate.common('actions')
+            ]}
           >
             {filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                  {search
-                    ? 'No users found matching your search.'
-                    : 'No users found. Create a new user to get started.'}
+                  {translate.common('noResults')}
                 </td>
               </tr>
             ) : (
@@ -297,12 +305,12 @@ const Users: React.FC = () => {
                     {user.active ? (
                       <span className="text-green-600 flex items-center">
                         <CheckCircleIcon className="h-5 w-5 mr-1" />
-                        Active
+                        {translate.common('active')}
                       </span>
                     ) : (
                       <span className="text-red-600 flex items-center">
                         <XCircleIcon className="h-5 w-5 mr-1" />
-                        Inactive
+                        {translate.common('inactive')}
                       </span>
                     )}
                   </td>
@@ -317,7 +325,7 @@ const Users: React.FC = () => {
                         onClick={() => openEditModal(user)}
                         className="text-blue-600 hover:text-blue-900"
                         disabled={user.id === authState.user?.id}
-                        title={user.id === authState.user?.id ? "You cannot edit your own account here" : ""}
+                        title={user.id === authState.user?.id ? translate.common('error') : translate.common('edit')}
                       >
                         <PencilIcon className={`h-5 w-5 ${user.id === authState.user?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
                       </button>
@@ -325,7 +333,7 @@ const Users: React.FC = () => {
                         onClick={() => openDeleteModal(user)}
                         className="text-red-600 hover:text-red-900"
                         disabled={user.id === authState.user?.id}
-                        title={user.id === authState.user?.id ? "You cannot delete your own account" : ""}
+                        title={user.id === authState.user?.id ? translate.common('error') : translate.common('delete')}
                       >
                         <TrashIcon className={`h-5 w-5 ${user.id === authState.user?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
                       </button>
@@ -342,7 +350,7 @@ const Users: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentUser ? 'Edit User' : 'Add New User'}
+        title={currentUser ? translate.users('editUser') : translate.users('addUser')}
         footer={
           <>
             <Button
@@ -351,14 +359,14 @@ const Users: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              {currentUser ? 'Update User' : 'Create User'}
+              {currentUser ? translate.common('save') : translate.common('add')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
@@ -373,7 +381,7 @@ const Users: React.FC = () => {
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name *
+              {translate.users('userName')} *
             </label>
             <input
               type="text"
@@ -383,7 +391,7 @@ const Users: React.FC = () => {
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                 formErrors.name ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Enter full name"
+              placeholder={translate.users('userName')}
             />
             {formErrors.name && (
               <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
@@ -393,7 +401,7 @@ const Users: React.FC = () => {
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address *
+              {translate.users('userEmail')} *
             </label>
             <input
               type="email"
@@ -403,7 +411,7 @@ const Users: React.FC = () => {
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                 formErrors.email ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Enter email address"
+              placeholder={translate.users('userEmail')}
             />
             {formErrors.email && (
               <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
@@ -413,7 +421,7 @@ const Users: React.FC = () => {
           {/* Role */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role *
+              {translate.users('userRole')} *
             </label>
             <select
               name="role"
@@ -421,16 +429,16 @@ const Users: React.FC = () => {
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="admin">Administrator</option>
-              <option value="manager">Manager</option>
-              <option value="waitress">Waitress</option>
+              <option value="admin">{translate.users('admin')}</option>
+              <option value="manager">{translate.users('manager')}</option>
+              <option value="waitress">{translate.users('waitress')}</option>
             </select>
           </div>
 
           {/* Password - required for new user, optional for edit */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {currentUser ? 'Password (leave blank to keep current)' : 'Password *'}
+              {currentUser ? translate.users('userPassword') : translate.users('userPassword') + ' *'}
             </label>
             <input
               type="password"
@@ -440,7 +448,7 @@ const Users: React.FC = () => {
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                 formErrors.password ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Enter password"
+              placeholder={translate.users('userPassword')}
             />
             {formErrors.password && (
               <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
@@ -450,7 +458,7 @@ const Users: React.FC = () => {
           {/* Confirm Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password
+              {translate.users('userPassword')} ({translate.common('confirm')})
             </label>
             <input
               type="password"
@@ -460,7 +468,7 @@ const Users: React.FC = () => {
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                 formErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Confirm password"
+              placeholder={translate.users('userPassword')}
             />
             {formErrors.confirmPassword && (
               <p className="mt-1 text-sm text-red-600">
@@ -480,7 +488,7 @@ const Users: React.FC = () => {
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
-              Active Account
+              {translate.users('userActive')}
             </label>
           </div>
         </form>
@@ -490,7 +498,7 @@ const Users: React.FC = () => {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Delete User"
+        title={translate.common('delete')}
         footer={
           <>
             <Button
@@ -499,27 +507,25 @@ const Users: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              Delete
+              {translate.common('delete')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
       >
         <div className="py-4">
           <p className="text-gray-600">
-            Are you sure you want to delete the user{' '}
+            {translate.users('deleteConfirmation')}
+            <br />
             <span className="font-medium text-gray-900">
               {currentUser?.name}
-            </span>?
-            <br />
-            <br />
-            This action cannot be undone.
+            </span>
           </p>
         </div>
       </Modal>

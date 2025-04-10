@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getSettings, updateSettings, SystemSettings } from '../api/settings';
 import Button from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import PageLanguageSelector from '../components/PageLanguageSelector';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const CURRENCIES = [
@@ -17,6 +19,7 @@ const CURRENCIES = [
 
 const Settings: React.FC = () => {
   const { state: authState } = useAuth();
+  const { translate } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<SystemSettings>({
@@ -126,15 +129,15 @@ const Settings: React.FC = () => {
     const errors: Record<string, string> = {};
     
     if (!formData.businessName.trim()) {
-      errors.businessName = 'Business name is required';
+      errors.businessName = translate.common('required');
     }
     
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email is invalid';
+      errors.email = translate.common('error');
     }
     
     if (formData.taxRate < 0 || formData.taxRate > 100) {
-      errors.taxRate = 'Tax rate must be between 0 and 100';
+      errors.taxRate = translate.common('error');
     }
     
     setFormErrors(errors);
@@ -183,7 +186,7 @@ const Settings: React.FC = () => {
       console.log('Response from server:', response);
       
       if (response.success) {
-        setSuccessMessage('Settings updated successfully!');
+        setSuccessMessage(translate.settings('savedSuccessfully'));
         // Update form data with any changes from the server
         console.log('Setting form data to:', response.data);
         setFormData(response.data);
@@ -208,7 +211,7 @@ const Settings: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen -mt-16">
         <div className="text-center">
           <div className="animate-spin h-12 w-12 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-3 text-gray-600">Loading settings...</p>
+          <p className="mt-3 text-gray-600">{translate.common('loading')}</p>
         </div>
       </div>
     );
@@ -217,7 +220,7 @@ const Settings: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">System Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{translate.settings('title')}</h1>
       </div>
 
       {!isAdmin && (
@@ -225,7 +228,7 @@ const Settings: React.FC = () => {
           <div className="flex">
             <div>
               <p className="text-sm text-yellow-700">
-                You are viewing settings in read-only mode. Only administrators can modify system settings.
+                {translate.common('warning')}: {translate.common('readOnly')}
               </p>
             </div>
           </div>
@@ -247,12 +250,12 @@ const Settings: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Business Information</h3>
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">{translate.settings('businessName')}</h3>
               
               {/* Business Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Business Name *
+                  {translate.settings('businessName')} *
                 </label>
                 <input
                   type="text"
@@ -262,7 +265,7 @@ const Settings: React.FC = () => {
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                     formErrors.businessName ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter business name"
+                  placeholder={translate.settings('businessName')}
                   disabled={!isAdmin}
                 />
                 {formErrors.businessName && (
@@ -273,7 +276,7 @@ const Settings: React.FC = () => {
               {/* Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Address
+                  {translate.settings('businessAddress')}
                 </label>
                 <textarea
                   name="address"
@@ -281,7 +284,7 @@ const Settings: React.FC = () => {
                   onChange={handleInputChange}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter business address"
+                  placeholder={translate.settings('businessAddress')}
                   disabled={!isAdmin}
                 />
               </div>
@@ -290,7 +293,7 @@ const Settings: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone
+                    {translate.settings('businessPhone')}
                   </label>
                   <input
                     type="text"
@@ -298,13 +301,13 @@ const Settings: React.FC = () => {
                     value={formData.phone || ''}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter phone number"
+                    placeholder={translate.settings('businessPhone')}
                     disabled={!isAdmin}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
+                    {translate.settings('businessEmail')}
                   </label>
                   <input
                     type="email"
@@ -314,7 +317,7 @@ const Settings: React.FC = () => {
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                       formErrors.email ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Enter email address"
+                    placeholder={translate.settings('businessEmail')}
                     disabled={!isAdmin}
                   />
                   {formErrors.email && (
@@ -326,13 +329,25 @@ const Settings: React.FC = () => {
             
             {/* Right Column */}
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Financial & Receipt Settings</h3>
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">{translate.settings('general')}</h3>
+              
+              {/* Language Settings */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {translate.settings('language')}
+                </label>
+                <div className="max-w-xs">
+                  <PageLanguageSelector />
+                </div>
+              </div>
+              
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">{translate.settings('receiptSettings')}</h3>
               
               {/* Tax Rate and Currency */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tax Rate (%)
+                    {translate.settings('taxRate')}
                   </label>
                   <input
                     type="number"
@@ -342,7 +357,7 @@ const Settings: React.FC = () => {
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                       formErrors.taxRate ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Enter tax rate"
+                    placeholder={translate.settings('taxRate')}
                     step="0.01"
                     min="0"
                     max="100"
@@ -354,7 +369,7 @@ const Settings: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Currency
+                    {translate.settings('currency')}
                   </label>
                   <select
                     name="currency"
@@ -375,7 +390,7 @@ const Settings: React.FC = () => {
               {/* Receipt Footer */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Receipt Footer
+                  {translate.settings('receiptFooter')}
                 </label>
                 <textarea
                   name="receiptFooter"
@@ -383,7 +398,7 @@ const Settings: React.FC = () => {
                   onChange={handleInputChange}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter text to appear at the bottom of receipts"
+                  placeholder={translate.settings('receiptFooter')}
                   disabled={!isAdmin}
                 />
               </div>
@@ -391,7 +406,7 @@ const Settings: React.FC = () => {
               {/* Logo Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Logo
+                  {translate.settings('logoImage')}
                 </label>
                 <div className="flex items-center">
                   {logoPreview ? (
@@ -423,7 +438,7 @@ const Settings: React.FC = () => {
                         htmlFor="logo-upload"
                         className="cursor-pointer py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
-                        Upload Logo
+                        {translate.settings('uploadLogo')}
                       </label>
                       <input
                         id="logo-upload"
@@ -438,7 +453,7 @@ const Settings: React.FC = () => {
                   )}
                 </div>
                 <p className="mt-1 text-sm text-gray-500">
-                  Recommended size: 200x200 pixels. Max file size: 2MB.
+                  {translate.common('recommendation')}: 200x200 px, 2MB max.
                 </p>
               </div>
             </div>
@@ -451,7 +466,7 @@ const Settings: React.FC = () => {
                 variant="primary"
                 isLoading={saving}
               >
-                Save Settings
+                {translate.settings('saveSettings')}
               </Button>
             </div>
           )}

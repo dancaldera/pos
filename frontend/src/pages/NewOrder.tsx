@@ -8,6 +8,7 @@ import { Customer } from '../types/customers';
 import { OrderItemInput, OrderStatus, PaymentMethod, PaymentStatus } from '../types/orders';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
+import { useLanguage } from '../context/LanguageContext';
 import {
   MagnifyingGlassIcon, 
   PlusIcon, 
@@ -29,6 +30,7 @@ interface CartItem extends OrderItemInput {
 
 const NewOrder: React.FC = () => {
   const navigate = useNavigate();
+  const { translate, language } = useLanguage();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -218,7 +220,7 @@ const NewOrder: React.FC = () => {
     // Check if product has enough stock
     const product = products.find(p => p.id === cartItems[index].productId);
     if (product && product.stock < newQuantity) {
-      alert(`Sorry, only ${product.stock} units available for ${product.name}`);
+      alert(translate.products('stockLimitMessage').replace('{stock}', product.stock.toString()).replace('{product}', product.name));
       return;
     }
 
@@ -254,7 +256,7 @@ const NewOrder: React.FC = () => {
 
   const openPaymentModal = () => {
     if (cartItems.length === 0) {
-      alert('Please add at least one item to the order');
+      alert(translate.orders('emptyCartAlert'));
       return;
     }
     
@@ -291,12 +293,12 @@ const NewOrder: React.FC = () => {
     // Check if any items need variant selection
     const itemsNeedingVariants = cartItems.filter(item => item.hasVariants);
     if (itemsNeedingVariants.length > 0) {
-      alert('Please select variants for all products before proceeding');
+      alert(translate.products('selectVariantsAlert'));
       return;
     }
     
     if (cartItems.length === 0) {
-      alert('Please add at least one item to the order');
+      alert(translate.orders('emptyCartAlert'));
       return;
     }
     
@@ -346,12 +348,12 @@ const NewOrder: React.FC = () => {
       const response = await createOrder(orderData);
       
       if (response.success) {
-        alert('Order created successfully!');
+        alert(translate.orders('orderSuccessAlert'));
         navigate(`/orders/${response.data.id}`);
       }
     } catch (error: any) {
       console.error('Error creating order:', error);
-      let errorMessage = 'Failed to create order. Please try again.';
+      let errorMessage = translate.orders('orderFailedAlert');
       
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -365,10 +367,7 @@ const NewOrder: React.FC = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+    return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   if (loading) {
@@ -376,7 +375,7 @@ const NewOrder: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
+          <p className="mt-2 text-gray-600">{translate.common('loading')}</p>
         </div>
       </div>
     );
@@ -385,19 +384,19 @@ const NewOrder: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">New Order</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{translate.orders('newOrder')}</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column - Product Selection */}
         <div className="md:col-span-2 bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Products</h2>
+          <h2 className="text-lg font-medium text-gray-900 mb-4">{translate.products('title')}</h2>
           
           {/* Product Search */}
           <div className="relative mb-4">
             <input
               type="text"
-              placeholder="Search products by name, SKU, or barcode..."
+              placeholder={translate.products('searchPlaceholder')}
               className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
               value={productSearch}
               onChange={handleProductSearchChange}
@@ -411,7 +410,7 @@ const NewOrder: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 max-h-96 overflow-y-auto">
             {filteredProducts.length === 0 ? (
               <div className="col-span-full text-center py-10 text-gray-500">
-                No products found. Try a different search term.
+                {translate.products('noProductsFound')}
               </div>
             ) : (
               filteredProducts.map(product => (
@@ -427,7 +426,7 @@ const NewOrder: React.FC = () => {
                     {product.sku && <div className="text-xs text-gray-500">SKU: {product.sku}</div>}
                     {product.hasVariants && product.variants && product.variants.length > 0 && (
                       <div className="text-xs text-blue-600 mt-1">
-                        {product.variants.length} variants available
+                        {product.variants.length} {translate.products('variantsAvailable')}
                       </div>
                     )}
                   </div>
@@ -438,7 +437,7 @@ const NewOrder: React.FC = () => {
                       product.stock <= (product.lowStockAlert || 5) ? 'text-orange-600' : 
                       'text-green-600'
                     }`}>
-                      {product.stock <= 0 ? 'Out of stock' : `${product.stock} in stock`}
+                      {product.stock <= 0 ? translate.products('outOfStock') : `${product.stock} ${translate.products('inStock')}`}
                     </span>
                   </div>
                   {product.stock > 0 && !product.hasVariants && (
@@ -452,7 +451,7 @@ const NewOrder: React.FC = () => {
                       }}
                     >
                       <PlusIcon className="h-4 w-4 mr-1" />
-                      Add to Order
+                      {translate.orders('addToOrder')}
                     </Button>
                   )}
                   {product.stock > 0 && product.hasVariants && product.variants && product.variants.length > 0 && (
@@ -481,19 +480,19 @@ const NewOrder: React.FC = () => {
 
         {/* Right Column - Order Summary */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
+          <h2 className="text-lg font-medium text-gray-900 mb-4">{translate.orders('orderSummary')}</h2>
           
           {/* Customer Selection */}
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-gray-700">
-                Customer
+                {translate.customers('customer')}
               </label>
               <button
                 onClick={() => setCustomerModalOpen(true)}
                 className="text-sm text-blue-600 hover:text-blue-800"
               >
-                {selectedCustomer ? 'Change' : 'Select'} Customer
+                {selectedCustomer ? translate.common('change') : translate.common('select')} {translate.customers('customer')}
               </button>
             </div>
             
@@ -518,7 +517,7 @@ const NewOrder: React.FC = () => {
             ) : (
               <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg flex items-center">
                 <UserIcon className="h-5 w-5 mr-2 text-gray-400" />
-                Walk-in Customer
+                {translate.customers('walkIn')}
               </div>
             )}
           </div>
@@ -527,17 +526,17 @@ const NewOrder: React.FC = () => {
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-gray-700">
-                Items
+                {translate.orders('items')}
               </label>
               <span className="text-sm text-gray-500">
-                {cartItems.length} item{cartItems.length !== 1 ? 's' : ''}
+                {cartItems.length} {cartItems.length !== 1 ? translate.orders('itemsPlural') : translate.orders('itemSingular')}
               </span>
             </div>
             
             {cartItems.length === 0 ? (
               <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg flex items-center">
                 <ShoppingCartIcon className="h-5 w-5 mr-2 text-gray-400" />
-                No items added yet
+                {translate.orders('noItems')}
               </div>
             ) : (
               <div className="border rounded-lg divide-y max-h-64 overflow-y-auto">
@@ -547,7 +546,7 @@ const NewOrder: React.FC = () => {
                       <div className="font-medium">{item.productName}</div>
                       {item.variant && (
                         <div className="text-xs text-blue-600 font-medium mt-0.5">
-                          Variant: {item.variant}
+                          {translate.products('variant')}: {item.variant}
                         </div>
                       )}
                       {item.hasVariants && (
@@ -555,11 +554,11 @@ const NewOrder: React.FC = () => {
                           onClick={() => openVariantModal(index)}
                           className="text-xs text-blue-600 underline font-medium mt-0.5"
                         >
-                          Select variant
+                          {translate.products('selectVariant')}
                         </button>
                       )}
                       <div className="text-sm text-gray-500 mt-0.5">
-                        {formatCurrency(item.price)} each
+                        {formatCurrency(item.price)} {translate.orders('each')}
                       </div>
                     </div>
                     <div className="flex items-center">
@@ -594,29 +593,29 @@ const NewOrder: React.FC = () => {
           {/* Order Notes */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Order Notes
+              {translate.orders('orderNotes')}
             </label>
             <textarea
               value={orderNotes}
               onChange={(e) => setOrderNotes(e.target.value)}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Add notes to this order"
+              placeholder={translate.orders('notesPlaceholder')}
             />
           </div>
           
           {/* Order Total */}
           <div className="border-t pt-4 mb-6">
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Subtotal</span>
+              <span className="text-sm text-gray-600">{translate.orders('subtotal')}</span>
               <span className="text-sm font-medium">{formatCurrency(subtotal)}</span>
             </div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Tax ({taxRate}%)</span>
+              <span className="text-sm text-gray-600">{translate.orders('tax')} ({taxRate}%)</span>
               <span className="text-sm font-medium">{formatCurrency(tax)}</span>
             </div>
             <div className="flex justify-between mt-2">
-              <span className="text-base font-medium">Total</span>
+              <span className="text-base font-medium">{translate.orders('total')}</span>
               <span className="text-base font-bold">{formatCurrency(total)}</span>
             </div>
           </div>
@@ -629,7 +628,7 @@ const NewOrder: React.FC = () => {
               onClick={openPaymentModal}
               disabled={cartItems.length === 0 || isSubmitting}
             >
-              Checkout & Payment
+              {translate.orders('checkoutPayment')}
             </Button>
             <Button
               variant="outline"
@@ -637,14 +636,14 @@ const NewOrder: React.FC = () => {
               onClick={() => handleSubmitOrder(true)}
               disabled={cartItems.length === 0 || isSubmitting}
             >
-              Save as Unpaid
+              {translate.orders('saveAsUnpaid')}
             </Button>
             <Button
               variant="outline"
               fullWidth
               onClick={() => navigate('/orders')}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </div>
         </div>
@@ -654,14 +653,14 @@ const NewOrder: React.FC = () => {
       <Modal
         isOpen={customerModalOpen}
         onClose={() => setCustomerModalOpen(false)}
-        title="Select Customer"
+        title={translate.customers('selectCustomer')}
         size="lg"
       >
         <div className="py-4">
           <div className="relative mb-4">
             <input
               type="text"
-              placeholder="Search customers by name, email, or phone..."
+              placeholder={translate.customers('searchPlaceholder')}
               className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
               value={customerSearch}
               onChange={handleCustomerSearchChange}
@@ -674,7 +673,7 @@ const NewOrder: React.FC = () => {
           <div className="max-h-96 overflow-y-auto">
             {filteredCustomers.length === 0 ? (
               <div className="text-center py-10 text-gray-500">
-                No customers found. Try a different search term.
+                {translate.customers('noCustomersFound')}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -703,7 +702,7 @@ const NewOrder: React.FC = () => {
       <Modal
         isOpen={variantModalOpen}
         onClose={() => setVariantModalOpen(false)}
-        title="Select Variant"
+        title={translate.products('selectVariant')}
         size="sm"
       >
         <div className="py-4">
@@ -733,7 +732,7 @@ const NewOrder: React.FC = () => {
       <Modal
         isOpen={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
-        title="Payment"
+        title={translate.orders('payment')}
         footer={
           <>
             <Button
@@ -742,7 +741,7 @@ const NewOrder: React.FC = () => {
               isLoading={isSubmitting}
               className="ml-3"
             >
-              Complete Order
+              {translate.orders('completeOrder')}
             </Button>
             <Button
               variant="outline"
@@ -773,23 +772,23 @@ const NewOrder: React.FC = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Method
+                {translate.orders('paymentMethod')}
               </label>
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="cash">Cash</option>
-                <option value="credit_card">Credit Card</option>
-                <option value="debit_card">Debit Card</option>
-                <option value="transfer">Bank Transfer</option>
+                <option value="cash">{translate.orders('cash')}</option>
+                <option value="credit_card">{translate.orders('creditCard')}</option>
+                <option value="debit_card">{translate.orders('debitCard')}</option>
+                <option value="transfer">{translate.orders('bankTransfer')}</option>
               </select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Amount Paid
+                {translate.orders('amountPaid')}
               </label>
               <input
                 type="number"
@@ -802,34 +801,34 @@ const NewOrder: React.FC = () => {
               />
               {paymentAmount !== total && (
                 <p className="mt-1 text-sm text-yellow-600">
-                  {paymentAmount < total ? 'Partial payment' : 'Overpayment'}
+                  {paymentAmount < total ? translate.orders('partialPayment') : translate.orders('overpayment')}
                 </p>
               )}
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reference
+                {translate.orders('reference')}
               </label>
               <input
                 type="text"
                 value={paymentReference}
                 onChange={(e) => setPaymentReference(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Receipt number, card transaction ID, etc."
+                placeholder={translate.orders('referencePlaceholder')}
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Notes
+                {translate.orders('paymentNotes')}
               </label>
               <textarea
                 value={paymentNotes}
                 onChange={(e) => setPaymentNotes(e.target.value)}
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Additional payment information"
+                placeholder={translate.orders('paymentNotesPlaceholder')}
               />
             </div>
           </div>

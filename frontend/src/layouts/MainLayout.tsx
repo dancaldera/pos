@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Bars3Icon,
   XMarkIcon,
@@ -16,6 +17,7 @@ import {
 
 const MainLayout: React.FC = () => {
   const { state, logout } = useAuth();
+  const { translate } = useLanguage();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -31,13 +33,13 @@ const MainLayout: React.FC = () => {
 
   // Define navigation items based on user role
   const navigation = [
-    { name: 'Dashboard', to: '/', icon: HomeIcon },
-    { name: 'Orders', to: '/orders', icon: ShoppingCartIcon },
-    { name: 'Products', to: '/products', icon: SquaresPlusIcon, requiredRole: ['admin', 'manager'] },
-    { name: 'Categories', to: '/categories', icon: ChartBarSquareIcon, requiredRole: ['admin', 'manager'] },
-    { name: 'Customers', to: '/customers', icon: UserGroupIcon },
-    { name: 'Users', to: '/users', icon: UsersIcon, requiredRole: ['admin'] },
-    { name: 'Settings', to: '/settings', icon: Cog6ToothIcon, requiredRole: ['admin'] },
+    { name: translate.dashboard('title'), to: '/', icon: HomeIcon },
+    { name: translate.orders('title'), to: '/orders', icon: ShoppingCartIcon },
+    { name: translate.products('title'), to: '/products', icon: SquaresPlusIcon, requiredRole: ['admin', 'manager'] },
+    { name: translate.categories('title'), to: '/categories', icon: ChartBarSquareIcon, requiredRole: ['admin', 'manager'] },
+    { name: translate.customers('title'), to: '/customers', icon: UserGroupIcon },
+    { name: translate.users('title'), to: '/users', icon: UsersIcon, requiredRole: ['admin'] },
+    { name: translate.settings('title'), to: '/settings', icon: Cog6ToothIcon, requiredRole: ['admin'] },
   ];
 
   // Filter navigation items based on user role
@@ -69,7 +71,7 @@ const MainLayout: React.FC = () => {
           </div>
           <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
-              <h1 className="text-white text-xl font-bold">Inventory POS</h1>
+              <h1 className="text-white text-xl font-bold">{translate.layout('pos')}</h1>
             </div>
             <nav className="mt-5 px-2 space-y-1">
               {filteredNavigation.map((item) => (
@@ -99,19 +101,21 @@ const MainLayout: React.FC = () => {
                   className="mr-4 flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-300"
                   aria-hidden="true"
                 />
-                Logout
+                {translate.auth('logout')}
               </button>
             </nav>
           </div>
           <div className="flex-shrink-0 flex p-4 bg-gray-700">
             <div className="flex-shrink-0 group block w-full">
-              <div className="flex items-center">
-                <div className="inline-block h-9 w-9 rounded-full bg-gray-500 text-white flex items-center justify-center">
-                  {user?.name.charAt(0)}
-                </div>
-                <div className="ml-3">
-                  <p className="text-base font-medium text-white">{user?.name}</p>
-                  <p className="text-sm font-medium text-gray-400 capitalize">{user?.role}</p>
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center">
+                  <div className="inline-block h-9 w-9 rounded-full bg-gray-500 text-white flex items-center justify-center">
+                    {user?.name.charAt(0)}
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-base font-medium text-white">{user?.name}</p>
+                    <p className="text-sm font-medium text-gray-400 capitalize">{user?.role}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -126,7 +130,7 @@ const MainLayout: React.FC = () => {
           <div className="flex flex-col h-0 flex-1 bg-gray-800">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4">
-                <h1 className="text-white text-xl font-bold">Inventory POS</h1>
+                <h1 className="text-white text-xl font-bold">{translate.layout('pos')}</h1>
               </div>
               <nav className="mt-5 flex-1 px-2 space-y-1">
                 {filteredNavigation.map((item) => (
@@ -155,19 +159,21 @@ const MainLayout: React.FC = () => {
                     className="mr-3 flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-300"
                     aria-hidden="true"
                   />
-                  Logout
+                  {translate.auth('logout')}
                 </button>
               </nav>
             </div>
             <div className="flex-shrink-0 flex p-4 bg-gray-700">
               <div className="flex-shrink-0 w-full group block">
-                <div className="flex items-center">
-                  <div className="inline-block h-9 w-9 rounded-full bg-gray-500 text-white flex items-center justify-center">
-                    {user?.name.charAt(0)}
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-white">{user?.name}</p>
-                    <p className="text-xs font-medium text-gray-300 capitalize">{user?.role}</p>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center">
+                    <div className="inline-block h-9 w-9 rounded-full bg-gray-500 text-white flex items-center justify-center">
+                      {user?.name.charAt(0)}
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-white">{user?.name}</p>
+                      <p className="text-xs font-medium text-gray-300 capitalize">{user?.role}</p>
+                    </div>
                   </div>
                 </div>
               </div>

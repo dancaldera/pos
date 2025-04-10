@@ -11,6 +11,7 @@ import Table from '../components/ui/Table';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { PencilIcon, TrashIcon, PlusIcon, MagnifyingGlassIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '../context/LanguageContext';
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -212,19 +213,21 @@ const Products: React.FC = () => {
     setImagePreview(null);
   };
 
+  const { translate, language } = useLanguage();
+
   const validateForm = () => {
     const errors: Record<string, string> = {};
     
     if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+      errors.name = translate.products('nameRequired');
     }
     
     if (formData.price <= 0) {
-      errors.price = 'Price must be greater than 0';
+      errors.price = translate.products('priceRequired');
     }
     
     if (formData.stock < 0) {
-      errors.stock = 'Stock cannot be negative';
+      errors.stock = translate.products('stockCannotBeNegative');
     }
     
     // Validate variants if hasVariants is true
@@ -233,7 +236,7 @@ const Products: React.FC = () => {
       const validVariants = (formData.variants || []).filter(v => v.trim().length > 1);
       
       if (validVariants.length === 0) {
-        errors.variants = 'At least one valid variant is required';
+        errors.variants = translate.products('variantRequired');
       } else {
         // Update formData with only valid variants
         formData.variants = validVariants;
@@ -303,7 +306,7 @@ const Products: React.FC = () => {
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(language === 'en' ? 'en-US' : 'es-MX', {
       style: 'currency',
       currency: 'USD'
     }).format(amount);
@@ -312,13 +315,13 @@ const Products: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Products</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{translate.products('title')}</h1>
         <Button 
           variant="primary" 
           onClick={openCreateModal}
         >
           <PlusIcon className="h-5 w-5 mr-1" />
-          Add Product
+          {translate.products('addProduct')}
         </Button>
       </div>
 
@@ -329,7 +332,7 @@ const Products: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={translate.products('searchProducts')}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 value={search}
                 onChange={handleSearchChange}
@@ -349,7 +352,7 @@ const Products: React.FC = () => {
               value={searchParams.categoryId}
               onChange={handleCategoryFilter}
             >
-              <option value="">All Categories</option>
+              <option value="">{translate.common('all')} {translate.categories('title')}</option>
               {categories.map(category => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -364,16 +367,25 @@ const Products: React.FC = () => {
       {loading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">Loading products...</p>
+          <p className="mt-2 text-gray-600">{translate.common('loading')}</p>
         </div>
       ) : (
         <>
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table headers={['Image', 'Name', 'Category', 'Price', 'Stock', 'Variants', 'Status', 'Actions']}>
+            <Table headers={[
+              translate.common('image'), 
+              translate.common('name'), 
+              translate.categories('title'), 
+              translate.common('price'), 
+              translate.products('productStock'), 
+              translate.products('variants'), 
+              translate.common('status'), 
+              translate.common('actions')
+            ]}>
               {products.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                    No products found. Create a new product to get started.
+                    {translate.common('noResults')}
                   </td>
                 </tr>
               ) : (
@@ -405,17 +417,17 @@ const Products: React.FC = () => {
                       <div className="text-sm text-gray-900">{formatCurrency(product.price)}</div>
                       {product.cost && (
                         <div className="text-xs text-gray-500">
-                          Cost: {formatCurrency(product.cost)}
+                          {translate.products('productCost')}: {formatCurrency(product.cost)}
                         </div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className={`text-sm ${product.lowStockAlert && product.stock <= product.lowStockAlert ? 'text-red-600 font-medium' : 'text-gray-900'}`}>
-                        {product.stock} in stock
+                        {product.stock} {translate.products('inStock').toLowerCase()}
                       </div>
                       {product.lowStockAlert && (
                         <div className="text-xs text-gray-500">
-                          Alert: {product.lowStockAlert}
+                          {translate.products('lowStockAlert')}: {product.lowStockAlert}
                         </div>
                       )}
                     </td>
@@ -423,19 +435,19 @@ const Products: React.FC = () => {
                       {product.hasVariants && product.variants && product.variants.length > 0 ? (
                         <div className="text-sm text-gray-900">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {product.variants.length} variants
+                            {product.variants.length} {translate.products('variantsAvailable')}
                           </span>
                           <div className="mt-1 text-xs text-gray-500 max-w-[150px] truncate">
                             {product.variants.join(', ')}
                           </div>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-500">No variants</span>
+                        <span className="text-xs text-gray-500">{translate.common('no')} {translate.products('variants')}</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                        {product.active ? 'Active' : 'Inactive'}
+                        {product.active ? translate.common('active') : translate.common('inactive')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -464,7 +476,7 @@ const Products: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} products
+                {(pagination.page - 1) * pagination.limit + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} {translate.products('title').toLowerCase()}
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -473,7 +485,7 @@ const Products: React.FC = () => {
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
                 >
-                  Previous
+                  {translate.common('previous')}
                 </Button>
                 <Button
                   variant="outline"
@@ -481,7 +493,7 @@ const Products: React.FC = () => {
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
                 >
-                  Next
+                  {translate.common('next')}
                 </Button>
               </div>
             </div>
@@ -493,7 +505,7 @@ const Products: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentProduct ? 'Edit Product' : 'Add New Product'}
+        title={currentProduct ? translate.products('editProduct') : translate.products('addProduct')}
         size="lg"
         footer={
           <>
@@ -503,14 +515,14 @@ const Products: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              {currentProduct ? 'Update Product' : 'Create Product'}
+              {currentProduct ? translate.common('save') : translate.common('add')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
@@ -522,7 +534,7 @@ const Products: React.FC = () => {
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name *
+                  {translate.products('productName')} *
                 </label>
                 <input
                   type="text"
@@ -532,7 +544,7 @@ const Products: React.FC = () => {
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                     formErrors.name ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter product name"
+                  placeholder={translate.products('productName')}
                 />
                 {formErrors.name && (
                   <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
@@ -542,7 +554,7 @@ const Products: React.FC = () => {
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {translate.products('productDescription')}
                 </label>
                 <textarea
                   name="description"
@@ -550,14 +562,14 @@ const Products: React.FC = () => {
                   onChange={handleInputChange}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter product description"
+                  placeholder={translate.products('productDescription')}
                 />
               </div>
 
               {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                  {translate.products('productCategory')}
                 </label>
                 <select
                   name="categoryId"
@@ -565,7 +577,7 @@ const Products: React.FC = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">Select a category</option>
+                  <option value="">{translate.common('select')} {translate.categories('title').toLowerCase()}</option>
                   {categories.map(category => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -578,7 +590,7 @@ const Products: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price *
+                    {translate.products('productPrice')} *
                   </label>
                   <input
                     type="number"
@@ -598,7 +610,7 @@ const Products: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cost
+                    {translate.products('productCost')}
                   </label>
                   <input
                     type="number"
@@ -619,7 +631,7 @@ const Products: React.FC = () => {
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Image
+                  {translate.products('productImage')}
                 </label>
                 <div className="mt-1 flex items-center">
                   {imagePreview ? (
@@ -642,7 +654,7 @@ const Products: React.FC = () => {
                       <label htmlFor="file-upload" className="cursor-pointer">
                         <div className="space-y-1 text-center">
                           <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="text-xs text-gray-600">Upload image</div>
+                          <div className="text-xs text-gray-600">{translate.products('uploadImage')}</div>
                         </div>
                         <input
                           id="file-upload"
@@ -662,7 +674,7 @@ const Products: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SKU
+                    {translate.products('productSKU')}
                   </label>
                   <input
                     type="text"
@@ -670,12 +682,12 @@ const Products: React.FC = () => {
                     value={formData.sku || ''}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="SKU code"
+                    placeholder={translate.products('productSKU')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Barcode
+                    {translate.products('productBarcode')}
                   </label>
                   <input
                     type="text"
@@ -683,7 +695,7 @@ const Products: React.FC = () => {
                     value={formData.barcode || ''}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Barcode"
+                    placeholder={translate.products('productBarcode')}
                   />
                 </div>
               </div>
@@ -692,7 +704,7 @@ const Products: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock Quantity
+                    {translate.products('stockQuantity')}
                   </label>
                   <input
                     type="number"
@@ -711,7 +723,7 @@ const Products: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Low Stock Alert
+                    {translate.products('lowStockAlert')}
                   </label>
                   <input
                     type="number"
@@ -741,7 +753,7 @@ const Products: React.FC = () => {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
-                  Active (available for sale)
+                  {translate.products('activeForSale')}
                 </label>
               </div>
               
@@ -762,7 +774,7 @@ const Products: React.FC = () => {
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="hasVariants" className="ml-2 block text-sm text-gray-700">
-                    Product has variants/flavors
+                    {translate.products('hasVariants')}
                   </label>
                 </div>
                 
@@ -771,7 +783,7 @@ const Products: React.FC = () => {
                     formErrors.variants ? 'border-red-500' : 'border-gray-200'
                   }`}>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Variants/Flavors
+                      {translate.products('variants')}
                     </label>
                     {formErrors.variants && (
                       <p className="text-sm text-red-600 mb-2">{formErrors.variants}</p>
@@ -791,7 +803,7 @@ const Products: React.FC = () => {
                               });
                             }}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Variant name"
+                            placeholder={translate.products('selectVariant')}
                           />
                           <button
                             type="button"
@@ -821,7 +833,7 @@ const Products: React.FC = () => {
                       className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       <PlusIcon className="h-4 w-4 mr-2" />
-                      Add Variant
+                      {translate.products('addVariant')}
                     </button>
                   </div>
                 )}
@@ -835,7 +847,7 @@ const Products: React.FC = () => {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Delete Product"
+        title={translate.common('delete')}
         footer={
           <>
             <Button
@@ -844,23 +856,22 @@ const Products: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              Delete
+              {translate.common('delete')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={submitLoading}
             >
-              Cancel
+              {translate.common('cancel')}
             </Button>
           </>
         }
       >
         <div className="py-4">
           <p className="text-gray-600">
-            Are you sure you want to delete{' '}
-            <span className="font-medium text-gray-900">{currentProduct?.name}</span>?
-            This action cannot be undone.
+            {translate.categories('deleteConfirmation')}{' '}
+            <span className="font-medium text-gray-900">{currentProduct?.name}</span>
           </p>
         </div>
       </Modal>

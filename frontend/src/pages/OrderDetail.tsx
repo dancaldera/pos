@@ -13,6 +13,7 @@ import { Product } from '../types/products';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   ArrowLeftIcon,
   CurrencyDollarIcon,
@@ -42,6 +43,7 @@ const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { state: authState } = useAuth();
+  const { translate, language } = useLanguage();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,7 +156,7 @@ const OrderDetail: React.FC = () => {
       fetchOrder();
     } catch (error: any) {
       console.error('Error adding payment:', error);
-      alert(error?.response?.data?.message || 'Failed to process payment');
+      alert(error?.response?.data?.message || translate.orders('paymentFailed'));
     } finally {
       setSubmitLoading(false);
     }
@@ -226,7 +228,7 @@ const OrderDetail: React.FC = () => {
       
       // Check stock
       if (product && product.stock < quantity) {
-        alert(`Sorry, only ${product.stock} units available for ${product.name}`);
+        alert(translate.products('stockLimitMessage').replace('{stock}', product.stock.toString()).replace('{product}', product.name));
         return;
       }
       
@@ -256,7 +258,7 @@ const OrderDetail: React.FC = () => {
       fetchOrder();
     } catch (error: any) {
       console.error('Error adding items:', error);
-      alert(error?.response?.data?.message || 'Failed to add items to order');
+      alert(error?.response?.data?.message || translate.orders('addItemsFailed'));
     } finally {
       setSubmitLoading(false);
     }
@@ -276,14 +278,11 @@ const OrderDetail: React.FC = () => {
   // };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    return new Date(dateString).toLocaleString(language === 'en' ? 'en-US' : 'es-MX');
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+    return `$${amount as number}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   if (loading) {
@@ -291,7 +290,7 @@ const OrderDetail: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">Loading order details...</p>
+          <p className="mt-2 text-gray-600">{translate.orders('loadingOrderDetails')}</p>
         </div>
       </div>
     );
@@ -302,14 +301,14 @@ const OrderDetail: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-10">
           <div className="text-red-600 text-lg mb-4">
-            {error || 'Order not found'}
+            {error || translate.orders('orderNotFound')}
           </div>
           <Button
             variant="outline"
             onClick={() => navigate('/orders')}
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
-            Back to Orders
+            {translate.common('backToOrders')}
           </Button>
         </div>
       </div>
@@ -337,11 +336,11 @@ const OrderDetail: React.FC = () => {
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
             <h1 className="text-2xl font-bold text-gray-800">
-              Order #{order.orderNumber}
+              {translate.orders('orderNumber').replace('{number}', order.orderNumber.toString())}
             </h1>
           </div>
           <p className="text-gray-500 mt-1">
-            Created on {formatDate(order.createdAt)}
+            {translate.orders('createdOn').replace('{date}', formatDate(order.createdAt))}
           </p>
         </div>
         
@@ -363,7 +362,7 @@ const OrderDetail: React.FC = () => {
                 onClick={() => setStatusModalOpen(true)}
               >
                 <ArrowPathIcon className="h-5 w-5 mr-1" />
-                Update Status
+                {translate.orders('updateStatus')}
               </Button>
               
               {order.status !== 'completed' && (
@@ -372,7 +371,7 @@ const OrderDetail: React.FC = () => {
                   onClick={openAddItemsModal}
                 >
                   <PlusIcon className="h-5 w-5 mr-1" />
-                  Add Items
+                  {translate.orders('addItems')}
                 </Button>
               )}
               
@@ -382,7 +381,7 @@ const OrderDetail: React.FC = () => {
                   onClick={() => setPaymentModalOpen(true)}
                 >
                   <CurrencyDollarIcon className="h-5 w-5 mr-1" />
-                  Add Payment
+                  {translate.orders('addPayment')}
                 </Button>
               )}
               
@@ -392,7 +391,7 @@ const OrderDetail: React.FC = () => {
                   onClick={() => setCancelModalOpen(true)}
                 >
                   <XMarkIcon className="h-5 w-5 mr-1" />
-                  Cancel Order
+                  {translate.orders('cancelOrder')}
                 </Button>
               )}
             </>
@@ -403,11 +402,11 @@ const OrderDetail: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Order Info Panel */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Order Information</h2>
+          <h2 className="text-lg font-medium text-gray-900 mb-4">{translate.orders('orderInformation')}</h2>
           
           <div className="space-y-4">
             <div>
-              <div className="text-sm text-gray-500">Status</div>
+              <div className="text-sm text-gray-500">{translate.common('status')}</div>
               <div className="mt-1">
                 <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
                   {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -416,23 +415,23 @@ const OrderDetail: React.FC = () => {
             </div>
             
             <div>
-              <div className="text-sm text-gray-500">Payment</div>
+              <div className="text-sm text-gray-500">{translate.orders('payment')}</div>
               <div className="flex justify-between items-center mt-1">
                 <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${paymentStatusColors[order.paymentStatus]}`}>
-                  {order.paymentStatus === 'paid' ? 'Paid' : 
-                   order.paymentStatus === 'partial' ? 'Partial' : 'Unpaid'}
+                  {order.paymentStatus === 'paid' ? translate.orders('paid') : 
+                   order.paymentStatus === 'partial' ? translate.orders('partial') : translate.orders('unpaid')}
                 </span>
                 
                 {order.paymentMethod && (
                   <span className="text-sm text-gray-600">
-                    Via {order.paymentMethod.replace('_', ' ')}
+                    {translate.orders('via')} {order.paymentMethod}
                   </span>
                 )}
               </div>
             </div>
             
             <div>
-              <div className="text-sm text-gray-500">Customer</div>
+              <div className="text-sm text-gray-500">{translate.customers('customer')}</div>
               <div className="mt-1">
                 {order.customer ? (
                   <div>
@@ -445,13 +444,13 @@ const OrderDetail: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="text-sm">Walk-in Customer</div>
+                  <div className="text-sm">{translate.customers('walkIn')}</div>
                 )}
               </div>
             </div>
             
             <div>
-              <div className="text-sm text-gray-500">Staff</div>
+              <div className="text-sm text-gray-500">{translate.users('staff')}</div>
               <div className="mt-1">
                 <div className="font-medium">{order.user?.name}</div>
                 <div className="text-xs text-gray-500">{order.user?.role}</div>
@@ -460,7 +459,7 @@ const OrderDetail: React.FC = () => {
             
             {order.notes && (
               <div>
-                <div className="text-sm text-gray-500">Notes</div>
+                <div className="text-sm text-gray-500">{translate.orders('notes')}</div>
                 <div className="mt-1 text-sm bg-gray-50 p-2 rounded">
                   {order.notes}
                 </div>
@@ -472,12 +471,12 @@ const OrderDetail: React.FC = () => {
         {/* Order Items Panel */}
         <div className="bg-white rounded-lg shadow p-6 md:col-span-2">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Order Items</h2>
+            <h2 className="text-lg font-medium text-gray-900">{translate.orders('orderItems')}</h2>
             <button
               onClick={() => setShowLineItemDetails(!showLineItemDetails)}
               className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
             >
-              {showLineItemDetails ? 'Hide' : 'Show'} Details
+              {showLineItemDetails ? translate.common('hide') : translate.common('show')} {translate.common('details')}
               {showLineItemDetails ? (
                 <ChevronUpIcon className="h-4 w-4 ml-1" />
               ) : (
@@ -495,12 +494,12 @@ const OrderDetail: React.FC = () => {
                       <div className="font-medium">{item.productName}</div>
                       {item.variant && (
                         <div className="text-xs text-blue-600 font-medium">
-                          Variant: {item.variant}
+                          {translate.products('variant')}: {item.variant}
                         </div>
                       )}
                       {showLineItemDetails && (
                         <div className="text-xs text-gray-500">
-                          {item.productId ? `Product ID: ${item.productId}` : 'Custom item'}
+                          {item.productId ? `${translate.products('productId')}: ${item.productId}` : translate.products('customItem')}
                         </div>
                       )}
                     </div>
@@ -513,14 +512,14 @@ const OrderDetail: React.FC = () => {
                   </div>
                   {showLineItemDetails && item.notes && (
                     <div className="mt-2 text-sm text-gray-500">
-                      Note: {item.notes}
+                      {translate.common('note')}: {item.notes}
                     </div>
                   )}
                 </div>
               ))
             ) : (
               <div className="p-4 text-center text-gray-500">
-                No items found in this order.
+                {translate.orders('noItemsFound')}
               </div>
             )}
           </div>
@@ -528,35 +527,35 @@ const OrderDetail: React.FC = () => {
           {/* Order Totals */}
           <div className="border-t pt-4">
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Subtotal</span>
+              <span className="text-sm text-gray-600">{translate.orders('subtotal')}</span>
               <span className="text-sm font-medium">{formatCurrency(order.subtotal)}</span>
             </div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Tax</span>
+              <span className="text-sm text-gray-600">{translate.orders('tax')}</span>
               <span className="text-sm font-medium">{formatCurrency(order.tax)}</span>
             </div>
             {order.discount > 0 && (
               <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-600">Discount</span>
+                <span className="text-sm text-gray-600">{translate.orders('discount')}</span>
                 <span className="text-sm font-medium text-red-600">
                   -{formatCurrency(order.discount)}
                 </span>
               </div>
             )}
             <div className="flex justify-between mt-2 border-t pt-2">
-              <span className="text-base font-medium">Total</span>
+              <span className="text-base font-medium">{translate.orders('total')}</span>
               <span className="text-base font-bold">{formatCurrency(order.total)}</span>
             </div>
             
             {/* Payment Information */}
             <div className="mt-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600">Payment Information</span>
+                <span className="text-sm font-medium text-gray-600">{translate.orders('paymentInformation')}</span>
                 <button
                   onClick={() => setShowPaymentDetails(!showPaymentDetails)}
                   className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
                 >
-                  {showPaymentDetails ? 'Hide' : 'Show'} Details
+                  {showPaymentDetails ? translate.common('hide') : translate.common('show')} {translate.common('details')}
                   {showPaymentDetails ? (
                     <ChevronUpIcon className="h-3 w-3 ml-1" />
                   ) : (
@@ -566,12 +565,12 @@ const OrderDetail: React.FC = () => {
               </div>
               
               <div className="flex justify-between mt-2">
-                <span className="text-sm text-gray-600">Amount Paid</span>
+                <span className="text-sm text-gray-600">{translate.orders('amountPaid')}</span>
                 <span className="text-sm font-medium">{formatCurrency(totalPaid)}</span>
               </div>
               
               <div className="flex justify-between mt-1">
-                <span className="text-sm text-gray-600">Balance</span>
+                <span className="text-sm text-gray-600">{translate.orders('balance')}</span>
                 <span className={`text-sm font-medium ${remainingBalance > 0 ? 'text-red-600' : ''}`}>
                   {formatCurrency(remainingBalance)}
                 </span>
@@ -618,7 +617,7 @@ const OrderDetail: React.FC = () => {
       <Modal
         isOpen={statusModalOpen}
         onClose={() => setStatusModalOpen(false)}
-        title="Update Order Status"
+        title={translate.orders('updateOrderStatus')}
         footer={
           <>
             <Button
@@ -627,7 +626,7 @@ const OrderDetail: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              Update Status
+              {translate.orders('updateStatus')}
             </Button>
             <Button
               variant="outline"
@@ -641,20 +640,20 @@ const OrderDetail: React.FC = () => {
       >
         <div className="py-4">
           <p className="mb-4">
-            Update the status for order <span className="font-bold">#{order.orderNumber}</span>
+            {translate.orders('updateStatusMessage').replace('{orderNumber}', order.orderNumber.toString())}
           </p>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Status
+              {translate.orders('newStatus')}
             </label>
             <select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="pending">{translate.orders('statusPending')}</option>
+              <option value="completed">{translate.orders('statusCompleted')}</option>
+              <option value="cancelled">{translate.orders('statusCancelled')}</option>
             </select>
           </div>
         </div>
@@ -664,7 +663,7 @@ const OrderDetail: React.FC = () => {
       <Modal
         isOpen={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
-        title="Cancel Order"
+        title={translate.orders('cancelOrder')}
         footer={
           <>
             <Button
@@ -673,36 +672,35 @@ const OrderDetail: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              Cancel Order
+              {translate.orders('cancelOrder')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setCancelModalOpen(false)}
               disabled={submitLoading}
             >
-              Go Back
+              {translate.common('goBack')}
             </Button>
           </>
         }
       >
         <div className="py-4">
           <p className="text-gray-600 mb-4">
-            Are you sure you want to cancel order <span className="font-bold">#{order.orderNumber}</span>?
+            {translate.orders('cancelConfirmation').replace('{orderNumber}', order.orderNumber.toString())}
             <br />
             <br />
-            Cancelling will return items to inventory if the order is not already completed.
-            This action cannot be undone.
+            {translate.orders('cancelWarning')}
           </p>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Reason for Cancellation
+              {translate.orders('cancelReason')}
             </label>
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter reason for cancellation"
+              placeholder={translate.orders('cancelReasonPlaceholder')}
             />
           </div>
         </div>
@@ -712,7 +710,7 @@ const OrderDetail: React.FC = () => {
       <Modal
         isOpen={addItemsModalOpen}
         onClose={() => setAddItemsModalOpen(false)}
-        title="Add Items to Order"
+        title={translate.orders('addItemsToOrder')}
         size="lg"
         footer={
           <>
@@ -723,7 +721,7 @@ const OrderDetail: React.FC = () => {
               className="ml-3"
               disabled={selectedItems.size === 0}
             >
-              Add {selectedItems.size} {selectedItems.size === 1 ? 'Item' : 'Items'}
+              {translate.orders('addItems')} {selectedItems.size} {selectedItems.size === 1 ? translate.orders('itemSingular') : translate.orders('itemsPlural')}
             </Button>
             <Button
               variant="outline"
@@ -740,7 +738,7 @@ const OrderDetail: React.FC = () => {
           <div className="mb-4 relative">
             <input
               type="text"
-              placeholder="Search products by name, SKU, or barcode..."
+              placeholder={translate.products('searchPlaceholder')}
               className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
               value={productSearch}
               onChange={handleProductSearchChange}
@@ -753,7 +751,7 @@ const OrderDetail: React.FC = () => {
           {/* Selected Items Summary */}
           {selectedItems.size > 0 && (
             <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <div className="font-medium text-blue-800 mb-2">Selected Items ({selectedItems.size})</div>
+              <div className="font-medium text-blue-800 mb-2">{translate.orders('selectedItems')} ({selectedItems.size})</div>
               <div className="max-h-32 overflow-y-auto">
                 {Array.from(selectedItems.entries()).map(([key, item]) => {
                   const product = products.find(p => p.id === item.productId);
@@ -799,7 +797,7 @@ const OrderDetail: React.FC = () => {
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-10 text-gray-500">
-                No products found. Try a different search term.
+                {translate.products('noProductsFound')}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -822,7 +820,7 @@ const OrderDetail: React.FC = () => {
                         product.stock <= (product.lowStockAlert || 5) ? 'text-orange-600' : 
                         'text-green-600'
                       }`}>
-                        {product.stock <= 0 ? 'Out of stock' : `${product.stock} in stock`}
+                        {product.stock <= 0 ? translate.products('outOfStock') : `${product.stock} ${translate.products('inStock')}`}
                       </span>
                     </div>
                     
@@ -857,7 +855,7 @@ const OrderDetail: React.FC = () => {
                             : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                         }`}
                       >
-                        {selectedItems.has(product.id) ? 'Selected' : 'Add to Order'}
+                        {selectedItems.has(product.id) ? translate.products('selected') : translate.orders('addToOrder')}
                       </button>
                     )}
                   </div>
@@ -872,7 +870,7 @@ const OrderDetail: React.FC = () => {
       <Modal
         isOpen={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
-        title="Add Payment"
+        title={translate.orders('addPayment')}
         footer={
           <>
             <Button
@@ -882,7 +880,7 @@ const OrderDetail: React.FC = () => {
               className="ml-3"
               disabled={paymentAmount <= 0 || paymentAmount > remainingBalance}
             >
-              Process Payment
+              {translate.orders('processPayment')}
             </Button>
             <Button
               variant="outline"
@@ -897,15 +895,15 @@ const OrderDetail: React.FC = () => {
         <div className="py-4">
           <div className="mb-6 bg-gray-50 p-4 rounded-lg">
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Order Total</span>
+              <span className="text-sm text-gray-600">{translate.orders('orderTotal')}</span>
               <span className="text-sm font-medium">{formatCurrency(order.total)}</span>
             </div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Already Paid</span>
+              <span className="text-sm text-gray-600">{translate.orders('alreadyPaid')}</span>
               <span className="text-sm font-medium">{formatCurrency(totalPaid)}</span>
             </div>
             <div className="flex justify-between mt-2 text-lg font-bold">
-              <span>Remaining Balance</span>
+              <span>{translate.orders('remainingBalance')}</span>
               <span>{formatCurrency(remainingBalance)}</span>
             </div>
           </div>
@@ -913,23 +911,23 @@ const OrderDetail: React.FC = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Method
+                {translate.orders('paymentMethod')}
               </label>
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="cash">Cash</option>
-                <option value="credit_card">Credit Card</option>
-                <option value="debit_card">Debit Card</option>
-                <option value="transfer">Bank Transfer</option>
+                <option value="cash">{translate.orders('cash')}</option>
+                <option value="credit_card">{translate.orders('creditCard')}</option>
+                <option value="debit_card">{translate.orders('debitCard')}</option>
+                <option value="transfer">{translate.orders('bankTransfer')}</option>
               </select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Amount Paid
+                {translate.orders('amountPaid')}
               </label>
               <input
                 type="number"
@@ -942,39 +940,39 @@ const OrderDetail: React.FC = () => {
               />
               {paymentAmount > remainingBalance && (
                 <p className="mt-1 text-sm text-red-600">
-                  Amount cannot exceed remaining balance.
+                  {translate.orders('amountExceedsBalance')}
                 </p>
               )}
               {paymentAmount < remainingBalance && paymentAmount > 0 && (
                 <p className="mt-1 text-sm text-yellow-600">
-                  This will be recorded as a partial payment.
+                  {translate.orders('partialPaymentNote')}
                 </p>
               )}
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reference
+                {translate.orders('reference')}
               </label>
               <input
                 type="text"
                 value={paymentReference}
                 onChange={(e) => setPaymentReference(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Receipt number, card transaction ID, etc."
+                placeholder={translate.orders('referencePlaceholder')}
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Notes
+                {translate.orders('paymentNotes')}
               </label>
               <textarea
                 value={paymentNotes}
                 onChange={(e) => setPaymentNotes(e.target.value)}
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Additional payment information"
+                placeholder={translate.orders('paymentNotesPlaceholder')}
               />
             </div>
           </div>

@@ -1,7 +1,19 @@
 import apiClient from './client';
 
+// Product search params interface
+export interface ProductSearchParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  categoryId?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  active?: boolean | string;
+  lowStock?: boolean | string;
+}
+
 // Get all products with optional filtering
-export const getProducts = async (params = {}) => {
+export const getProducts = async (params: ProductSearchParams = {}) => {
   const response = await apiClient.get('/products', { params });
   return response.data;
 };

@@ -249,7 +249,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       stock,
       lowStockAlert: lowStockAlert || null,
       active,
-      imageUrl,
+      imageUrl: imageUrl ? `${process.env.R2_PUBLIC_URL}/products/${imageUrl.split('/').pop()?.split('?')[0]}` : null,
       hasVariants,
       variants,
     };
@@ -436,7 +436,9 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
     if (stock !== undefined) updateValues.stock = stock;
     if (lowStockAlert !== undefined) updateValues.lowStockAlert = lowStockAlert || null;
     if (active !== undefined) updateValues.active = active === true || active === 'true';
-    updateValues.imageUrl = imageUrl;
+    updateValues.imageUrl = imageUrl
+      ? `${process.env.R2_PUBLIC_URL}/products/${imageUrl.split('/').pop()?.split('?')[0]}`
+      : null;
     
     // Always update variants related fields if hasVariants is specified
     if (req.body.hasVariants !== undefined) {

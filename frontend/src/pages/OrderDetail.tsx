@@ -48,7 +48,6 @@ const OrderDetail: React.FC = () => {
   const { state: authState } = useAuth();
   const { translate, language } = useLanguage();
   const [order, setOrder] = useState<Order | null>(null);
-  console.log("order: ", order)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusModalOpen, setStatusModalOpen] = useState(false);

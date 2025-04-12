@@ -225,8 +225,6 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       discountValue,
     } = req.body;
 
-    console.log("req.body", req.body);
-
     // Validate input
     if (!items || !Array.isArray(items) || items.length === 0) {
       throw new BadRequestError('Order must have at least one item');
@@ -277,9 +275,6 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
           throw new BadRequestError(`Insufficient stock for ${product.name} (requested: ${item.quantity}, available: ${product.stock})`);
         }
 
-        console.log("product", product);
-        console.log("item", item);
-
         // Calculate item subtotal
         const unitPrice = Number(product.price);
         const itemSubtotal = unitPrice * item.quantity;
@@ -326,8 +321,6 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         paymentStatus,
         paymentMethod,
       }).returning();
-
-      console.log("newOrder", newOrder);
 
       // Create order items and update inventory
       for (const item of processedItems) {

@@ -74,11 +74,6 @@ const NewOrder: React.FC = () => {
   
   const tax = (subtotal - validDiscountAmount) * (taxRate / 100);
   const total = subtotal - validDiscountAmount + tax;
-  
-  // Debug
-  console.log('Cart items:', cartItems);
-  console.log('Calculated subtotal:', subtotal);
-  console.log('Calculated total:', total);
 
   useEffect(() => {
     // Fetch products and customers on mount
@@ -141,8 +136,6 @@ const NewOrder: React.FC = () => {
     const productPrice = typeof product.price === 'string' 
       ? parseFloat(product.price) 
       : Number(product.price);
-      
-    console.log('Adding product with price:', productPrice, 'Type:', typeof productPrice);
     
     // For products with variants, handle differently
     if (product.hasVariants && product.variants && product.variants.length > 0) {
@@ -246,10 +239,6 @@ const NewOrder: React.FC = () => {
       
     newCartItems[index].subtotal = itemPrice * newQuantity;
     
-    console.log('Updated item quantity:', newQuantity);
-    console.log('Item price:', itemPrice);
-    console.log('Calculated subtotal:', newCartItems[index].subtotal);
-    
     setCartItems(newCartItems);
   };
 
@@ -274,7 +263,6 @@ const NewOrder: React.FC = () => {
     
     // Make sure total is a valid number
     const amountToSet = isNaN(total) ? 0 : total;
-    console.log('Setting payment amount:', amountToSet);
     
     setPaymentAmount(amountToSet);
     setPaymentModalOpen(true);
@@ -327,8 +315,6 @@ const NewOrder: React.FC = () => {
         notes: item.notes || undefined,
       }));
       
-      console.log('Submitting order with items:', processedCartItems);
-      
       // Create order data with proper types
       const orderData = {
         customerId: selectedCustomer?.id || undefined,
@@ -357,8 +343,6 @@ const NewOrder: React.FC = () => {
           paymentStatus: 'unpaid' as PaymentStatus
         });
       }
-      
-      console.log('Submitting order with data:', orderData);
       
       const response = await createOrder(orderData);
       

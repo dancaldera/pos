@@ -32,7 +32,6 @@ const Settings: React.FC = () => {
     receiptFooter: '',
   });
   
-  console.log('Initial form data currency:', formData.currency);
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [removeLogo, setRemoveLogo] = useState(false);
@@ -52,7 +51,6 @@ const Settings: React.FC = () => {
     try {
       setLoading(true);
       const response = await getSettings();
-      console.log('Fetched settings:', response);
       
       if (response.success && response.data) {
         // Make sure currency has a default value if it's not in the response
@@ -61,7 +59,6 @@ const Settings: React.FC = () => {
           currency: response.data.currency || 'USD',
         };
         
-        console.log('Setting form data with currency:', formDataWithDefaults.currency);
         setFormData(formDataWithDefaults);
         
         if (response.data.logoUrl) {
@@ -82,7 +79,7 @@ const Settings: React.FC = () => {
     
     // Log currency changes specifically
     if (name === 'currency') {
-      console.log('Currency changed to:', value);
+      // Log the selected currency
     }
     
     if (type === 'number') {
@@ -98,12 +95,6 @@ const Settings: React.FC = () => {
     }
     
     // If it's the currency field, log the updated state
-    if (name === 'currency') {
-      console.log('Form data after currency change:', {
-        ...formData,
-        [name]: value,
-      });
-    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,16 +155,9 @@ const Settings: React.FC = () => {
       settingsFormData.append('taxRate', formData.taxRate.toString());
       
       // Ensure currency is properly set
-      console.log('Currency selected:', formData.currency);
       settingsFormData.append('currency', formData.currency || 'USD');
       
       if (formData.receiptFooter) settingsFormData.append('receiptFooter', formData.receiptFooter);
-      
-      // Debug FormData contents
-      console.log('FormData contents:');
-      for (const pair of settingsFormData.entries()) {
-        console.log(`${pair[0]}: ${pair[1]}`);
-      }
       
       // Handle logo
       if (logo) {
@@ -183,12 +167,10 @@ const Settings: React.FC = () => {
       }
       
       const response = await updateSettings(settingsFormData);
-      console.log('Response from server:', response);
       
       if (response.success) {
         setSuccessMessage(translate.settings('savedSuccessfully'));
         // Update form data with any changes from the server
-        console.log('Setting form data to:', response.data);
         setFormData(response.data);
       }
     } catch (error) {

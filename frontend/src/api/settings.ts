@@ -22,7 +22,6 @@ export const getSettings = async () => {
 // Update settings
 export const updateSettings = async (settingsData: FormData) => {
   // Debug what's in the FormData before sending
-  console.log('API: Sending FormData with these entries:');
   for (const pair of settingsData.entries()) {
     console.log(`${pair[0]}: ${typeof pair[1] === 'object' ? 'File' : pair[1]}`);
   }
@@ -32,7 +31,5 @@ export const updateSettings = async (settingsData: FormData) => {
       'Content-Type': 'multipart/form-data',
     },
   });
-  
-  console.log('API: Response from server:', response.data);
   return response.data;
 };

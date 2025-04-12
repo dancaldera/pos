@@ -57,8 +57,6 @@ export const getSettings = async (req: Request, res: Response, next: NextFunctio
 // Update settings
 export const updateSettings = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log('Request body:', req.body);
-    
     const {
       businessName,
       address,
@@ -69,9 +67,6 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
       receiptFooter,
       removeLogo,
     } = req.body;
-    
-    console.log('Currency from request:', currency);
-
     // Validate required fields
     if (!businessName) {
       throw new BadRequestError('Business name is required');
@@ -98,7 +93,6 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
 
     // Prepare values
     const currencyValue = currency || 'USD';
-    console.log('Setting currency value to:', currencyValue);
     
     // Parse taxRate as a number
     let parsedTaxRate = 0;
@@ -107,7 +101,6 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
       parsedTaxRate = typeof taxRate === 'string' ? parseFloat(taxRate) : taxRate;
       if (isNaN(parsedTaxRate)) parsedTaxRate = 0;
     }
-    console.log('Parsed tax rate:', parsedTaxRate);
     
     // Create settings values object
     const settingsValues = {
@@ -121,8 +114,6 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
       receiptFooter: receiptFooter || null,
       updatedAt: new Date(),
     };
-    
-    console.log('Final settings values:', settingsValues);
 
     let result;
 
@@ -132,7 +123,6 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     } else {
       // Otherwise update existing settings
       const settingsId = currentSettings[0].id;
-      console.log('Updating settings with ID:', settingsId);
       
       // Use the eq import from drizzle-orm for the comparison
       [result] = await db
@@ -141,8 +131,6 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
         .where(eq(settings.id, settingsId))
         .returning();
     }
-
-    console.log('Result from database:', result);
     
     res.status(200).json({
       success: true,

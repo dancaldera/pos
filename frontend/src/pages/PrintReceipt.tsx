@@ -84,8 +84,6 @@ const PrintReceipt: React.FC = () => {
     const customTax = getCustomTaxAmount();
     return Number(getCustomSubtotal()) + Number(customTax);
   };
-
-  console.log("customtotal: ", getCustomTotal())
   
   // Calculate remaining balance
   const remainingBalance = order ? getCustomTotal() - totalPaid : 0;

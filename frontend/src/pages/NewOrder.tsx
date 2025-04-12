@@ -384,7 +384,7 @@ const NewOrder: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column - Product Selection */}
-        <div className="md:col-span-2 bg-white rounded-lg shadow p-6">
+        <div className="md:col-span-2 bg-white rounded-lg shadow p-6 flex flex-col h-[calc(100vh-180px)]">
           <h2 className="text-lg font-medium text-gray-900 mb-4">{translate.products('title')}</h2>
           
           {/* Product Search */}
@@ -402,7 +402,7 @@ const NewOrder: React.FC = () => {
           </div>
           
           {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 overflow-y-auto flex-1">
             {filteredProducts.length === 0 ? (
               <div className="col-span-full text-center py-10 text-gray-500">
                 {translate.products('noProductsFound')}
@@ -411,11 +411,26 @@ const NewOrder: React.FC = () => {
               filteredProducts.map(product => (
                 <div 
                   key={product.id}
-                  className={`border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition flex flex-col justify-between ${
+                  className={`border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition flex flex-col justify-between h-full ${
                     product.stock <= 0 ? 'opacity-50 pointer-events-none' : ''
                   }`}
                   onClick={() => product.stock > 0 && addToCart(product)}
                 >
+                  <div className="mb-2 flex justify-center h-32">
+                    {product.imageUrl ? (
+                      <img 
+                        src={product.imageUrl} 
+                        alt={product.name}
+                        className="h-full w-auto object-contain rounded"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full w-full bg-gray-100 rounded">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12 text-gray-300">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
                   <div>
                     <div className="font-medium">{product.name}</div>
                     {product.sku && <div className="text-xs text-gray-500">SKU: {product.sku}</div>}
@@ -474,7 +489,7 @@ const NewOrder: React.FC = () => {
         </div>
 
         {/* Right Column - Order Summary */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 h-[calc(100vh-180px)] overflow-y-auto">
           <h2 className="text-lg font-medium text-gray-900 mb-4">{translate.orders('orderSummary')}</h2>
           
           {/* Customer Selection */}

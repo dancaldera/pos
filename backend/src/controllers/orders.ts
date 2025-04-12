@@ -220,6 +220,9 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       paymentStatus = 'unpaid',
       paymentMethod,
       payment,
+      discount = 0,
+      discountType,
+      discountValue,
     } = req.body;
 
     console.log("req.body", req.body);
@@ -243,8 +246,8 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       }
 
       // Get the business settings for tax calculation
-      const settingsResult = await tx.query.settings.findFirst();
-      const taxRate = settingsResult ? Number(settingsResult.taxRate) : 0;
+      // const settingsResult = await tx.query.settings.findFirst();
+      // const taxRate = settingsResult ? Number(settingsResult.taxRate) : 0;
 
       // Validate and process each item
       let subtotal = 0;
@@ -289,22 +292,35 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
           unitPrice,
           subtotal: itemSubtotal,
           notes: item.notes,
+          variant: item.variant,
         });
       }
 
+      // Validate and process discount
+      const discountAmount = Number(discount);
+      if (discountAmount < 0) {
+        throw new BadRequestError('Discount cannot be negative');
+      }
+      
+      // Ensure discount doesn't exceed subtotal
+      const validDiscount = Math.min(discountAmount, subtotal);
+      
+      // Store discount metadata if provided
+      const discountMeta = discountType && discountValue 
+        ? { type: discountType, value: discountValue }
+        : null;
+
       // Calculate tax and total
-      const tax = subtotal * (taxRate / 100);
-      const discount = 0; // No discount in the initial order
-      const total = subtotal + tax - discount;
+      // const tax = (subtotal - validDiscount) * (taxRate / 100);
+      const total = subtotal - validDiscount; // + tax
 
       // Create the order
       const [newOrder] = await tx.insert(orders).values({
-        customerId: customerId || null,
         userId: req.user!.id,
         status,
         subtotal: subtotal.toString(),
-        tax: tax.toString(),
-        discount: discount.toString(),
+        tax: '0', // tax.toString(),
+        discount: validDiscount.toString(),
         total: total.toString(),
         notes,
         paymentStatus,
@@ -554,6 +570,110 @@ export const addPayment = async (req: Request, res: Response, next: NextFunction
 };
 
 // Generate a receipt for an order
+// Update an order's discount
+export const updateDiscount = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { discount, discountType, discountValue } = req.body;
+
+    // Validate input
+    if (discount === undefined || discount < 0) {
+      throw new BadRequestError('Valid discount amount is required');
+    }
+
+    // Start a transaction
+    return await db.transaction(async (tx) => {
+      // Get the order
+      const [order] = await tx
+        .select()
+        .from(orders)
+        .where(eq(orders.id, id))
+        .limit(1);
+
+      if (!order) {
+        throw new NotFoundError(`Order with ID ${id} not found`);
+      }
+
+      // Ensure order is not cancelled
+      if (order.status === 'cancelled') {
+        throw new BadRequestError('Cannot update discount on a cancelled order');
+      }
+
+      // Get the business settings for tax calculation
+      // const settingsResult = await tx.query.settings.findFirst();
+      // const taxRate = settingsResult ? Number(settingsResult.taxRate) : 0;
+
+      // Validate discount amount
+      const subtotal = Number(order.subtotal);
+      const discountAmount = Number(discount);
+      
+      // Ensure discount doesn't exceed subtotal
+      const validDiscount = Math.min(discountAmount, subtotal);
+
+      // Recalculate tax and total with new discount
+      // const tax = (subtotal - validDiscount) * (taxRate / 100);
+      const total = subtotal - validDiscount // + tax
+
+      // Update the order
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({
+          discount: validDiscount.toString(),
+          tax: '0', // tax.toString(),
+          total: total.toString(),
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, id))
+        .returning();
+
+      // Update payment status if total changes
+      const existingPayments = await tx.query.payments.findMany({
+        where: eq(payments.orderId, id),
+      });
+
+      // Calculate total paid
+      const totalPaid = existingPayments.reduce(
+        (sum, payment) => sum + Number(payment.amount),
+        0
+      );
+
+      // Determine new payment status
+      let paymentStatus = order.paymentStatus;
+      if (totalPaid >= total) {
+        paymentStatus = 'paid';
+      } else if (totalPaid > 0) {
+        paymentStatus = 'partial';
+      } else {
+        paymentStatus = 'unpaid';
+      }
+
+      // Update payment status if it changed
+      if (paymentStatus !== order.paymentStatus) {
+        await tx
+          .update(orders)
+          .set({ paymentStatus })
+          .where(eq(orders.id, id));
+      }
+
+      // Convert string numeric values to numbers for the response
+      const updatedOrderWithNumericValues = {
+        ...updatedOrder,
+        subtotal: Number(updatedOrder.subtotal),
+        tax: Number(updatedOrder.tax),
+        discount: Number(updatedOrder.discount),
+        total: Number(updatedOrder.total),
+      };
+
+      return res.status(200).json({
+        success: true,
+        data: updatedOrderWithNumericValues,
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getReceipt = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;

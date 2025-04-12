@@ -61,8 +61,19 @@ const NewOrder: React.FC = () => {
   }, 0);
   
   const taxRate = 0; // This should come from settings
-  const tax = subtotal * (taxRate / 100);
-  const total = subtotal + tax;
+  const [discountType, setDiscountType] = useState<'percentage' | 'fixed'>('percentage');
+  const [discountValue, setDiscountValue] = useState<number>(0);
+  
+  // Calculate discount amount based on type
+  const discountAmount = discountType === 'percentage' 
+    ? (subtotal * (discountValue / 100))
+    : discountValue;
+    
+  // Ensure discount doesn't exceed subtotal
+  const validDiscountAmount = Math.min(discountAmount, subtotal);
+  
+  const tax = (subtotal - validDiscountAmount) * (taxRate / 100);
+  const total = subtotal - validDiscountAmount + tax;
   
   // Debug
   console.log('Cart items:', cartItems);
@@ -324,6 +335,9 @@ const NewOrder: React.FC = () => {
         status: 'pending' as OrderStatus,
         items: processedCartItems,
         notes: orderNotes || undefined,
+        discount: validDiscountAmount,
+        discountType: discountType,
+        discountValue: discountValue,
       };
       
       // Add payment-related fields only if we're not skipping payment
@@ -607,6 +621,38 @@ const NewOrder: React.FC = () => {
               <span className="text-sm text-gray-600">{translate.orders('subtotal')}</span>
               <span className="text-sm font-medium">{formatCurrency(subtotal)}</span>
             </div>
+            
+            {/* Discount Section */}
+            <div className="mb-3">
+              <div className="flex justify-between mb-1">
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-600 mr-2">{translate.orders('discount')}</span>
+                  <select 
+                    value={discountType}
+                    onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'fixed')}
+                    className="text-xs border rounded px-1 py-0.5"
+                  >
+                    <option value="percentage">%</option>
+                    <option value="fixed">{translate.orders('fixed')}</option>
+                  </select>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  max={discountType === 'percentage' ? 100 : subtotal}
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(Number(e.target.value))}
+                  className="w-16 text-right text-sm border rounded px-2 py-0.5"
+                />
+              </div>
+              {validDiscountAmount > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">{translate.orders('discountAmount')}</span>
+                  <span className="text-sm font-medium text-red-600">-{formatCurrency(validDiscountAmount)}</span>
+                </div>
+              )}
+            </div>
+            
             <div className="flex justify-between mb-1">
               <span className="text-sm text-gray-600">{translate.orders('tax')} ({taxRate}%)</span>
               <span className="text-sm font-medium">{formatCurrency(tax)}</span>

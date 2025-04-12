@@ -5,7 +5,8 @@ import {
   updateOrderStatus, 
   addPayment, 
   cancelOrder,
-  addItemsToOrder
+  addItemsToOrder,
+  updateOrderDiscount
 } from '../api/orders';
 import { Order, OrderStatus, PaymentMethod, OrderItemInput } from '../types/orders';
 import { getProducts } from '../api/products';
@@ -47,6 +48,7 @@ const OrderDetail: React.FC = () => {
   const { state: authState } = useAuth();
   const { translate, language } = useLanguage();
   const [order, setOrder] = useState<Order | null>(null);
+  console.log("order: ", order)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
@@ -71,6 +73,11 @@ const OrderDetail: React.FC = () => {
   const [productSearch, setProductSearch] = useState('');
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Map<string, OrderItemInput>>(new Map());
+  
+  // Discount state
+  const [discountType, setDiscountType] = useState<'percentage' | 'fixed'>('percentage');
+  const [discountValue, setDiscountValue] = useState<number>(0);
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
 
   // Check if user is admin or manager
   const isAdmin = authState.user?.role === 'admin';
@@ -81,6 +88,24 @@ const OrderDetail: React.FC = () => {
   useEffect(() => {
     fetchOrder();
   }, [id]);
+  
+  useEffect(() => {
+    // Initialize discount values from order when loaded
+    if (order) {
+      // Set discount type based on current order discount
+      // This is a simple heuristic - if discount is a round percentage of subtotal, assume percentage
+      const discountPercentage = (order.discount / order.subtotal) * 100;
+      const isLikelyPercentage = Math.abs(Math.round(discountPercentage) - discountPercentage) < 0.01;
+      
+      if (isLikelyPercentage && discountPercentage > 0) {
+        setDiscountType('percentage');
+        setDiscountValue(Math.round(discountPercentage));
+      } else {
+        setDiscountType('fixed');
+        setDiscountValue(order.discount);
+      }
+    }
+  }, [order]);
 
   const fetchOrder = async () => {
     if (!id) return;
@@ -160,6 +185,45 @@ const OrderDetail: React.FC = () => {
     } catch (error: any) {
       console.error('Error adding payment:', error);
       alert(error?.response?.data?.message || translate.orders('paymentFailed'));
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+  
+  const calculateDiscountAmount = () => {
+    if (!order) return 0;
+    
+    const amount = discountType === 'percentage' 
+      ? (order.subtotal * (discountValue / 100))
+      : discountValue;
+      
+    // Ensure discount doesn't exceed subtotal
+    return Math.min(amount, order.subtotal);
+  };
+  
+  const handleUpdateDiscount = async () => {
+    if (!order) return;
+    
+    try {
+      setSubmitLoading(true);
+      
+      // Calculate discount amount
+      const discountAmount = calculateDiscountAmount();
+      
+      // Call API to update order discount
+      await updateOrderDiscount(order.id, {
+        discount: discountAmount,
+        discountType,
+        discountValue,
+      });
+      
+      setDiscountModalOpen(false);
+      
+      // Refresh order data
+      fetchOrder();
+    } catch (error: any) {
+      console.error('Error updating discount:', error);
+      alert(error?.response?.data?.message || translate.orders('discountUpdateFailed'));
     } finally {
       setSubmitLoading(false);
     }
@@ -393,6 +457,16 @@ const OrderDetail: React.FC = () => {
                   {translate.orders('cancelOrder')}
                 </Button>
               )}
+
+              {order.discount > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setDiscountModalOpen(true)}
+                >
+                  <CurrencyDollarIcon className="h-5 w-5 mr-1" />
+                  {translate.orders('updateDiscount')}
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -528,10 +602,6 @@ const OrderDetail: React.FC = () => {
             <div className="flex justify-between mb-1">
               <span className="text-sm text-gray-600">{translate.orders('subtotal')}</span>
               <span className="text-sm font-medium">{formatCurrency(order.subtotal)}</span>
-            </div>
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">{translate.orders('tax')}</span>
-              <span className="text-sm font-medium">{formatCurrency(order.tax)}</span>
             </div>
             {order.discount > 0 && (
               <div className="flex justify-between mb-1">
@@ -862,6 +932,81 @@ const OrderDetail: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      </Modal>
+
+      {/* Update Discount Modal */}
+      <Modal
+        isOpen={discountModalOpen}
+        onClose={() => setDiscountModalOpen(false)}
+        title={translate.orders('updateDiscount')}
+        footer={
+          <>
+            <Button
+              variant="primary"
+              onClick={handleUpdateDiscount}
+              isLoading={submitLoading}
+              className="ml-3"
+            >
+              {translate.orders('applyDiscount')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setDiscountModalOpen(false)}
+              disabled={submitLoading}
+            >
+              {translate.common('cancel')}
+            </Button>
+          </>
+        }
+      >
+        <div className="py-4">
+          <div className="mb-4">
+            <div className="flex justify-between mb-2">
+              <span className="text-gray-600">{translate.orders('subtotal')}</span>
+              <span className="font-medium">{formatCurrency(order.subtotal)}</span>
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <label className="text-gray-600 mr-2">{translate.orders('discountType')}</label>
+                <select
+                  value={discountType}
+                  onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'fixed')}
+                  className="border rounded px-2 py-1"
+                >
+                  <option value="percentage">{translate.orders('percentage')}</option>
+                  <option value="fixed">{translate.orders('fixedAmount')}</option>
+                </select>
+              </div>
+              <div className="flex items-center">
+                <label className="text-gray-600 mr-2">{translate.orders('discountValue')}</label>
+                <input
+                  type="number"
+                  min="0"
+                  max={discountType === 'percentage' ? 100 : order.subtotal}
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(Number(e.target.value))}
+                  className="border rounded px-2 py-1 w-24 text-right"
+                />
+                {discountType === 'percentage' && <span className="ml-1">%</span>}
+              </div>
+            </div>
+            {calculateDiscountAmount() > 0 && (
+              <div className="bg-gray-100 p-3 rounded">
+                <div className="flex justify-between mb-1">
+                  <span className="text-gray-600">{translate.orders('discountAmount')}</span>
+                  <span className="font-medium text-red-600">-{formatCurrency(calculateDiscountAmount())}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{translate.orders('newTotal')}</span>
+                  <span className="font-bold">{formatCurrency(order.subtotal - calculateDiscountAmount())}</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <p className="text-sm text-gray-500">
+            Applying a discount will reduce the order subtotal.
+          </p>
         </div>
       </Modal>
 

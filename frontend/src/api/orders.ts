@@ -48,3 +48,9 @@ export const addItemsToOrder = async (id: string, items: any[]) => {
   const response = await apiClient.post(`/orders/${id}/items`, { items });
   return response.data;
 };
+
+// Update an order's discount
+export const updateOrderDiscount = async (id: string, discountData: { discount: number, discountType: string, discountValue: number }) => {
+  const response = await apiClient.put(`/orders/${id}/discount`, discountData);
+  return response.data;
+};

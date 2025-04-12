@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
-import { db } from '../db/index.js';
-import { settings } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
-import { BadRequestError, NotFoundError } from '../utils/errors.js';
-import { uploadFile, deleteFile } from '../services/storage.js';
-import multer from 'multer';
+import { NextFunction, Request, Response } from "express";
+import { db } from "../db/index.js";
+import { settings } from "../db/schema.js";
+import { eq } from "drizzle-orm";
+import { BadRequestError, NotFoundError } from "../utils/errors.js";
+import { deleteFile, uploadFile } from "../services/storage.js";
+import multer from "multer";
 
 // Configure multer for memory storage
 export const upload = multer({
@@ -14,16 +14,20 @@ export const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     // Accept only images
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new BadRequestError('Only image files are allowed') as any);
+      cb(new BadRequestError("Only image files are allowed") as any);
     }
   },
 });
 
 // Get system settings
-export const getSettings = async (req: Request, res: Response, next: NextFunction) => {
+export const getSettings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     // Fetch the settings (there should only be one row)
     const settingsData = await db.select().from(settings).limit(1);
@@ -33,14 +37,14 @@ export const getSettings = async (req: Request, res: Response, next: NextFunctio
       return res.status(200).json({
         success: true,
         data: {
-          businessName: 'My Business',
-          address: '',
-          phone: '',
-          email: '',
+          businessName: "My Business",
+          address: "",
+          phone: "",
+          email: "",
           taxRate: 0,
-          currency: 'USD',
+          currency: "USD",
           logoUrl: null,
-          receiptFooter: 'Thank you for your business!',
+          receiptFooter: "Thank you for your business!",
         },
       });
     }
@@ -55,7 +59,11 @@ export const getSettings = async (req: Request, res: Response, next: NextFunctio
 };
 
 // Update settings
-export const updateSettings = async (req: Request, res: Response, next: NextFunction) => {
+export const updateSettings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const {
       businessName,
@@ -69,16 +77,18 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     } = req.body;
     // Validate required fields
     if (!businessName) {
-      throw new BadRequestError('Business name is required');
+      throw new BadRequestError("Business name is required");
     }
 
     // Get current settings
     const currentSettings = await db.select().from(settings).limit(1);
-    
-    // Handle logo upload or removal
-    let logoUrl = currentSettings.length > 0 ? currentSettings[0].logoUrl : null;
 
-    if (removeLogo === 'true' && logoUrl) {
+    // Handle logo upload or removal
+    let logoUrl = currentSettings.length > 0
+      ? currentSettings[0].logoUrl
+      : null;
+
+    if (removeLogo === "true" && logoUrl) {
       // Delete the current logo
       await deleteFile(logoUrl);
       logoUrl = null;
@@ -88,20 +98,22 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
         await deleteFile(logoUrl);
       }
       // Upload the new logo
-      logoUrl = await uploadFile(req.file, 'settings');
+      logoUrl = await uploadFile(req.file, "settings");
     }
 
     // Prepare values
-    const currencyValue = currency || 'USD';
-    
+    const currencyValue = currency || "USD";
+
     // Parse taxRate as a number
     let parsedTaxRate = 0;
     if (taxRate !== undefined) {
       // Convert string to number and handle potential errors
-      parsedTaxRate = typeof taxRate === 'string' ? parseFloat(taxRate) : taxRate;
+      parsedTaxRate = typeof taxRate === "string"
+        ? parseFloat(taxRate)
+        : taxRate;
       if (isNaN(parsedTaxRate)) parsedTaxRate = 0;
     }
-    
+
     // Create settings values object
     const settingsValues = {
       businessName,
@@ -110,7 +122,11 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
       email: email || null,
       taxRate: parsedTaxRate.toString(), // Convert to string for numeric field
       currency: currencyValue,
-      logoUrl,
+      logoUrl: logoUrl
+        ? `${process.env.R2_PUBLIC_URL}/settings/${
+          logoUrl.split("/").pop()?.split("?")[0]
+        }`
+        : null,
       receiptFooter: receiptFooter || null,
       updatedAt: new Date(),
     };
@@ -123,7 +139,7 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     } else {
       // Otherwise update existing settings
       const settingsId = currentSettings[0].id;
-      
+
       // Use the eq import from drizzle-orm for the comparison
       [result] = await db
         .update(settings)
@@ -131,7 +147,7 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
         .where(eq(settings.id, settingsId))
         .returning();
     }
-    
+
     res.status(200).json({
       success: true,
       data: result,

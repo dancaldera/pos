@@ -1,8 +1,21 @@
 import apiClient from './client';
 import { OrderCreateData } from '../types/orders';
 
+// Order search params interface
+export interface OrderSearchParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  paymentStatus?: string;
+  startDate?: string;
+  endDate?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
 // Get all orders with optional filtering
-export const getOrders = async (params = {}) => {
+export const getOrders = async (params: OrderSearchParams = {}) => {
   const response = await apiClient.get('/orders', { params });
   return response.data;
 };

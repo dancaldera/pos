@@ -20,9 +20,13 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
       search,
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      page = 1,
-      limit = 20,
+      page: pageStr = '1',
+      limit: limitStr = '20',
     } = req.query as any;
+    
+    // Parse pagination parameters
+    const page = parseInt(pageStr as string, 10);
+    const limit = parseInt(limitStr as string, 10);
 
     // Build the where clause
     let whereClause = sql`1 = 1`;

@@ -1,8 +1,17 @@
 import apiClient from './client';
 import { Customer } from '../types/customers';
 
+// Customer search params interface
+export interface CustomerSearchParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
 // Get all customers with optional filtering
-export const getCustomers = async (params = {}) => {
+export const getCustomers = async (params: CustomerSearchParams = {}) => {
   const response = await apiClient.get('/customers', { params });
   return response.data;
 };

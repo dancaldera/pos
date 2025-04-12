@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { cancelOrder, getOrders } from "../api/orders";
+import { OrderSearchParams, cancelOrder, getOrders } from "../api/orders";
 import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import Table from "../components/ui/Table";
@@ -47,7 +47,7 @@ const Orders: React.FC = () => {
     startDate: "",
     endDate: "",
   });
-  const [searchParams, setSearchParams] = useState({
+  const [searchParams, setSearchParams] = useState<OrderSearchParams>({
     page: 1,
     limit: 10,
     search: "",
@@ -82,8 +82,8 @@ const Orders: React.FC = () => {
       const response = await getOrders(searchParams);
       setOrders(response.data);
       setPagination({
-        page: response.pagination.page,
-        limit: response.pagination.limit,
+        page: parseInt(response.pagination.page),
+        limit: parseInt(response.pagination.limit),
         totalPages: response.pagination.totalPages,
         total: response.total,
       });
@@ -145,10 +145,10 @@ const Orders: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
-    setSearchParams({
-      ...searchParams,
+    setSearchParams(prevParams => ({
+      ...prevParams,
       page: newPage,
-    });
+    }));
   };
 
   const handleNewOrder = () => {
@@ -480,24 +480,28 @@ const Orders: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                {(pagination.page - 1) * pagination.limit + 1} - {" "}
-                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                / {pagination.total} {translate.orders('title').toLowerCase()}
+                {pagination.total > 0 ? 
+                  `${(pagination.page - 1) * pagination.limit + 1} - ${Math.min(pagination.page * pagination.limit, pagination.total)} / ${pagination.total}` : "0"} {translate.orders('title').toLowerCase()}
               </div>
               <div className="flex space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page === 1}
+                  disabled={pagination.page <= 1}
                 >
                   {translate.common('previous')}
                 </Button>
+                <div className="mx-2 flex items-center">
+                  <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">
+                    {pagination.page} / {pagination.totalPages}
+                  </span>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page === pagination.totalPages}
+                  disabled={pagination.page >= pagination.totalPages}
                 >
                   {translate.common('next')}
                 </Button>

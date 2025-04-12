@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  CategorySearchParams,
   getCategories, 
   createCategory, 
   updateCategory, 
@@ -23,7 +24,7 @@ const Categories: React.FC = () => {
     description: '',
   });
   const [search, setSearch] = useState('');
-  const [searchParams, setSearchParams] = useState({
+  const [searchParams, setSearchParams] = useState<CategorySearchParams>({
     page: 1,
     limit: 10,
     search: '',
@@ -50,8 +51,8 @@ const Categories: React.FC = () => {
       const response = await getCategories(searchParams);
       setCategories(response.data);
       setPagination({
-        page: response.pagination.page,
-        limit: response.pagination.limit,
+        page: parseInt(response.pagination.page),
+        limit: parseInt(response.pagination.limit),
         totalPages: response.pagination.totalPages,
         total: response.total
       });
@@ -85,10 +86,10 @@ const Categories: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
-    setSearchParams({
-      ...searchParams,
+    setSearchParams(prevParams => ({
+      ...prevParams,
       page: newPage
-    });
+    }));
   };
 
   const openCreateModal = () => {
@@ -311,22 +312,28 @@ const Categories: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                {(pagination.page - 1) * pagination.limit + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} {translate.categories('title').toLowerCase()}
+                {pagination.total > 0 ? 
+                  `${(pagination.page - 1) * pagination.limit + 1} - ${Math.min(pagination.page * pagination.limit, pagination.total)} / ${pagination.total}` : "0"} {translate.categories('title').toLowerCase()}
               </div>
               <div className="flex space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page === 1}
+                  disabled={pagination.page <= 1}
                 >
                   {translate.common('previous')}
                 </Button>
+                <div className="mx-2 flex items-center">
+                  <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">
+                    {pagination.page} / {pagination.totalPages}
+                  </span>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page === pagination.totalPages}
+                  disabled={pagination.page >= pagination.totalPages}
                 >
                   {translate.common('next')}
                 </Button>

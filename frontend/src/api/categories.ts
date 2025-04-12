@@ -1,8 +1,17 @@
 import apiClient from './client';
 import { Category } from '../types/products';
 
+// Category search params interface
+export interface CategorySearchParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
 // Get all categories
-export const getCategories = async (params = {}) => {
+export const getCategories = async (params: CategorySearchParams = {}) => {
   const response = await apiClient.get('/categories', { params });
   return response.data;
 };

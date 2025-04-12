@@ -41,3 +41,54 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Receipt container styles */
+.receipt-container {
+  width: 80mm;
+  font-family: 'Courier New', monospace;
+  margin: 0 auto;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Thermal Receipt Print Styles */
+@media print {
+  body, html {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background-color: white !important;
+  }
+  
+  /* Hide everything except the receipt */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Only show the receipt */
+  .receipt-container, 
+  .receipt-container * {
+    visibility: visible;
+    color: black;
+  }
+  
+  /* Position the receipt properly */
+  .receipt-container {
+    width: 80mm;
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 5mm;
+    padding: 5mm;
+    font-family: 'Courier New', monospace;
+    font-size: 10pt;
+    line-height: 1.2;
+  }
+  
+  @page {
+    size: 80mm auto;
+    margin: 4mm;
+  }
+}

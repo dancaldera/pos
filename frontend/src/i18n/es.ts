@@ -56,6 +56,7 @@ const es = {
     to: 'a',
     of: 'de',
     results: 'resultados',
+    application: 'Aplicación',
   },
   auth: {
     login: 'Iniciar sesión',
@@ -190,6 +191,15 @@ const es = {
     each: 'Cada uno',
     partialPayment: 'Pago parcial',
     overpayment: 'Sobrepago',
+    item: 'Artículo',
+    qty: 'Cant',
+    amount: 'Importe',
+    backToOrderDetails: 'Volver a Detalles del Pedido',
+    paymentDetails: 'Detalles de Pago',
+    thankYou: '¡Gracias por su compra!',
+    applyToSubtotal: 'Aplicar al Subtotal',
+    applyToSubtotalMinusDiscount: 'Aplicar al Subtotal menos Descuento',
+    appliedToNetAmount: '(aplicado al monto neto)',
   },
   products: {
     title: 'Productos',
@@ -308,6 +318,7 @@ const es = {
     english: 'Inglés',
     spanish: 'Español',
     savedSuccessfully: 'Configuración guardada con éxito',
+    settings: 'Configuración',
   },
   inventory: {
     title: 'Inventario',

@@ -23,7 +23,8 @@ import {
   ChevronUpIcon,
   PlusIcon,
   MinusIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/format-currency';
 
@@ -343,15 +344,15 @@ const OrderDetail: React.FC = () => {
         </div>
         
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
-          {/* {order.status !== 'cancelled' && (
+          {order.status !== 'cancelled' && (
             <Button
               variant="outline"
-              onClick={handleGetReceipt}
+              onClick={() => navigate(`/print-receipt/${order.id}`)}
             >
               <DocumentTextIcon className="h-5 w-5 mr-1" />
-              Receipt
+              {translate.orders('printReceipt')}
             </Button>
-          )} */}
+          )}
           
           {canManageOrders && order.status !== 'cancelled' && (
             <>

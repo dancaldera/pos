@@ -20,6 +20,7 @@ import SettingsPage from './pages/Settings';
 import OrdersPage from './pages/Orders';
 import NewOrderPage from './pages/NewOrder';
 import OrderDetailPage from './pages/OrderDetail';
+import PrintReceipt from './pages/PrintReceipt';
 const NotFoundPage = () => <div className="p-4">Page Not Found</div>;
 
 // Protected route component
@@ -107,6 +108,7 @@ const AppRoutes = () => {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="orders/new" element={<NewOrderPage />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
+        <Route path="print-receipt/:id" element={<PrintReceipt />} />
         
         {/* Staff Only Routes */}
         <Route path="products" element={

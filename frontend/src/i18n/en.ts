@@ -55,6 +55,7 @@ const en = {
     to: 'to',
     of: 'of',
     results: 'results',
+    application: 'Application',
   },
   auth: {
     login: 'Login',
@@ -189,6 +190,15 @@ const en = {
     each: 'Each',
     partialPayment: 'Partial Payment',
     overpayment: 'Overpayment',
+    item: 'Item',
+    qty: 'Qty',
+    amount: 'Amount',
+    backToOrderDetails: 'Back to Order Details',
+    paymentDetails: 'Payment Details',
+    thankYou: 'Thank you for your business!',
+    applyToSubtotal: 'Apply to Subtotal',
+    applyToSubtotalMinusDiscount: 'Apply to Subtotal minus Discount',
+    appliedToNetAmount: '(applied to net amount)',
   },
   products: {
     title: 'Products',
@@ -307,6 +317,7 @@ const en = {
     english: 'English',
     spanish: 'Spanish',
     savedSuccessfully: 'Settings saved successfully',
+    settings: 'Settings',
   },
   inventory: {
     title: 'Inventory',

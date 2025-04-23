@@ -151,6 +151,7 @@ const es = {
     notesPlaceholder: 'Agregar notas para este pedido...',
     subtotal: 'Subtotal',
     checkoutPayment: 'Pagar',
+    saveAsUnpaidConfirm: '¿Está seguro de que desea guardar este pedido como no pagado?',
     payment: 'Pago',
     total: 'Total',
     referencePlaceholder: 'Referencia de pago',

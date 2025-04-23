@@ -150,6 +150,7 @@ const en = {
     notesPlaceholder: 'Add notes for this order...',
     subtotal: 'Subtotal',
     checkoutPayment: 'Checkout & Payment',
+    saveAsUnpaidConfirm: 'Are you sure you want to save this order as unpaid?',
     payment: 'Payment',
     total: 'Total',
     referencePlaceholder: 'Payment Reference',

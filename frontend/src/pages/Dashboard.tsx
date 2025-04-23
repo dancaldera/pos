@@ -62,15 +62,16 @@ const Dashboard: React.FC = () => {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [paymentStats, setPaymentStats] = useState<PaymentStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [salesPeriod, setSalesPeriod] = useState<'weekly' | 'monthly'>('weekly');
+  const [salesPeriod, setSalesPeriod] = useState<'today' | 'thisWeek' | 'thisYear'>('today');
   const [monthlyGrowth, setMonthlyGrowth] = useState<number | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
+  // Refetch all dashboard data when period changes
   useEffect(() => {
-    fetchSalesData();
+    fetchDashboardData();
   }, [salesPeriod]);
 
   const fetchDashboardData = async () => {
@@ -79,7 +80,7 @@ const Dashboard: React.FC = () => {
       
       // Fetch all dashboard data in parallel
       const [statsRes, recentOrdersRes, topProductsRes, paymentStatsRes, salesDataRes] = await Promise.all([
-        getDashboardStats(),
+        getDashboardStats(salesPeriod),
         getRecentOrders(5), 
         getTopProducts(5),
         getPaymentStats(),
@@ -92,9 +93,8 @@ const Dashboard: React.FC = () => {
       setTopProducts(topProductsRes.data);
       setPaymentStats(paymentStatsRes.data);
       setSalesData(salesDataRes.data);
-      
-      // Fetch sales data for growth calculation
-      await fetchSalesData();
+      // Calculate growth based on fetched sales data
+      calculateGrowth(salesDataRes.data);
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -103,19 +103,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const fetchSalesData = async () => {
-    try {
-      const response = await getSalesData(salesPeriod);
-      setSalesData(response.data);
-      
-      // Calculate growth if we have data
-      if (response.data.length > 1) {
-        calculateGrowth(response.data);
-      }
-    } catch (error) {
-      console.error('Error fetching sales data:', error);
-    }
-  };
 
   const calculateGrowth = (data: SalesDataPoint[]) => {
     // Need at least 2 data points to calculate growth
@@ -142,11 +129,14 @@ const Dashboard: React.FC = () => {
     const labels = salesData.map(point => {
       const date = new Date(point.date);
       
-      if (salesPeriod === 'weekly') {
+      if (salesPeriod === 'today') {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (salesPeriod === 'thisWeek') {
         return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-      } else {
-        return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+      } else if (salesPeriod === 'thisYear') {
+        return date.toLocaleDateString([], { month: 'short' });
       }
+      return date.toLocaleDateString();
     });
     
     return {
@@ -227,8 +217,6 @@ const Dashboard: React.FC = () => {
     maintainAspectRatio: false,
   };
 
-  const cardClass = "transition-all duration-200 transform hover:scale-105";
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -266,7 +254,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {/* Products */}
         <Link to="/products">
-          <Card className={`${cardClass} border-l-4 border-indigo-500`}>
+          <Card className={`border-l-4 border-indigo-500`}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-gray-600">{translate.products('title')}</p>
@@ -286,7 +274,7 @@ const Dashboard: React.FC = () => {
 
         {/* Categories */}
         <Link to="/categories">
-          <Card className={`${cardClass} border-l-4 border-purple-500`}>
+          <Card className={`border-l-4 border-purple-500`}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-gray-600">{translate.categories('title')}</p>
@@ -303,7 +291,7 @@ const Dashboard: React.FC = () => {
 
         {/* Customers */}
         <Link to="/customers">
-          <Card className={`${cardClass} border-l-4 border-blue-500`}>
+          <Card className={`border-l-4 border-blue-500`}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-gray-600">{translate.customers('title')}</p>
@@ -320,7 +308,7 @@ const Dashboard: React.FC = () => {
 
         {/* Orders */}
         <Link to="/orders">
-          <Card className={`${cardClass} border-l-4 border-green-500`}>
+          <Card className={`border-l-4 border-green-500`}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-gray-600">{translate.orders('title')}</p>
@@ -339,7 +327,7 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Revenue */}
-        <Card className={`${cardClass} border-l-4 border-yellow-500`}>
+        <Card className={`border-l-4 border-yellow-500`}>
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm font-medium text-gray-600">{translate.dashboard('totalSales')}</p>
@@ -354,24 +342,36 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {/* Growth */}
-        <Card className={`${cardClass} border-l-4 border-emerald-500`}>
+        <Card className={`border-l-4 border-emerald-500`}>
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm font-medium text-gray-600">
-                {salesPeriod === 'weekly' ? translate.dashboard('weeklySales') : translate.dashboard('monthlySales')}
+                {(() => {
+                  switch (salesPeriod) {
+                    case 'today':
+                      return translate.dashboard('dailySales');
+                    case 'thisWeek':
+                      return translate.dashboard('weeklySales');
+                    case 'thisYear':
+                      return translate.dashboard('monthlySales');
+                    default:
+                      return '';
+                  }
+                })()}
               </p>
               <p className="text-2xl font-bold text-gray-900">
                 {isLoading || monthlyGrowth === null ? '...' : 
                  `${monthlyGrowth.toFixed(1)}%`}
               </p>
               <div className="flex items-center text-xs mt-1">
-                <select 
+                <select
                   value={salesPeriod}
                   onChange={(e) => setSalesPeriod(e.target.value as any)}
                   className="text-xs border rounded p-1"
                 >
-                  <option value="weekly">{translate.dashboard('thisWeek')}</option>
-                  <option value="monthly">{translate.dashboard('thisMonth')}</option>
+                  <option value="today">{translate.dashboard('today')}</option>
+                  <option value="thisWeek">{translate.dashboard('thisWeek')}</option>
+                  <option value="thisYear">{translate.dashboard('thisYear')}</option>
                 </select>
               </div>
             </div>
@@ -383,7 +383,7 @@ const Dashboard: React.FC = () => {
 
         {/* Pending Orders */}
         <Link to="/orders?status=pending">
-          <Card className={`${cardClass} border-l-4 border-orange-500`}>
+          <Card className={`border-l-4 border-orange-500`}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-gray-600">{translate.orders('pending')} {translate.orders('title')}</p>
@@ -400,7 +400,7 @@ const Dashboard: React.FC = () => {
 
         {/* Low Stock */}
         <Link to="/products?lowStock=true">
-          <Card className={`${cardClass} border-l-4 border-red-500`}>
+          <Card className={`border-l-4 border-red-500`}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-gray-600">{translate.products('lowStock')}</p>
@@ -419,7 +419,18 @@ const Dashboard: React.FC = () => {
       {/* Charts and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Sales Chart */}
-        <Card title={salesPeriod === 'weekly' ? translate.dashboard('weeklySales') : translate.dashboard('monthlySales')}>
+        <Card title={(() => {
+          switch (salesPeriod) {
+            case 'today':
+              return translate.dashboard('dailySales');
+            case 'thisWeek':
+              return translate.dashboard('weeklySales');
+            case 'thisYear':
+              return translate.dashboard('monthlySales');
+            default:
+              return '';
+          }
+        })()}>
           <div className="h-80">
             {isLoading || salesData.length === 0 ? (
               <div className="h-full flex items-center justify-center">

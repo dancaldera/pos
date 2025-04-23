@@ -1,4 +1,4 @@
-import { and, count, asc, desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, count, asc, desc, eq, gte, lt, inArray, sql, SQLWrapper } from 'drizzle-orm';
 import { NextFunction, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import {
@@ -34,28 +34,73 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
       .select({ count: count() })
       .from(customers);
 
+    // Handle optional period filter for order-related stats
+    const period = (req.query.period as string) || null;
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+    if (period) {
+      const now = new Date();
+      switch (period) {
+        case 'today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+          break;
+        case 'thisWeek':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+          endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'thisYear':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          endDate = new Date(now.getFullYear() + 1, 0, 1);
+          break;
+        default:
+          // No date filter
+          startDate = undefined;
+          endDate = undefined;
+      }
+    }
+    // Build date filters for queries
+    const dateFilters: SQLWrapper[] = []; // Explicitly type as SQLWrapper[]
+    if (startDate) dateFilters.push(gte(orders.createdAt, startDate));
+    if (endDate) dateFilters.push(lt(orders.createdAt, endDate));
     // Get total orders count
     const ordersResult = await db
       .select({ count: count() })
-      .from(orders);
+      .from(orders)
+      .where(dateFilters.length ? and(...dateFilters) : undefined);
 
     // Get completed orders count
     const completedOrdersResult = await db
       .select({ count: count() })
       .from(orders)
-      .where(eq(orders.status, 'completed'));
+      .where(
+        and(
+          eq(orders.status, 'completed'),
+          ...dateFilters
+        )
+      );
 
     // Get pending orders count
     const pendingOrdersResult = await db
       .select({ count: count() })
       .from(orders)
-      .where(eq(orders.status, 'pending'));
+      .where(
+        and(
+          eq(orders.status, 'pending'),
+          ...dateFilters
+        )
+      );
 
     // Get total revenue (from completed orders)
     const revenueResult = await db
       .select({ total: sql<string>`sum(${orders.total})` })
       .from(orders)
-      .where(eq(orders.status, 'completed'));
+      .where(
+        and(
+          eq(orders.status, 'completed'),
+          ...dateFilters
+        )
+      );
 
     // Get low stock products count
     const lowStockResult = await db
@@ -144,34 +189,47 @@ export const getRecentOrders = async (req: Request, res: Response, next: NextFun
 // Get sales data for chart
 export const getSalesData = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const period = (req.query.period as string) || 'weekly';
-    let intervalValue: string;
-    let startDate: Date;
-    
-    const now = new Date();
-    
-    // Determine period settings
-    switch (period) {
-      case 'daily':
-        // Last 7 days data grouped by hour
-        intervalValue = 'hour';
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'monthly':
-        // Last 12 months data grouped by month
-        intervalValue = 'month';
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1);
-        break;
-      case 'weekly':
-      default:
-        // Last 7 weeks data grouped by day
-        intervalValue = 'day';
-        startDate = new Date(now.getTime() - 7 * 7 * 24 * 60 * 60 * 1000);
-        break;
-    }
+        // Handle different periods for sales data
+        const period = (req.query.period as string) || 'thisWeek';
+        let intervalValue: 'hour' | 'day' | 'month';
+        let startDate: Date;
+        let endDate: Date | null = null;
 
-    // Use a simpler SQL query
-    const formattedStartDate = startDate.toISOString().split('T')[0];
+        const now = new Date();
+        // Determine period settings
+        switch (period) {
+          case 'today':
+            // Today's data grouped by hour
+            intervalValue = 'hour';
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            break;
+          case 'yesterday':
+            // Yesterday's data grouped by hour
+            intervalValue = 'hour';
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            startDate = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
+            endDate = todayStart;
+            break;
+          case 'thisWeek':
+            // This week's data grouped by day (starting Sunday)
+            intervalValue = 'day';
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+            break;
+          case 'thisYear':
+            // This year's data grouped by month
+            intervalValue = 'month';
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+          default:
+            // Fallback to last 7 days grouped by day
+            intervalValue = 'day';
+            startDate = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+            break;
+        }
+
+        // Build filters for SQL query
+        const formattedStartDate = startDate.toISOString();
+        const formattedEndDate = endDate ? endDate.toISOString() : null;
     
     type OrderRow = {
       [key: string]: unknown;
@@ -180,11 +238,12 @@ export const getSalesData = async (req: Request, res: Response, next: NextFuncti
     };
 
     const result = await db.execute(sql`
-      SELECT 
+      SELECT
         created_at::text as date,
         total::text as amount
-      FROM orders 
-      WHERE created_at >= ${formattedStartDate}::date
+      FROM orders
+      WHERE created_at >= ${formattedStartDate}::timestamp
+      ${formattedEndDate ? sql`AND created_at < ${formattedEndDate}::timestamp` : sql``}
         AND status = 'completed'
       ORDER BY created_at ASC
     `);
@@ -200,9 +259,10 @@ export const getSalesData = async (req: Request, res: Response, next: NextFuncti
     
     // Generate date keys for each interval
     const dateKeys: string[] = [];
+    const endTime = endDate || now;
     let currentDate = new Date(startDate);
     
-    while (currentDate <= now) {
+    while (currentDate <= endTime) {
       let key: string;
       
       if (intervalValue === 'hour') {

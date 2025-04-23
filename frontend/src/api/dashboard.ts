@@ -49,8 +49,13 @@ export interface PaymentStat {
 }
 
 // Get dashboard statistics
-export const getDashboardStats = async () => {
-  const response = await apiClient.get('/dashboard/stats');
+// Get dashboard statistics, optionally filtered by period
+export const getDashboardStats = async (
+  period?: 'today' | 'thisWeek' | 'thisYear'
+) => {
+  const response = await apiClient.get('/dashboard/stats', {
+    params: period ? { period } : {}
+  });
   return response.data;
 };
 
@@ -63,7 +68,10 @@ export const getRecentOrders = async (limit = 5) => {
 };
 
 // Get sales data for charts
-export const getSalesData = async (period: 'daily' | 'weekly' | 'monthly' = 'weekly') => {
+// Get sales data for charts with selectable period
+export const getSalesData = async (
+  period: 'today' | 'thisWeek' | 'thisYear' = 'thisWeek'
+) => {
   const response = await apiClient.get('/dashboard/sales-data', {
     params: { period }
   });

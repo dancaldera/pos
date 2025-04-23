@@ -56,6 +56,7 @@ const en = {
     of: 'of',
     results: 'results',
     application: 'Application',
+    view: 'View'
   },
   auth: {
     login: 'Login',

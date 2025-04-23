@@ -148,10 +148,24 @@ export const getOrder = async (req: Request, res: Response, next: NextFunction) 
         .limit(1);
     }
 
-    // Get the order items
+    // Get the order items along with product image URLs
     const items = await db
-      .select()
+      .select({
+        id: orderItems.id,
+        orderId: orderItems.orderId,
+        productId: orderItems.productId,
+        productName: orderItems.productName,
+        variant: orderItems.variant,
+        quantity: orderItems.quantity,
+        unitPrice: orderItems.unitPrice,
+        subtotal: orderItems.subtotal,
+        notes: orderItems.notes,
+        createdAt: orderItems.createdAt,
+        updatedAt: orderItems.updatedAt,
+        imageUrl: products.imageUrl,
+      })
       .from(orderItems)
+      .leftJoin(products, eq(orderItems.productId, products.id))
       .where(eq(orderItems.orderId, id));
 
     // Convert string numeric values to numbers for type compatibility

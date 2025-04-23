@@ -57,6 +57,7 @@ const es = {
     of: 'de',
     results: 'resultados',
     application: 'Aplicación',
+    view: 'Ver',
   },
   auth: {
     login: 'Iniciar sesión',

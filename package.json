@@ -1,0 +1,10 @@
+{
+  "name": "pos-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev": "pnpm dev:frontend & pnpm dev:backend"
+  }
+}

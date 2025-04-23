@@ -120,6 +120,7 @@ const es = {
     receipt: 'Recibo',
     printReceipt: 'Imprimir recibo',
     pending: 'Pendiente',
+    pendingOrders: 'Pedidos pendientes',
     completed: 'Completado',
     cancelled: 'Cancelado',
     paid: 'Pagado',

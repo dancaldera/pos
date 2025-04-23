@@ -18,6 +18,7 @@ import CustomersPage from './pages/Customers';
 import UsersPage from './pages/Users';
 import SettingsPage from './pages/Settings';
 import OrdersPage from './pages/Orders';
+import PendingOrdersPage from './pages/PendingOrders';
 import NewOrderPage from './pages/NewOrder';
 import OrderDetailPage from './pages/OrderDetail';
 import PrintReceipt from './pages/PrintReceipt';
@@ -106,6 +107,7 @@ const AppRoutes = () => {
       }>
         <Route index element={<Dashboard />} />
         <Route path="orders" element={<OrdersPage />} />
+        <Route path="pending-orders" element={<PendingOrdersPage />} />
         <Route path="orders/new" element={<NewOrderPage />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="print-receipt/:id" element={<PrintReceipt />} />

@@ -390,7 +390,7 @@ const Dashboard: React.FC = () => {
           <Card className={`border-l-4 border-orange-500`}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">{translate.orders('pending')} {translate.orders('title')}</p>
+                <p className="text-sm font-medium text-gray-600">{translate.orders('pendingOrders')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {isLoading ? '...' : stats?.pendingOrders || 0}
                 </p>

@@ -119,6 +119,7 @@ const en = {
     receipt: 'Receipt',
     printReceipt: 'Print Receipt',
     pending: 'Pending',
+    pendingOrders: 'Pending Orders',
     completed: 'Completed',
     cancelled: 'Cancelled',
     paid: 'Paid',

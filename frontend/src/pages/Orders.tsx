@@ -154,6 +154,10 @@ const Orders: React.FC = () => {
   const handleNewOrder = () => {
     navigate("/orders/new");
   };
+  // Navigate to pending orders page
+  const handlePendingOrdersPage = () => {
+    navigate('/pending-orders');
+  };
 
   const viewOrderDetails = (orderId: string) => {
     navigate(`/orders/${orderId}`);
@@ -233,10 +237,16 @@ const Orders: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">{translate.orders('title')}</h1>
-        <Button variant="primary" onClick={handleNewOrder}>
-          <PlusIcon className="h-5 w-5 mr-1" />
-          {translate.orders('newOrder')}
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="secondary" onClick={handlePendingOrdersPage}>
+            <ArrowPathIcon className="h-5 w-5 mr-1" />
+            {translate.orders('pendingOrders')}
+          </Button>
+          <Button variant="primary" onClick={handleNewOrder}>
+            <PlusIcon className="h-5 w-5 mr-1" />
+            {translate.orders('newOrder')}
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}

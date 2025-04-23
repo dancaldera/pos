@@ -1,4 +1,4 @@
-# Inventory and Point of Sale System
+# Inventory and Point of Sale System ()
 
 A complete solution for inventory management and point of sale operations, built with React, Express, and PostgreSQL.
 

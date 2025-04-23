@@ -33,7 +33,7 @@ const MainLayout: React.FC = () => {
 
   // Define navigation items based on user role
   const navigation = [
-    { name: translate.dashboard('title'), to: '/', icon: HomeIcon },
+    { name: translate.dashboard('title'), to: '/', icon: HomeIcon, requiredRole: ['admin', 'manager'] },
     { name: translate.orders('title'), to: '/orders', icon: ShoppingCartIcon },
     { name: translate.products('title'), to: '/products', icon: SquaresPlusIcon, requiredRole: ['admin', 'manager'] },
     { name: translate.categories('title'), to: '/categories', icon: ChartBarSquareIcon, requiredRole: ['admin', 'manager'] },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -56,6 +56,10 @@ ChartJS.register(
 
 const Dashboard: React.FC = () => {
   const { state } = useAuth();
+  // Redirect waitress role away from dashboard
+  if (state.user?.role === 'waitress') {
+    return <Navigate to="/orders" replace />;
+  }
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [salesData, setSalesData] = useState<SalesDataPoint[]>([]);

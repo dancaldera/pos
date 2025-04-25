@@ -114,7 +114,7 @@ const NewOrder: React.FC = () => {
     try {
       setLoading(true);
       const [productsResponse, customersResponse] = await Promise.all([
-        getProducts({ active: true }),
+        getProducts({ active: true, limit: 999999 }),
         getCustomers(),
       ]);
 

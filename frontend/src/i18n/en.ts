@@ -71,6 +71,7 @@ const en = {
     invalidCredentials: 'Invalid email or password',
     emailRequired: 'Email is required',
     passwordRequired: 'Password is required',
+    loginFailed: 'Login failed. Please check your credentials and try again.',
   },
   dashboard: {
     title: 'Dashboard',

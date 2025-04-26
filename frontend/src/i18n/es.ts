@@ -72,6 +72,7 @@ const es = {
     invalidCredentials: 'Correo electrónico o contraseña inválidos',
     emailRequired: 'El correo electrónico es obligatorio',
     passwordRequired: 'La contraseña es obligatoria',
+    loginFailed: 'Error al iniciar sesión. Por favor, verifique sus credenciales e intente nuevamente.',
   },
   dashboard: {
     title: 'Panel',

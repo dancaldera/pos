@@ -84,23 +84,27 @@ const LoginPage: React.FC = () => {
       return;
     }
     
-    setIsLoading(true);
-    setError(null);
-    
-    // Call login function that now returns result object
-    const result = await login({ email, password });
-
-    console.log("result: ", result)
-    
-    if (result.success) {
-      toast.success(translate.auth('welcome'));
-      navigate("/");
-    } else {
-      setError(result.error || "Failed to login");
-      toast.error(result.error || "Failed to login");
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Call login function that now returns result object
+      const result = await login({ email, password });
+      
+      if (result.success) {
+        toast.success(translate.auth('welcome'));
+        navigate("/");
+      } else {
+        setError(result.error || translate.auth('loginFailed'));
+        toast.error(result.error || translate.auth('loginFailed'));
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : translate.auth('loginFailed');
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (

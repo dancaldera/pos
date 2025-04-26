@@ -1,6 +1,5 @@
 import React, { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import Alert from "../../components/ui/Alert";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { useLanguage } from "../../context/LanguageContext";
@@ -12,7 +11,6 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
   const { translate } = useLanguage();
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
   // Form state
@@ -86,7 +84,6 @@ const LoginPage: React.FC = () => {
     
     try {
       setIsLoading(true);
-      setError(null);
       
       // Call login function that now returns result object
       const result = await login({ email, password });
@@ -95,12 +92,10 @@ const LoginPage: React.FC = () => {
         toast.success(translate.auth('welcome'));
         navigate("/");
       } else {
-        setError(result.error || translate.auth('loginFailed'));
         toast.error(result.error || translate.auth('loginFailed'));
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : translate.auth('loginFailed');
-      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -115,10 +110,6 @@ const LoginPage: React.FC = () => {
         </h2>
         <PageLanguageSelector />
       </div>
-
-      {error && (
-        <Alert type="error" message={error} onClose={() => setError(null)} />
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input

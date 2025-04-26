@@ -24,19 +24,19 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add a response interceptor to handle errors
-apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // If the token is expired or invalid, redirect to login
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+// // Add a response interceptor to handle errors
+// apiClient.interceptors.response.use(
+//   (response) => {
+//     return response;
+//   },
+//   (error) => {
+//     if (error.response && error.response.status === 401) {
+//       // If the token is expired or invalid, redirect to login
+//       // localStorage.removeItem('token');
+//       // window.location.href = '/login';
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 
 export default apiClient;

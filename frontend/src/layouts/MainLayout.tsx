@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
 import {
   Bars3Icon,
@@ -16,13 +16,12 @@ import {
 } from '@heroicons/react/24/outline';
 
 const MainLayout: React.FC = () => {
-  const { state, logout } = useAuth();
+  const { user, logout } = useAuthStore();
   const { translate } = useLanguage();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Ensure user is authenticated
-  const { user } = state;
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
 

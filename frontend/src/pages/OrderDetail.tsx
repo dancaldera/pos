@@ -13,8 +13,8 @@ import { getProducts } from '../api/products';
 import { Product } from '../types/products';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuthStore } from '../store/authStore';
 import {
   ArrowLeftIcon,
   CurrencyDollarIcon,
@@ -45,7 +45,7 @@ const paymentStatusColors = {
 const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { state: authState } = useAuth();
+  const { user } = useAuthStore();
   const { translate, language } = useLanguage();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,9 +79,9 @@ const OrderDetail: React.FC = () => {
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
 
   // Check if user is admin or manager
-  const isAdmin = authState.user?.role === 'admin';
-  const isManager = authState.user?.role === 'manager';
-  const isWaitress = authState.user?.role === 'waitress';
+  const isAdmin = user?.role === 'admin';
+  const isManager = user?.role === 'manager';
+  const isWaitress = user?.role === 'waitress';
   const canManageOrders = isAdmin || isManager || isWaitress;
 
   useEffect(() => {

@@ -13,8 +13,8 @@ import { OrderSearchParams, cancelOrder, getOrders } from "../api/orders";
 import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import Table from "../components/ui/Table";
-import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useAuthStore } from "../store/authStore";
 import { Order, OrderStatus } from "../types/orders";
 
 // Order status colors and badges
@@ -32,7 +32,7 @@ const paymentStatusColors = {
 
 const Orders: React.FC = () => {
   const navigate = useNavigate();
-  const { state: authState } = useAuth();
+  const { user } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
@@ -67,8 +67,8 @@ const Orders: React.FC = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
 
   // Check if user is admin or manager
-  const isAdmin = authState.user?.role === "admin";
-  const isManager = authState.user?.role === "manager";
+  const isAdmin = user?.role === "admin";
+  const isManager = user?.role === "manager";
   const canManageOrders = isAdmin || isManager;
 
   // Fetch orders on mount and when search params change

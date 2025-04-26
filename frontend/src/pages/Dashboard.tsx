@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
-import { useAuth } from '../context/AuthContext';
+import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
 import {
   ShoppingCartIcon,
@@ -55,9 +55,9 @@ ChartJS.register(
 );
 
 const Dashboard: React.FC = () => {
-  const { state } = useAuth();
+  const { user } = useAuthStore();
   // Redirect waitress role away from dashboard
-  if (state.user?.role === 'waitress') {
+  if (user?.role === 'waitress') {
     return <Navigate to="/orders" replace />;
   }
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -241,7 +241,7 @@ const Dashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{translate.dashboard('title')}</h1>
-          <p className="text-gray-600">{translate.dashboard('welcome')}, {state.user?.name}</p>
+          <p className="text-gray-600">{translate.dashboard('welcome')}, {user?.name}</p>
         </div>
         <div className="mt-4 md:mt-0">
           <Link 

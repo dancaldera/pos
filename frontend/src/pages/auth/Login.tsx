@@ -1,45 +1,107 @@
-import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import * as Yup from "yup";
 import Alert from "../../components/ui/Alert";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import PageLanguageSelector from "../../components/PageLanguageSelector";
+import { toast } from 'sonner';
+import { useAuthStore } from "../../store/authStore";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuthStore();
   const { translate } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const formik = useFormik({
-    initialValues: {
-      email: "",
-      password: "",
-    },
-    validationSchema: Yup.object({
-      email: Yup.string()
-        .email(translate.common('error'))
-        .required(translate.auth('emailRequired')),
-      password: Yup.string().required(translate.auth('passwordRequired')),
-    }),
-    onSubmit: async (values) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        await login(values);
-        navigate("/");
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to login");
-      } finally {
-        setIsLoading(false);
-      }
-    },
+  
+  // Form state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false
   });
+
+  // Validation errors
+  const [validationErrors, setValidationErrors] = useState({
+    email: "",
+    password: ""
+  });
+
+  const validateField = (name: string, value: string) => {
+    let errorMessage = "";
+    
+    if (name === "email") {
+      if (!value) {
+        errorMessage = translate.auth('emailRequired');
+      } else if (!/\S+@\S+\.\S+/.test(value)) {
+        errorMessage = translate.common('error');
+      }
+    }
+    
+    if (name === "password" && !value) {
+      errorMessage = translate.auth('passwordRequired');
+    }
+
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: errorMessage
+    }));
+    
+    return errorMessage === "";
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
+    
+    if (name === "email") {
+      validateField(name, email);
+    } else if (name === "password") {
+      validateField(name, password);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    // Validate all fields
+    const isEmailValid = validateField("email", email);
+    const isPasswordValid = validateField("password", password);
+    
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      password: true
+    });
+    
+    // Return if any validation fails
+    if (!isEmailValid || !isPasswordValid) {
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    
+    // Call login function that now returns result object
+    const result = await login({ email, password });
+
+    console.log("result: ", result)
+    
+    if (result.success) {
+      toast.success(translate.auth('welcome'));
+      navigate("/");
+    } else {
+      setError(result.error || "Failed to login");
+      toast.error(result.error || "Failed to login");
+    }
+    
+    setIsLoading(false);
+  };
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-md">
@@ -54,7 +116,7 @@ const LoginPage: React.FC = () => {
         <Alert type="error" message={error} onClose={() => setError(null)} />
       )}
 
-      <form onSubmit={formik.handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label={translate.auth('email')}
           id="email"
@@ -62,14 +124,10 @@ const LoginPage: React.FC = () => {
           type="email"
           placeholder="your@email.com"
           fullWidth
-          value={formik.values.email}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          error={
-            formik.touched.email && formik.errors.email
-              ? formik.errors.email
-              : undefined
-          }
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onBlur={handleBlur}
+          error={touched.email && validationErrors.email ? validationErrors.email : undefined}
         />
 
         <Input
@@ -79,14 +137,10 @@ const LoginPage: React.FC = () => {
           type="password"
           placeholder="••••••••"
           fullWidth
-          value={formik.values.password}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          error={
-            formik.touched.password && formik.errors.password
-              ? formik.errors.password
-              : undefined
-          }
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onBlur={handleBlur}
+          error={touched.password && validationErrors.password ? validationErrors.password : undefined}
         />
 
         <div className="pt-2">

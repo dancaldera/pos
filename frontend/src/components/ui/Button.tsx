@@ -9,6 +9,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
   isLoading?: boolean;
   children: React.ReactNode;
+  type?: 'button' | 'submit' | 'reset'; // Explicitly define type
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -19,6 +20,7 @@ const Button: React.FC<ButtonProps> = ({
   children,
   className = '',
   disabled,
+  type = 'button', // Default type here
   ...rest
 }) => {
   const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2';
@@ -43,6 +45,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      type={type} // Apply the default or overridden type here
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${disabledClass} ${className}`}
       disabled={disabled || isLoading}
       {...rest}

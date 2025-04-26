@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { Toaster } from 'sonner';
+import { useAuthStore } from './store/authStore';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -26,14 +27,13 @@ const NotFoundPage = () => <div className="p-4">Page Not Found</div>;
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { state } = useAuth();
+  const { isLoading, isAuthenticated } = useAuthStore();
   const location = useLocation();
 
-  if (state.isLoading) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
-
-  if (!state.isAuthenticated) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -42,18 +42,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Admin only route component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { state } = useAuth();
+  const { isLoading, isAuthenticated, user } = useAuthStore();
   const location = useLocation();
 
-  if (state.isLoading) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!state.isAuthenticated) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (state.user?.role !== 'admin') {
+  if (user?.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
@@ -62,18 +62,18 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Staff only route (admin or manager)
 const StaffRoute = ({ children }: { children: React.ReactNode }) => {
-  const { state } = useAuth();
+  const { isLoading, isAuthenticated, user } = useAuthStore();
   const location = useLocation();
 
-  if (state.isLoading) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!state.isAuthenticated) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (state.user?.role !== 'admin' && state.user?.role !== 'manager') {
+  if (user?.role !== 'admin' && user?.role !== 'manager') {
     return <Navigate to="/" replace />;
   }
 
@@ -83,14 +83,14 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = useAuth();
+  const { isAuthenticated } = useAuthStore();
 
   // Redirect to dashboard if logged in and trying to access auth pages
   useEffect(() => {
-    if (state.isAuthenticated && ['/login', '/register'].includes(location.pathname)) {
+    if (isAuthenticated && ['/login', '/register'].includes(location.pathname)) {
       navigate('/');
     }
-  }, [state.isAuthenticated, location.pathname, navigate]);
+  }, [isAuthenticated, location.pathname, navigate]);
 
   return (
     <Routes>
@@ -137,12 +137,18 @@ const AppRoutes = () => {
 };
 
 const App = () => {
+  const initialize = useAuthStore(state => state.initialize);
+
+  // Initialize auth state on app load
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <AppRoutes />
-      </LanguageProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <AppRoutes />
+      <Toaster position="top-right" richColors />
+    </LanguageProvider>
   );
 };
 

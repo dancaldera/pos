@@ -4,7 +4,7 @@ import { User, Role } from '../types/auth';
 import Table from '../components/ui/Table';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { useAuth } from '../context/AuthContext';
+import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
 import { 
   PencilIcon, 
@@ -22,12 +22,12 @@ const ROLE_NAMES: Record<Role, string> = {
 };
 
 const Users: React.FC = () => {
-  const { state: authState } = useAuth();
+  const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [search, setSearch] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -81,7 +81,7 @@ const Users: React.FC = () => {
   };
 
   const openCreateModal = () => {
-    setCurrentUser(null);
+    setSelectedUser(null);
     setFormData({
       name: '',
       email: '',
@@ -95,7 +95,7 @@ const Users: React.FC = () => {
   };
 
   const openEditModal = (user: User) => {
-    setCurrentUser(user);
+    setSelectedUser(user);
     setFormData({
       name: user.name,
       email: user.email,
@@ -109,7 +109,7 @@ const Users: React.FC = () => {
   };
 
   const openDeleteModal = (user: User) => {
-    setCurrentUser(user);
+    setSelectedUser(user);
     setIsDeleteModalOpen(true);
   };
 
@@ -148,8 +148,8 @@ const Users: React.FC = () => {
     }
 
     // If creating new user or password field is filled
-    if (!currentUser || formData.password) {
-      if (!currentUser && !formData.password) {
+    if (!selectedUser || formData.password) {
+      if (!selectedUser && !formData.password) {
         errors.password = translate.users('passwordRequired');
       } else if (formData.password.length < 6) {
         errors.password = translate.common('error');
@@ -176,13 +176,13 @@ const Users: React.FC = () => {
       const { confirmPassword, ...userData } = formData;
       
       // For updates, only include the password if it's not empty
-      const dataToSend = currentUser 
+      const dataToSend = selectedUser 
         ? { ...userData, password: userData.password || undefined } 
         : userData;
       
-      if (currentUser) {
+      if (selectedUser) {
         // Update user
-        await updateUser(currentUser.id, dataToSend);
+        await updateUser(selectedUser.id, dataToSend);
       } else {
         // Create user
         await createUser(dataToSend);
@@ -212,11 +212,11 @@ const Users: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!currentUser) return;
+    if (!selectedUser) return;
 
     try {
       setSubmitLoading(true);
-      await deleteUser(currentUser.id);
+      await deleteUser(selectedUser.id);
       setIsDeleteModalOpen(false);
       fetchUsers();
     } catch (error) {
@@ -324,18 +324,18 @@ const Users: React.FC = () => {
                       <button
                         onClick={() => openEditModal(user)}
                         className="text-blue-600 hover:text-blue-900"
-                        disabled={user.id === authState.user?.id}
-                        title={user.id === authState.user?.id ? translate.common('error') : translate.common('edit')}
+                        disabled={user.id === currentUser?.id}
+                        title={user.id === currentUser?.id ? translate.common('error') : translate.common('edit')}
                       >
-                        <PencilIcon className={`h-5 w-5 ${user.id === authState.user?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
+                        <PencilIcon className={`h-5 w-5 ${user.id === currentUser?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
                       </button>
                       <button
                         onClick={() => openDeleteModal(user)}
                         className="text-red-600 hover:text-red-900"
-                        disabled={user.id === authState.user?.id}
-                        title={user.id === authState.user?.id ? translate.common('error') : translate.common('delete')}
+                        disabled={user.id === currentUser?.id}
+                        title={user.id === currentUser?.id ? translate.common('error') : translate.common('delete')}
                       >
-                        <TrashIcon className={`h-5 w-5 ${user.id === authState.user?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
+                        <TrashIcon className={`h-5 w-5 ${user.id === currentUser?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
                       </button>
                     </div>
                   </td>
@@ -350,7 +350,7 @@ const Users: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentUser ? translate.users('editUser') : translate.users('addUser')}
+        title={selectedUser ? translate.users('editUser') : translate.users('addUser')}
         footer={
           <>
             <Button
@@ -359,7 +359,7 @@ const Users: React.FC = () => {
               isLoading={submitLoading}
               className="ml-3"
             >
-              {currentUser ? translate.common('save') : translate.common('add')}
+              {selectedUser ? translate.common('save') : translate.common('add')}
             </Button>
             <Button
               variant="outline"
@@ -438,7 +438,7 @@ const Users: React.FC = () => {
           {/* Password - required for new user, optional for edit */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {currentUser ? translate.users('userPassword') : translate.users('userPassword') + ' *'}
+              {selectedUser ? translate.users('userPassword') : translate.users('userPassword') + ' *'}
             </label>
             <input
               type="password"
@@ -524,7 +524,7 @@ const Users: React.FC = () => {
             {translate.users('deleteConfirmation')}
             <br />
             <span className="font-medium text-gray-900">
-              {currentUser?.name}
+              {selectedUser?.name}
             </span>
           </p>
         </div>

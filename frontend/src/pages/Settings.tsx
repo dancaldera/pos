@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getSettings, updateSettings, SystemSettings } from '../api/settings';
 import Button from '../components/ui/Button';
-import { useAuth } from '../context/AuthContext';
+import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
 import PageLanguageSelector from '../components/PageLanguageSelector';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -18,7 +18,7 @@ const CURRENCIES = [
 ];
 
 const Settings: React.FC = () => {
-  const { state: authState } = useAuth();
+  const { user } = useAuthStore();
   const { translate } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,7 +41,7 @@ const Settings: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check if user is admin
-  const isAdmin = authState.user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     fetchSettings();

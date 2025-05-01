@@ -546,10 +546,13 @@ export const addPayment = async (req: Request, res: Response, next: NextFunction
         })
         .returning();
 
-      // Determine new payment status and order status
+      // Determine payment status based on amount paid
       const paymentStatus = newTotalPaid >= totalAmount ? 'paid' : newTotalPaid > 0 ? 'partial' : 'unpaid';
+      
+      // If payment is now complete (paid in full), automatically mark order as completed
       const newOrderStatus = paymentStatus === 'paid' ? 'completed' : order.status;
-      // Update order payment status and, if fully paid, mark as completed
+      
+      // Update order payment status and status
       const [updatedOrder] = await tx
         .update(orders)
         .set({

@@ -131,16 +131,43 @@ const Dashboard: React.FC = () => {
 
   const prepareSalesChartData = () => {
     const labels = salesData.map(point => {
-      const date = new Date(point.date);
+      // Parse date differently based on period
+      // Backend sends formats like: 
+      // - "YYYY-MM-DD" for daily data
+      // - "YYYY-MM-DDThh" for hourly data
+      // - "YYYY-MM" for monthly data
       
       if (salesPeriod === 'today') {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // For hourly data (format: YYYY-MM-DDThh)
+        const hourPart = point.date.split('T')[1];
+        return hourPart ? `${hourPart}:00` : point.date;
       } else if (salesPeriod === 'thisWeek') {
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        // For daily data (format: YYYY-MM-DD)
+        try {
+          const date = new Date(point.date);
+          if (!isNaN(date.getTime())) {
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          }
+          return point.date;
+        } catch (error) {
+          console.error('Error parsing date:', point.date, error);
+          return point.date;
+        }
       } else if (salesPeriod === 'thisYear') {
-        return date.toLocaleDateString([], { month: 'short' });
+        // For monthly data (format: YYYY-MM)
+        try {
+          const [_, month] = point.date.split('-');
+          const monthIndex = parseInt(month, 10) - 1;
+          const monthName = new Date(0, monthIndex).toLocaleString([], { month: 'short' });
+          return monthName;
+        } catch (error) {
+          console.error('Error parsing month:', point.date, error);
+          return point.date;
+        }
       }
-      return date.toLocaleDateString();
+      
+      // Fallback
+      return point.date;
     });
     
     return {

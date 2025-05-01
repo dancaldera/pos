@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { getOrder } from '../api/orders';
 import { getSettings } from '../api/settings';
 import { Order } from '../types/orders';
@@ -17,6 +18,8 @@ const PrintReceipt: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [customTaxRate, setCustomTaxRate] = useState<number | ''>("");
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [printStatus, setPrintStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,7 +53,58 @@ const PrintReceipt: React.FC = () => {
   }, [id]);
 
   const handlePrint = () => {
+    // Browser printing for the receipt preview
     window.print();
+  };
+
+  // Handle printing to thermal POS printer via backend
+  const handleThermalPrint = async () => {
+    if (!order || !settings) return;
+    
+    setIsPrinting(true);
+    setPrintStatus(null);
+    
+    try {
+      // Format items as an array to match what the printer backend expects
+      const formattedItems = order.items?.map(item => {
+        return {
+          name: item.productName + (item.variant ? ` (${item.variant})` : ''),
+          quantity: item.quantity,
+          price: item.unitPrice,
+          total: item.subtotal
+        };
+      }) || [];
+      
+      // Prepare receipt data for the thermal printer
+      const receiptData = {
+        title: settings?.businessName || 'Receipt', 
+        address: settings?.address || '',
+        phone: settings?.phone ? `Phone: ${settings.phone}` : '',
+        line: '----------------------------------------',
+        items: formattedItems,  // Now sending items as an array of objects
+        subtotal: getCustomSubtotal(),
+        tax: getCustomTaxAmount(),
+        taxRate: customTaxRate !== '' ? customTaxRate : (settings?.taxRate || 0),
+        total: getCustomTotal(),
+        footer: settings?.receiptFooter || 'Thank you for your purchase!',
+        date: new Date(order.createdAt).toLocaleDateString(),
+        time: new Date(order.createdAt).toLocaleTimeString()
+      };
+      
+      // Send to backend printer service
+      const response = await axios.post('http://localhost:3002/print/custom', receiptData);
+      
+      if (response.status === 200) {
+        setPrintStatus('Receipt sent to printer successfully');
+      } else {
+        setPrintStatus('Error sending receipt to printer');
+      }
+    } catch (error) {
+      console.error('Error printing to thermal printer:', error);
+      setPrintStatus('Failed to connect to printer service. Make sure the printer server is running.');
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -184,6 +238,38 @@ const PrintReceipt: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        <div className="flex space-x-2 absolute right-4 top-4 print:hidden">
+          <button
+            onClick={() => navigate(`/orders/${id}`)}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+          >
+            <ArrowLeftIcon className="h-4 w-4 mr-1" />
+            {translate.common('back')}
+          </button>
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+          >
+            <PrinterIcon className="h-4 w-4 mr-1" />
+            {translate.common('view')}
+          </button>
+          <button
+            onClick={handleThermalPrint}
+            disabled={isPrinting}
+            className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium ${isPrinting ? 'text-gray-400 bg-gray-100' : 'text-gray-700 bg-white hover:bg-gray-50'} focus:outline-none`}
+          >
+            <PrinterIcon className="h-4 w-4 mr-1" />
+            {isPrinting ? translate.common('loading') : 'Thermal Print'}
+          </button>
+        </div>
+        
+        {/* Printer Status Message (if any) */}
+        {printStatus && (
+          <div className={`text-center p-2 my-2 text-sm rounded print:hidden ${printStatus.includes('Error') || printStatus.includes('Failed') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+            {printStatus}
+          </div>
+        )}
       </div>
       
       {/* Printable Receipt */}
@@ -248,7 +334,7 @@ const PrintReceipt: React.FC = () => {
             <span className="w-1/6 text-right">{translate.orders('amount')}</span>
           </div>
           
-          {order?.items && order.items.map((item, index) => (
+          {order?.items?.map((item, index) => (
             <div key={index} className="flex justify-between text-xs py-1 border-b border-dotted">
               <div className="w-1/2">
                 <div>{item.productName}</div>

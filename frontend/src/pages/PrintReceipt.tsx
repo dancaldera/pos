@@ -7,6 +7,7 @@ import { SystemSettings } from '../api/settings';
 import { formatCurrency } from '../utils/format-currency';
 import { useLanguage } from '../context/LanguageContext';
 import { ArrowLeftIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner';
 
 const PrintReceipt: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -90,16 +91,18 @@ const PrintReceipt: React.FC = () => {
       };
       
       // Format the command for terminal usage
-      const jsonString = JSON.stringify(receiptData).replace(/"/g, '\\"');
+      const jsonString = JSON.stringify(receiptData);
       const terminalCommand = `node print.js print '${jsonString}'`;
       
       // Copy command to clipboard
       await navigator.clipboard.writeText(terminalCommand);
       
-      setPrintStatus('Print command copied to clipboard! Paste it in the terminal to print.');
+      setPrintStatus('El Comando de Impresión se copio al portapapeles! Pega el comando en la terminal para imprimir.');
+      toast.success('El Comando de Impresión se copio al portapapeles! Pega el comando en la terminal para imprimir.');
     } catch (error) {
       console.error('Error preparing print command:', error);
       setPrintStatus('Failed to prepare print command.');
+      toast.error('Failed to prepare print command.');
     } finally {
       setIsPrinting(false);
     }

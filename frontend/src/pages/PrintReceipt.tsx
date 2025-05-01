@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { getOrder } from '../api/orders';
 import { getSettings } from '../api/settings';
 import { Order } from '../types/orders';
@@ -80,8 +79,7 @@ const PrintReceipt: React.FC = () => {
         title: settings?.businessName || 'Receipt', 
         address: settings?.address || '',
         phone: settings?.phone ? `Phone: ${settings.phone}` : '',
-        line: '----------------------------------------',
-        items: formattedItems,  // Now sending items as an array of objects
+        items: formattedItems,
         subtotal: getCustomSubtotal(),
         tax: getCustomTaxAmount(),
         taxRate: customTaxRate !== '' ? customTaxRate : (settings?.taxRate || 0),
@@ -91,17 +89,17 @@ const PrintReceipt: React.FC = () => {
         time: new Date(order.createdAt).toLocaleTimeString()
       };
       
-      // Send to backend printer service
-      const response = await axios.post('http://localhost:3002/print/custom', receiptData);
+      // Format the command for terminal usage
+      const jsonString = JSON.stringify(receiptData).replace(/"/g, '\\"');
+      const terminalCommand = `node print.js print '${jsonString}'`;
       
-      if (response.status === 200) {
-        setPrintStatus('Receipt sent to printer successfully');
-      } else {
-        setPrintStatus('Error sending receipt to printer');
-      }
+      // Copy command to clipboard
+      await navigator.clipboard.writeText(terminalCommand);
+      
+      setPrintStatus('Print command copied to clipboard! Paste it in the terminal to print.');
     } catch (error) {
-      console.error('Error printing to thermal printer:', error);
-      setPrintStatus('Failed to connect to printer service. Make sure the printer server is running.');
+      console.error('Error preparing print command:', error);
+      setPrintStatus('Failed to prepare print command.');
     } finally {
       setIsPrinting(false);
     }

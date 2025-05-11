@@ -8,6 +8,8 @@ import { formatCurrency } from '../utils/format-currency';
 import { useLanguage } from '../context/LanguageContext';
 import { ArrowLeftIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
+// @ts-ignore
+import { invoke } from '@tauri-apps/api';
 
 const PrintReceipt: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +59,7 @@ const PrintReceipt: React.FC = () => {
     window.print();
   };
 
-  // Handle printing to thermal POS printer via backend
+  // Handle printing to thermal POS printer via Tauri backend
   const handleThermalPrint = async () => {
     if (!order || !settings) return;
     
@@ -90,19 +92,20 @@ const PrintReceipt: React.FC = () => {
         time: new Date(order.createdAt).toLocaleTimeString()
       };
       
-      // Format the command for terminal usage
+      // Format the receipt data for the printer
       const jsonString = JSON.stringify(receiptData);
-      const terminalCommand = `node print.js print '${jsonString}'`;
       
-      // Copy command to clipboard
-      await navigator.clipboard.writeText(terminalCommand);
+      // Send command to the Rust backend via Tauri
+      await invoke('print_thermal_receipt', { receiptData: jsonString });
+
+      await navigator.clipboard.writeText(jsonString)
       
-      setPrintStatus('El Comando de Impresión se copio al portapapeles! Pega el comando en la terminal para imprimir.');
-      toast.success('El Comando de Impresión se copio al portapapeles! Pega el comando en la terminal para imprimir.');
+      setPrintStatus('Comando de impresión enviado correctamente!');
+      toast.success('Comando de impresión enviado correctamente!');
     } catch (error) {
-      console.error('Error preparing print command:', error);
-      setPrintStatus('Failed to prepare print command.');
-      toast.error('Failed to prepare print command.');
+      console.error('Error sending print command:', error);
+      setPrintStatus(`Error al enviar el comando de impresión: ${error}`);
+      toast.error(`Error al enviar el comando de impresión: ${error}`);
     } finally {
       setIsPrinting(false);
     }

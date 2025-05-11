@@ -26,15 +26,21 @@ struct PrintReceiptItem {
 
 #[tauri::command]
 async fn print_thermal_receipt(receipt_data: String) -> Result<String, String> {
-    // Execute the node print.js script with the receipt data
-    let output = Command::new("print")
-        .arg("print")
-        .arg(receipt_data)
+    // Escape single quotes in the JSON data for shell safety
+    let escaped_data = receipt_data.replace("'", "'\\''"); 
+    
+    // Create the exact command string that works in your terminal
+    let command = format!("print print '{}'", escaped_data);
+    
+    // Load user's shell configuration and ensure PATH is correctly set
+    // This ensures the command is run in the same environment as your terminal
+    let output = Command::new("zsh")
+        .arg("-l")  // Login shell to load full environment
+        .arg("-i")  // Interactive mode to ensure all user configs are loaded
+        .arg("-c")
+        .arg(command)
         .output()
         .map_err(|e| format!("Failed to execute command: {}", e))?;
-
-    println!("Command output: {}", String::from_utf8_lossy(&output.stdout));
-    println!("Command error: {}", String::from_utf8_lossy(&output.stderr));
     
     if output.status.success() {
         // Convert bytes to string, handle UTF-8 conversion errors

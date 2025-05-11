@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getOrder } from '../api/orders';
-import { getSettings } from '../api/settings';
-import { Order } from '../types/orders';
-import { SystemSettings } from '../api/settings';
-import { formatCurrency } from '../utils/format-currency';
-import { useLanguage } from '../context/LanguageContext';
 import { ArrowLeftIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { invoke } from '@tauri-apps/api/core';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-// @ts-ignore
-import { invoke } from '@tauri-apps/api';
+import { getOrder } from '../api/orders';
+import { getSettings, SystemSettings } from '../api/settings';
+import { useLanguage } from '../context/LanguageContext';
+import { Order } from '../types/orders';
+import { formatCurrency } from '../utils/format-currency';
 
 const PrintReceipt: React.FC = () => {
   const { id } = useParams<{ id: string }>();

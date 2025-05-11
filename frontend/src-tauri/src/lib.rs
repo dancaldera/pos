@@ -27,8 +27,7 @@ struct PrintReceiptItem {
 #[tauri::command]
 async fn print_thermal_receipt(receipt_data: String) -> Result<String, String> {
     // Execute the node print.js script with the receipt data
-    let output = Command::new("node")
-        .arg("print.js")
+    let output = Command::new("print")
         .arg("print")
         .arg(receipt_data)
         .output()

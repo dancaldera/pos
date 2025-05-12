@@ -6,11 +6,15 @@ import { toast } from 'sonner';
 import { useAuthStore } from "../../store/authStore";
 import { Input } from "@/components/input";
 import { Button } from "@/components/button";
+import { Heading } from "@/components/heading";
+import { Select } from "@/components/select";
+import { Language } from "@/i18n";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
   const { translate } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   
   // Form state
@@ -102,41 +106,57 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md">
+    <div className="p-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
+        <Heading level={2}>
           {translate.auth('login')}
-        </h2>
-        <PageLanguageSelector />
+        </Heading>
+        <div className="w-32">
+          <Select
+            id="language"
+            name="language"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as Language)}
+          >
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          </Select>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label={translate.auth('email')}
           id="email"
           name="email"
           type="email"
           placeholder="your@email.com"
-          fullWidth
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onBlur={handleBlur}
-          error={touched.email && validationErrors.email ? validationErrors.email : undefined}
         />
 
+        {touched.email && validationErrors.email && (
+          <p className="text-red-500 text-sm mt-2">{validationErrors.email}</p>
+        )}
+
         <Input
-          // label={translate.auth('password')}
           id="password"
           name="password"
           type="password"
           placeholder="••••••••"
-          // fullWidth
-          value={password}
+            value={password}
           onChange={(e) => setPassword(e.target.value)}
           onBlur={handleBlur}
-          // error={touched.password && validationErrors.password ? validationErrors.password : undefined}
         />
+
+        {touched.password && validationErrors.password && (
+          <p className="text-red-500 text-sm mt-2">{validationErrors.password}</p>
+        )}
 
         <div className="pt-2">
           <Button

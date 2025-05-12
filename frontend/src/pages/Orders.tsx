@@ -1,17 +1,3 @@
-import { formatCurrency } from "@/utils/format-currency";
-import {
-  ArrowPathIcon,
-  EyeIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-  XMarkIcon
-} from "@heroicons/react/24/outline";
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { OrderSearchParams, cancelOrder, getOrders } from "../api/orders";
-import { useLanguage } from "../context/LanguageContext";
-import { useAuthStore } from "../store/authStore";
-import { Order, OrderStatus } from "../types/orders";
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
 import { Dialog, DialogActions, DialogBody, DialogTitle } from "@/components/dialog";
@@ -22,19 +8,19 @@ import { Select } from "@/components/select";
 import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/table";
 import { Text } from "@/components/text";
 import { Textarea } from "@/components/textarea";
-
-// Order status colors and badges
-const statusColors = {
-  pending: "bg-yellow-100 text-yellow-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-};
-
-const paymentStatusColors = {
-  paid: "bg-green-100 text-green-800",
-  partial: "bg-orange-100 text-orange-800",
-  unpaid: "bg-red-100 text-red-800",
-};
+import { formatCurrency } from "@/utils/format-currency";
+import {
+  ArrowPathIcon,
+  EyeIcon,
+  PlusIcon,
+  XMarkIcon
+} from "@heroicons/react/24/outline";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { OrderSearchParams, cancelOrder, getOrders } from "../api/orders";
+import { useLanguage } from "../context/LanguageContext";
+import { useAuthStore } from "../store/authStore";
+import { Order, OrderStatus } from "../types/orders";
 
 const Orders: React.FC = () => {
   const navigate = useNavigate();

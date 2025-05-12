@@ -93,10 +93,17 @@ const PrintReceipt: React.FC = () => {
       // Format the receipt data for the printer
       const jsonString = JSON.stringify(receiptData);
       
-      // Send command to the Rust backend via Tauri
-      await invoke('print_thermal_receipt', { receiptData: jsonString });
-
-      await navigator.clipboard.writeText(jsonString)
+      // Check if running in Tauri app or web
+      const isTauriApp = 'window' in globalThis && 'invoke' in window;
+      
+      if (isTauriApp) {
+        // We're in the app - use Tauri invoke
+        await invoke('print_thermal_receipt', { receiptData: jsonString });
+      } else {
+        // We're in the web - use clipboard
+        await navigator.clipboard.writeText(jsonString);
+        setPrintStatus('Receipt data copied to clipboard');
+      }
       
       setPrintStatus('Comando de impresión enviado correctamente!');
       toast.success('Comando de impresión enviado correctamente!');

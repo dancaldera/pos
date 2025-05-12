@@ -24,6 +24,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { formatCurrency } from "@/utils/format-currency";
+import { toast } from "sonner";
 
 interface CartItem extends OrderItemInput {
   productName: string;
@@ -50,6 +51,7 @@ const NewOrder: React.FC = () => {
   const [customerSearch, setCustomerSearch] = useState("");
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [variantModalOpen, setVariantModalOpen] = useState(false);
+  const [confirmSaveModalOpen, setConfirmSaveModalOpen] = useState(false);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(
     null
   );
@@ -382,7 +384,7 @@ const NewOrder: React.FC = () => {
       const response = await createOrder(orderData);
 
       if (response.success) {
-        alert(translate.orders("orderSuccessAlert"));
+        toast.success(translate.orders("orderSuccessAlert"));
         navigate(`/orders/${response.data.id}`);
       }
     } catch (error: any) {
@@ -786,14 +788,7 @@ const NewOrder: React.FC = () => {
             <Button
               variant="outline"
               fullWidth
-              onClick={() => {
-                const confirm = window.confirm(
-                  translate.orders("saveAsUnpaidConfirm")
-                );
-                if (confirm) {
-                  handleSubmitOrder(true);
-                }
-              }}
+              onClick={() => setConfirmSaveModalOpen(true)}
               disabled={cartItems.length === 0 || isSubmitting}
             >
               {translate.orders("saveAsUnpaid")}
@@ -1010,6 +1005,40 @@ const NewOrder: React.FC = () => {
               />
             </div>
           </div>
+        </div>
+      </Modal>
+
+      {/* Confirm Save As Unpaid Modal */}
+      <Modal
+        isOpen={confirmSaveModalOpen}
+        onClose={() => setConfirmSaveModalOpen(false)}
+        title={translate.orders("saveAsUnpaid")}
+        footer={
+          <>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setConfirmSaveModalOpen(false);
+                handleSubmitOrder(true);
+              }}
+              disabled={isSubmitting}
+            >
+              {translate.common("confirm")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmSaveModalOpen(false)}
+              disabled={isSubmitting}
+            >
+              {translate.common("cancel")}
+            </Button>
+          </>
+        }
+      >
+        <div className="py-4">
+          <p className="text-gray-700">
+            {translate.orders("saveAsUnpaidConfirm")}
+          </p>
         </div>
       </Modal>
     </div>

@@ -284,6 +284,7 @@ const Categories: React.FC = () => {
                     <TableCell>
                       <div className="flex space-x-2 justify-end">
                         <Button
+                          outline
                           onClick={() => openEditModal(category)}
                         >
                           <PencilIcon className="h-5 w-5" />

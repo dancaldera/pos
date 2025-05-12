@@ -97,20 +97,38 @@ const PrintReceipt: React.FC = () => {
       const isTauriApp = 'window' in globalThis && 'invoke' in window;
       
       if (isTauriApp) {
-        // We're in the app - use Tauri invoke
-        await invoke('print_thermal_receipt', { receiptData: jsonString });
+        try {
+          // We're in the app - use Tauri invoke
+          const response = await invoke('print_thermal_receipt', { receiptData: jsonString });
+          console.log('Print command response:', response);
+          setPrintStatus('Command sent successfully!');
+          toast.success('Command sent successfully!');
+        } catch (invokeError) {
+          // Handle Tauri invoke error without crashing
+          console.error('Tauri invoke error:', invokeError);
+          setPrintStatus(`Error sending print command: ${invokeError}`);
+          toast.warning(`Print command failed: ${invokeError}`);
+          // Continue execution - don't throw to outer catch
+          return; // Exit function here to prevent showing success message
+        }
       } else {
-        // We're in the web - use clipboard
-        await navigator.clipboard.writeText(jsonString);
-        setPrintStatus('Receipt data copied to clipboard');
+        try {
+          // We're in the web - use clipboard
+          await navigator.clipboard.writeText(jsonString);
+          setPrintStatus('Receipt data copied to clipboard');
+          toast.success('Receipt data copied to clipboard');
+        } catch (clipboardError) {
+          // Handle clipboard error without crashing
+          console.error('Clipboard error:', clipboardError);
+          setPrintStatus(`Error copying to clipboard: ${clipboardError}`);
+          toast.warning(`Clipboard operation failed: ${clipboardError}`);
+          return; // Exit function here to prevent showing success message
+        }
       }
-      
-      setPrintStatus('Comando de impresión enviado correctamente!');
-      toast.success('Comando de impresión enviado correctamente!');
     } catch (error) {
       console.error('Error sending print command:', error);
-      setPrintStatus(`Error al enviar el comando de impresión: ${error}`);
-      toast.error(`Error al enviar el comando de impresión: ${error}`);
+      setPrintStatus(`Error sending print command: ${error}`);
+      toast.warning(`Error sending print command: ${error}`);
     } finally {
       setIsPrinting(false);
     }

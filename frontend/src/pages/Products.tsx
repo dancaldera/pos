@@ -15,9 +15,9 @@ import {
   getProducts,
   updateProduct,
 } from "../api/products";
-import Button from "../components/ui/Button";
-import Modal from "../components/ui/Modal";
-import Table from "../components/ui/Table";
+import Button from "../_components/ui/Button";
+import Modal from "../_components/ui/Modal";
+import Table from "../_components/ui/Table";
 import { useLanguage } from "../context/LanguageContext";
 import { Product, ProductFormData } from "../types/products";
 

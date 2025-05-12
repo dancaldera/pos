@@ -11,8 +11,8 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from "../types/orders";
-import Button from "../components/ui/Button";
-import Modal from "../components/ui/Modal";
+import Button from "../_components/ui/Button";
+import Modal from "../_components/ui/Modal";
 import { useLanguage } from "../context/LanguageContext";
 import {
   MagnifyingGlassIcon,

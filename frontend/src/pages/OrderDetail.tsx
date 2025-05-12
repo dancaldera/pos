@@ -11,8 +11,8 @@ import {
 import { Order, OrderStatus, PaymentMethod, OrderItemInput } from '../types/orders';
 import { getProducts } from '../api/products';
 import { Product } from '../types/products';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
+import Button from '../_components/ui/Button';
+import Modal from '../_components/ui/Modal';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuthStore } from '../store/authStore';
 import {

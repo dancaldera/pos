@@ -1,28 +1,28 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { LanguageProvider } from './context/LanguageContext';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { LanguageProvider } from './context/LanguageContext';
 import { useAuthStore } from './store/authStore';
 
 // Layouts
-import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
+import MainLayout from './layouts/MainLayout';
 
 // Auth Pages
 import LoginPage from './pages/auth/Login';
 
 // Main Pages
-import Dashboard from './pages/Dashboard';
-import ProductsPage from './pages/Products';
 import CategoriesPage from './pages/Categories';
 import CustomersPage from './pages/Customers';
-import UsersPage from './pages/Users';
-import SettingsPage from './pages/Settings';
-import OrdersPage from './pages/Orders';
-import PendingOrdersPage from './pages/PendingOrders';
+import Dashboard from './pages/Dashboard';
 import NewOrderPage from './pages/NewOrder';
 import OrderDetailPage from './pages/OrderDetail';
+import OrdersPage from './pages/Orders';
+import PendingOrdersPage from './pages/PendingOrders';
 import PrintReceipt from './pages/PrintReceipt';
+import ProductsPage from './pages/Products';
+import SettingsPage from './pages/Settings';
+import UsersPage from './pages/Users';
 const NotFoundPage = () => <div className="p-4">Page Not Found</div>;
 
 // Protected route component
@@ -111,7 +111,7 @@ const AppRoutes = () => {
         <Route path="orders/new" element={<NewOrderPage />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="print-receipt/:id" element={<PrintReceipt />} />
-        
+
         {/* Staff Only Routes */}
         <Route path="products" element={
           <StaffRoute><ProductsPage /></StaffRoute>
@@ -120,7 +120,7 @@ const AppRoutes = () => {
           <StaffRoute><CategoriesPage /></StaffRoute>
         } />
         <Route path="customers" element={<CustomersPage />} />
-        
+
         {/* Admin Only Routes */}
         <Route path="users" element={
           <AdminRoute><UsersPage /></AdminRoute>

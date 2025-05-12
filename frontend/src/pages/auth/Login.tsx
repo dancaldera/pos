@@ -1,11 +1,11 @@
 import React, { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
 import { useLanguage } from "../../context/LanguageContext";
-import PageLanguageSelector from "../../components/PageLanguageSelector";
+import PageLanguageSelector from "../../_components/PageLanguageSelector";
 import { toast } from 'sonner';
 import { useAuthStore } from "../../store/authStore";
+import { Input } from "@/components/input";
+import { Button } from "@/components/button";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -126,25 +126,21 @@ const LoginPage: React.FC = () => {
         />
 
         <Input
-          label={translate.auth('password')}
+          // label={translate.auth('password')}
           id="password"
           name="password"
           type="password"
           placeholder="••••••••"
-          fullWidth
+          // fullWidth
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onBlur={handleBlur}
-          error={touched.password && validationErrors.password ? validationErrors.password : undefined}
+          // error={touched.password && validationErrors.password ? validationErrors.password : undefined}
         />
 
         <div className="pt-2">
           <Button
             type="submit"
-            variant="primary"
-            fullWidth
-            isLoading={isLoading}
-            disabled={isLoading}
           >
             {translate.auth('login')}
           </Button>

@@ -7,9 +7,9 @@ import {
   deleteCustomer,
 } from "../api/customers";
 import { Customer } from "../types/customers";
-import Table from "../components/ui/Table";
-import Button from "../components/ui/Button";
-import Modal from "../components/ui/Modal";
+import Table from "../_components/ui/Table";
+import Button from "../_components/ui/Button";
+import Modal from "../_components/ui/Modal";
 import {
   PencilIcon,
   TrashIcon,

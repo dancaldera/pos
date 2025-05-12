@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { getUsers, createUser, updateUser, deleteUser } from '../api/users';
 import { User, Role } from '../types/auth';
-import Table from '../components/ui/Table';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
+import Table from '../_components/ui/Table';
+import Button from '../_components/ui/Button';
+import Modal from '../_components/ui/Modal';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
 import { 

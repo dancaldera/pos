@@ -2,14 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getOrders, getOrder, OrderSearchParams } from "../api/orders";
 import { Order } from "../types/orders";
-import Table from "../components/ui/Table";
-import Button from "../components/ui/Button";
+import Table from "../_components/ui/Table";
+import Button from "../_components/ui/Button";
 import {
   EyeIcon,
   ArrowPathIcon,
   ShoppingCartIcon,
 } from "@heroicons/react/24/outline";
-import Modal from "../components/ui/Modal";
+import Modal from "../_components/ui/Modal";
 import { useLanguage } from "../context/LanguageContext";
 import { formatCurrency } from "@/utils/format-currency";
 

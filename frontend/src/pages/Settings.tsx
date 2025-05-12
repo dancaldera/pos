@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getSettings, updateSettings, SystemSettings } from '../api/settings';
-import Button from '../components/ui/Button';
+import Button from '../_components/ui/Button';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
-import PageLanguageSelector from '../components/PageLanguageSelector';
+import PageLanguageSelector from '../_components/PageLanguageSelector';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const CURRENCIES = [

@@ -9,9 +9,9 @@ import {
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { OrderSearchParams, cancelOrder, getOrders } from "../api/orders";
-import Button from "../components/ui/Button";
-import Modal from "../components/ui/Modal";
-import Table from "../components/ui/Table";
+import Button from "../_components/ui/Button";
+import Modal from "../_components/ui/Modal";
+import Table from "../_components/ui/Table";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuthStore } from "../store/authStore";
 import { Order, OrderStatus } from "../types/orders";

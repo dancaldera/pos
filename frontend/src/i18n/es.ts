@@ -120,7 +120,6 @@ const es = {
     completeOrder: 'Completar pedido',
     addPayment: 'Agregar pago',
     receipt: 'Recibo',
-    printReceipt: 'Imprimir recibo',
     pending: 'Pendiente',
     pendingOrders: 'Pedidos pendientes',
     completed: 'Completado',

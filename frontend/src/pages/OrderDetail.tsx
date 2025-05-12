@@ -407,16 +407,6 @@ const OrderDetail: React.FC = () => {
         </div>
         
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
-          {order.status !== 'cancelled' && (
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/print-receipt/${order.id}`)}
-            >
-              <DocumentTextIcon className="h-5 w-5 mr-1" />
-              {translate.orders('printReceipt')}
-            </Button>
-          )}
-          
           {canManageOrders && order.status !== 'cancelled' && (
             <>
               <Button

@@ -435,16 +435,6 @@ const Orders: React.FC = () => {
                           <EyeIcon className="h-5 w-5" />
                         </button>
 
-                        {/* {order.status !== 'cancelled' && (
-                          <button
-                            onClick={() => handleGetReceipt(order.id)}
-                            className="text-green-600 hover:text-green-900"
-                            title={translate.orders('printReceipt')}
-                          >
-                            <DocumentTextIcon className="h-5 w-5" />
-                          </button>
-                        )} */}
-
                         {canManageOrders && order.status !== "cancelled" && (
                           <>
                             <button

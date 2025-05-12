@@ -1,15 +1,13 @@
-import React, { useState, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../../context/LanguageContext";
-import PageLanguageSelector from "../../_components/PageLanguageSelector";
-import { toast } from 'sonner';
-import { useAuthStore } from "../../store/authStore";
-import { Input } from "@/components/input";
 import { Button } from "@/components/button";
 import { Heading } from "@/components/heading";
+import { Input } from "@/components/input";
 import { Select } from "@/components/select";
 import { Language } from "@/i18n";
-import LoadingPage from "@/_components/LoadingPage";
+import React, { FormEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from 'sonner';
+import { useLanguage } from "../../context/LanguageContext";
+import { useAuthStore } from "../../store/authStore";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();

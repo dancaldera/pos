@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { getUsers, createUser, updateUser, deleteUser } from '../api/users';
 import { User, Role } from '../types/auth';
-import Table from '../_components/ui/Table';
-import Button from '../_components/ui/Button';
-import Modal from '../_components/ui/Modal';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
-import { 
-  PencilIcon, 
-  TrashIcon, 
-  PlusIcon, 
-  MagnifyingGlassIcon,
+import {
+  PencilIcon,
+  TrashIcon,
+  PlusIcon,
   CheckCircleIcon,
   XCircleIcon
 } from '@heroicons/react/24/outline';
+import { Heading } from '@/components/heading';
+import { Button } from '@/components/button';
+import { Input } from '@/components/input';
+import { Text } from '@/components/text';
+import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table';
+import { Badge } from '@/components/badge';
+import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog';
+import { Divider } from '@/components/divider';
+import { Field, Fieldset, Label } from '@/components/fieldset';
+import { Select } from '@/components/select';
+import { Checkbox } from '@/components/checkbox';
 
 const ROLE_NAMES: Record<Role, string> = {
   admin: 'Administrator',
@@ -174,12 +181,12 @@ const Users: React.FC = () => {
 
       // Create user data object, omitting confirmPassword
       const { confirmPassword, ...userData } = formData;
-      
+
       // For updates, only include the password if it's not empty
-      const dataToSend = selectedUser 
-        ? { ...userData, password: userData.password || undefined } 
+      const dataToSend = selectedUser
+        ? { ...userData, password: userData.password || undefined }
         : userData;
-      
+
       if (selectedUser) {
         // Update user
         await updateUser(selectedUser.id, dataToSend);
@@ -234,47 +241,43 @@ const Users: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{translate.users('title')}</h1>
-        <Button variant="primary" onClick={openCreateModal}>
+        <Heading>
+          {translate.users('title')}
+        </Heading>
+        <Button onClick={openCreateModal}>
           <PlusIcon className="h-5 w-5 mr-1" />
           {translate.users('addUser')}
         </Button>
       </div>
 
       {/* Search */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder={translate.users('searchUsers')}
-            className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            value={search}
-            onChange={handleSearchChange}
-          />
-          <div className="absolute right-3 top-2.5 text-gray-400">
-            <MagnifyingGlassIcon className="h-5 w-5" />
-          </div>
-        </div>
-      </div>
+      <Input
+        type="text"
+        placeholder={translate.users('searchUsers')}
+        value={search}
+        className="w-full mb-6"
+        onChange={handleSearchChange}
+      />
 
       {/* Users Table */}
       {loading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">{translate.common('loading')}</p>
+          <Text>{translate.common('loading')}</Text>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <Table
-            headers={[
-              translate.common('name'), 
-              translate.auth('email'), 
-              translate.users('userRole'), 
-              translate.common('status'), 
-              translate.common('created'), 
-              translate.common('actions')
-            ]}
-          >
+        <div className="rounded-lg shadow overflow-hidden">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>{translate.common('name')}</TableHeader>
+                <TableHeader>{translate.auth('email')}</TableHeader>
+                <TableHeader>{translate.users('userRole')}</TableHeader>
+                <TableHeader>{translate.common('status')}</TableHeader>
+                <TableHeader>{translate.common('created')}</TableHeader>
+                <TableHeader>{translate.common('actions')}</TableHeader>
+              </TableRow>
+            </TableHead>
             {filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
@@ -283,63 +286,55 @@ const Users: React.FC = () => {
               </tr>
             ) : (
               filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">{user.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      user.role === 'admin'
-                        ? 'bg-purple-100 text-purple-800'
-                        : user.role === 'manager'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <Text>{user.name}</Text>
+                  </TableCell>
+                  <TableCell>
+                    <Text>{user.email}</Text>
+                  </TableCell>
+                  <TableCell>
+                    <Badge color={user.role === 'admin' ? 'blue' : user.role === 'manager' ? 'purple' : 'teal'}>
                       {ROLE_NAMES[user.role]}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     {user.active ? (
-                      <span className="text-green-600 flex items-center">
+                      <Badge color="green">
                         <CheckCircleIcon className="h-5 w-5 mr-1" />
                         {translate.common('active')}
-                      </span>
+                      </Badge>
                     ) : (
-                      <span className="text-red-600 flex items-center">
+                      <Badge color="red">
                         <XCircleIcon className="h-5 w-5 mr-1" />
                         {translate.common('inactive')}
-                      </span>
+                      </Badge>
                     )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {formatDate(user.createdAt)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  </TableCell>
+                  <TableCell>
+                    <Text>{formatDate(user.createdAt)}</Text>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex space-x-2 justify-end">
-                      <button
+                      <Button
+                        outline
                         onClick={() => openEditModal(user)}
-                        className="text-blue-600 hover:text-blue-900"
                         disabled={user.id === currentUser?.id}
                         title={user.id === currentUser?.id ? translate.common('error') : translate.common('edit')}
                       >
                         <PencilIcon className={`h-5 w-5 ${user.id === currentUser?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        color='red'
                         onClick={() => openDeleteModal(user)}
-                        className="text-red-600 hover:text-red-900"
                         disabled={user.id === currentUser?.id}
                         title={user.id === currentUser?.id ? translate.common('error') : translate.common('delete')}
                       >
                         <TrashIcon className={`h-5 w-5 ${user.id === currentUser?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
-                      </button>
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
           </Table>
@@ -347,188 +342,173 @@ const Users: React.FC = () => {
       )}
 
       {/* User Form Modal */}
-      <Modal
-        isOpen={isModalOpen}
+      <Dialog
+        open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={selectedUser ? translate.users('editUser') : translate.users('addUser')}
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {selectedUser ? translate.common('save') : translate.common('add')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common('cancel')}
-            </Button>
-          </>
-        }
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {formErrors.form && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {formErrors.form}
-            </div>
-          )}
-
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {translate.users('userName')} *
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                formErrors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={translate.users('userName')}
-            />
-            {formErrors.name && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+        <DialogTitle>
+          {selectedUser ? translate.users('editUser') : translate.users('addUser')}
+        </DialogTitle>
+        <DialogBody>
+          <form onSubmit={handleSubmit}>
+            {formErrors.form && (
+              <Text className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {formErrors.form}
+              </Text>
             )}
-          </div>
+            <Fieldset className="space-y-4">
+              {/* Name */}
+              <Field>
+                <Label>
+                  {translate.users('userName')} *
+                </Label>
+                <Input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder={translate.users('userName')}
+                />
+                {formErrors.name && (
+                  <Text className="mt-1 text-sm text-red-600">{formErrors.name}</Text>
+                )}
+              </Field>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {translate.users('userEmail')} *
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                formErrors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={translate.users('userEmail')}
-            />
-            {formErrors.email && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
-            )}
-          </div>
+              {/* Email */}
+              <Field>
+                <Label>
+                  {translate.users('userEmail')} *
+                </Label>
+                <Input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder={translate.users('userEmail')}
+                />
+                {formErrors.email && (
+                  <Text className="mt-1 text-sm text-red-600">{formErrors.email}</Text>
+                )}
+              </Field>
 
-          {/* Role */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {translate.users('userRole')} *
-            </label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="admin">{translate.users('admin')}</option>
-              <option value="manager">{translate.users('manager')}</option>
-              <option value="waitress">{translate.users('waitress')}</option>
-            </select>
-          </div>
+              {/* Role */}
+              <Field>
+                <Label>
+                  {translate.users('userRole')} *
+                </Label>
+                <Select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                >
+                  <option value="admin">{translate.users('admin')}</option>
+                  <option value="manager">{translate.users('manager')}</option>
+                  <option value="waitress">{translate.users('waitress')}</option>
+                </Select>
+              </Field>
 
-          {/* Password - required for new user, optional for edit */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {selectedUser ? translate.users('userPassword') : translate.users('userPassword') + ' *'}
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                formErrors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={translate.users('userPassword')}
-            />
-            {formErrors.password && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
-            )}
-          </div>
+              {/* Password - required for new user, optional for edit */}
+              <Field>
+                <Label>
+                  {selectedUser ? translate.users('userPassword') : translate.users('userPassword') + ' *'}
+                </Label>
+                <Input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder={translate.users('userPassword')}
+                            />
+                {formErrors.password && (
+                  <Text className="mt-1 text-sm text-red-600">{formErrors.password}</Text>
+                )}
+              </Field>
 
-          {/* Confirm Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {translate.users('userPassword')} ({translate.common('confirm')})
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                formErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={translate.users('userPassword')}
-            />
-            {formErrors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600">
-                {formErrors.confirmPassword}
-              </p>
-            )}
-          </div>
+              {/* Confirm Password */}
+              <Field>
+                <Label>
+                  {translate.users('userPassword')} ({translate.common('confirm')})
+                </Label>
+                <Input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  placeholder={translate.users('userPassword')}
+                />
+                {formErrors.confirmPassword && (
+                  <Text className="mt-1 text-sm text-red-600">
+                    {formErrors.confirmPassword}
+                  </Text>
+                )}
+              </Field>
 
-          {/* Active Status */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="active"
-              name="active"
-              checked={formData.active}
-              onChange={handleInputChange}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
-              {translate.users('userActive')}
-            </label>
-          </div>
-        </form>
-      </Modal>
+              {/* Active Status */}
+              <Field>
+                <Checkbox
+                  id="active"
+                  name="active"
+                  checked={formData.active}
+                  onChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
+                />
+                <Label htmlFor="active">
+                  {translate.users('userActive')}
+                </Label>
+              </Field>
+
+            </Fieldset>
+          </form>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleSubmit}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {selectedUser ? translate.common('save') : translate.common('add')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setIsModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common('cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
+      <Dialog
+        open={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title={translate.common('delete')}
-        footer={
-          <>
-            <Button
-              variant="danger"
-              onClick={handleDelete}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {translate.common('delete')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common('cancel')}
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <p className="text-gray-600">
+        <DialogTitle>{translate.common('delete')}</DialogTitle>
+        <DialogBody>
+          <Text>
             {translate.users('deleteConfirmation')}
-            <br />
-            <span className="font-medium text-gray-900">
+            <Divider />
+            <Text>
               {selectedUser?.name}
-            </span>
-          </p>
-        </div>
-      </Modal>
+            </Text>
+          </Text>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleDelete}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {translate.common('delete')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common('cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

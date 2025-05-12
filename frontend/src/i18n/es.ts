@@ -67,7 +67,7 @@ const es = {
     forgotPassword: '¿Olvidó su contraseña?',
     signIn: 'Ingresar',
     signOut: 'Salir',
-    welcome: 'Bienvenido de nuevo',
+    welcome: 'Bienvenido/a de nuevo',
     enterCredentials: 'Por favor, ingrese sus credenciales',
     invalidCredentials: 'Correo electrónico o contraseña inválidos',
     emailRequired: 'El correo electrónico es obligatorio',
@@ -76,7 +76,7 @@ const es = {
   },
   dashboard: {
     title: 'Panel',
-    welcome: 'Bienvenido',
+    welcome: 'Bienvenido/a',
     salesOverview: 'Resumen de ventas',
     totalSales: 'Ventas totales',
     averageOrder: 'Pedido promedio',

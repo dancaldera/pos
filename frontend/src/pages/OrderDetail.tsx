@@ -11,8 +11,7 @@ import {
 import { Order, OrderStatus, PaymentMethod, OrderItemInput } from '../types/orders';
 import { getProducts } from '../api/products';
 import { Product } from '../types/products';
-import Button from '../_components/ui/Button';
-import Modal from '../_components/ui/Modal';
+import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuthStore } from '../store/authStore';
 import {
@@ -25,8 +24,16 @@ import {
   PlusIcon,
   MinusIcon,
   MagnifyingGlassIcon,
+  ReceiptRefundIcon,
 } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/format-currency';
+import { Button } from '@/components/button';
+import { Heading } from '@/components/heading';
+import { Text } from '@/components/text';
+import { Select } from '@/components/select';
+import { Textarea } from '@/components/textarea';
+import { Input } from '@/components/input';
+import { Badge } from '@/components/badge';
 
 // Status and payment colors
 const statusColors = {
@@ -365,7 +372,7 @@ const OrderDetail: React.FC = () => {
             {error || translate.orders('orderNotFound')}
           </div>
           <Button
-            variant="outline"
+            outline
             onClick={() => navigate('/orders')}
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
@@ -390,26 +397,35 @@ const OrderDetail: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <div className="flex items-center">
-            <button 
+            <Button 
+              outline
               onClick={() => navigate('/orders')}
-              className="mr-2 text-gray-600 hover:text-gray-900"
+              className='mr-2'
             >
               <ArrowLeftIcon className="h-5 w-5" />
-            </button>
-            <h1 className="text-2xl font-bold text-gray-800">
+            </Button>
+            <Heading level={2}>
               {translate.orders('orderNumber')} {order.orderNumber}
-            </h1>
+            </Heading>
           </div>
-          <p className="text-gray-500 mt-1">
+          <Text>
             {translate.orders('createdOn')} {formatDate(order.createdAt)}
-          </p>
+          </Text>
         </div>
         
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
           {canManageOrders && order.status !== 'cancelled' && (
             <>
               <Button
-                variant="outline"
+                outline
+                onClick={() => navigate(`/print-receipt/${order.id}`)}
+              >
+                <ReceiptRefundIcon className="h-5 w-5 mr-1" />
+                {translate.orders("receipt")}
+              </Button>
+            
+              <Button
+                outline
                 onClick={() => setStatusModalOpen(true)}
               >
                 <ArrowPathIcon className="h-5 w-5 mr-1" />
@@ -418,7 +434,7 @@ const OrderDetail: React.FC = () => {
               
               {order.status !== 'completed' && (
                 <Button
-                  variant="outline"
+                  outline
                   onClick={openAddItemsModal}
                 >
                   <PlusIcon className="h-5 w-5 mr-1" />
@@ -428,7 +444,7 @@ const OrderDetail: React.FC = () => {
               
               {order.paymentStatus !== 'paid' && (
                 <Button
-                  variant="outline"
+                  outline
                   onClick={() => setPaymentModalOpen(true)}
                 >
                   <CurrencyDollarIcon className="h-5 w-5 mr-1" />
@@ -438,7 +454,7 @@ const OrderDetail: React.FC = () => {
               
               {order.status !== 'completed' && (
                 <Button
-                  variant="danger"
+                  color='red'
                   onClick={() => setCancelModalOpen(true)}
                 >
                   <XMarkIcon className="h-5 w-5 mr-1" />
@@ -448,7 +464,7 @@ const OrderDetail: React.FC = () => {
 
               {order.discount > 0 && (
                 <Button
-                  variant="outline"
+                  outline
                   onClick={() => setDiscountModalOpen(true)}
                 >
                   <CurrencyDollarIcon className="h-5 w-5 mr-1" />
@@ -462,65 +478,65 @@ const OrderDetail: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Order Info Panel */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">{translate.orders('orderInformation')}</h2>
+        <div className="rounded-lg shadow p-6">
+          <Heading level={2}>{translate.orders('orderInformation')}</Heading>
           
           <div className="space-y-4">
             <div>
-              <div className="text-sm text-gray-500">{translate.common('status')}</div>
+              <Text>{translate.common('status')}</Text>
               <div className="mt-1">
-                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
+                <Badge color={order.status === 'completed' ? 'green' : order.status === 'cancelled' ? 'red' : 'yellow'}>
                   {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                </span>
+                </Badge>
               </div>
             </div>
             
             <div>
-              <div className="text-sm text-gray-500">{translate.orders('payment')}</div>
+              <Text>{translate.orders('payment')}</Text>
               <div className="flex justify-between items-center mt-1">
-                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${paymentStatusColors[order.paymentStatus]}`}>
+                <Badge color={order.paymentStatus === 'paid' ? 'green' : order.paymentStatus === 'partial' ? 'yellow' : 'red'}>
                   {order.paymentStatus === 'paid' ? translate.orders('paid') : 
                    order.paymentStatus === 'partial' ? translate.orders('partial') : translate.orders('unpaid')}
-                </span>
+                </Badge>
                 
                 {order.paymentMethod && (
-                  <span className="text-sm text-gray-600">
+                  <Text className="text-sm text-gray-600">
                     {translate.orders('via')} {order.paymentMethod}
-                  </span>
+                  </Text>
                 )}
               </div>
             </div>
             
             <div>
-              <div className="text-sm text-gray-500">{translate.customers('customer')}</div>
+              <Text>{translate.customers('customer')}</Text>
               <div className="mt-1">
                 {order.customer ? (
                   <div>
-                    <div className="font-medium">{order.customer.name}</div>
+                    <Text>{order.customer.name}</Text>
                     {order.customer.email && (
-                      <div className="text-xs text-gray-500">{order.customer.email}</div>
+                      <Text>{order.customer.email}</Text>
                     )}
                     {order.customer.phone && (
-                      <div className="text-xs text-gray-500">{order.customer.phone}</div>
+                      <Text>{order.customer.phone}</Text>
                     )}
                   </div>
                 ) : (
-                  <div className="text-sm">{translate.customers('walkIn')}</div>
+                  <Text>{translate.customers('walkIn')}</Text>
                 )}
               </div>
             </div>
             
             <div>
-              <div className="text-sm text-gray-500">{translate.users('staff')}</div>
+              <Text>{translate.users('staff')}</Text>
               <div className="mt-1">
-                <div className="font-medium">{order.user?.name}</div>
-                <div className="text-xs text-gray-500">{order.user?.role}</div>
+                <Text>{order.user?.name}</Text>
+                <Text>{order.user?.role}</Text>
               </div>
             </div>
             
             {order.notes && (
               <div>
-                <div className="text-sm text-gray-500">{translate.orders('notes')}</div>
+                <Text>{translate.orders('notes')}</Text>
                 <div className="mt-1 text-sm bg-gray-50 p-2 rounded">
                   {order.notes}
                 </div>
@@ -530,10 +546,11 @@ const OrderDetail: React.FC = () => {
         </div>
         
         {/* Order Items Panel */}
-        <div className="bg-white rounded-lg shadow p-6 md:col-span-2">
+        <div className="rounded-lg shadow p-6 md:col-span-2">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-gray-900">{translate.orders('orderItems')}</h2>
-            <button
+            <Heading level={2}>{translate.orders('orderItems')}</Heading>
+            <Button
+              outline
               onClick={() => setShowLineItemDetails(!showLineItemDetails)}
               className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
             >
@@ -543,7 +560,7 @@ const OrderDetail: React.FC = () => {
               ) : (
                 <ChevronDownIcon className="h-4 w-4 ml-1" />
               )}
-            </button>
+            </Button>
           </div>
           
           <div className="border rounded-lg divide-y mb-6">
@@ -551,66 +568,60 @@ const OrderDetail: React.FC = () => {
               order.items.map((item, index) => (
                 <div key={index} className="p-3">
                   <div className="flex justify-between items-center">
-                    <div className="flex-1">
-                      <div className="font-medium">{item.productName}</div>
+                    <div>
+                      <Text>{item.productName}</Text>
                       {item.variant && (
-                        <div className="text-xs text-blue-600 font-medium">
-                          {translate.products('variant')}: {item.variant}
-                        </div>
+                        <Text>{translate.products('variant')}: {item.variant}</Text>
                       )}
                       {showLineItemDetails && (
-                        <div className="text-xs text-gray-500">
+                        <Text>
                           {item.productId ? `${translate.products('productId')}: ${item.productId}` : translate.products('customItem')}
-                        </div>
+                        </Text>
                       )}
                     </div>
-                    <div className="text-right">
-                      <div className="font-medium">{formatCurrency(item.subtotal)}</div>
-                      <div className="text-sm text-gray-500">
-                        {item.quantity} x {formatCurrency(item.unitPrice)}
-                      </div>
+                    <div>
+                      <Text>{formatCurrency(item.subtotal)}</Text>
+                      <Text>{item.quantity} x {formatCurrency(item.unitPrice)}</Text>
                     </div>
                   </div>
                   {showLineItemDetails && item.notes && (
-                    <div className="mt-2 text-sm text-gray-500">
+                    <Text>
                       {translate.common('note')}: {item.notes}
-                    </div>
+                    </Text>
                   )}
                 </div>
               ))
             ) : (
-              <div className="p-4 text-center text-gray-500">
+              <Text>
                 {translate.orders('noItemsFound')}
-              </div>
+              </Text>
             )}
           </div>
           
           {/* Order Totals */}
           <div className="border-t pt-4">
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">{translate.orders('subtotal')}</span>
-              <span className="text-sm font-medium">{formatCurrency(order.subtotal)}</span>
+            <div>
+              <Text>{translate.orders('subtotal')}</Text>
+              <Text>{formatCurrency(order.subtotal)}</Text>
             </div>
             {order.discount > 0 && (
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-600">{translate.orders('discount')}</span>
-                <span className="text-sm font-medium text-red-600">
-                  -{formatCurrency(order.discount)}
-                </span>
+              <div>
+                <Text>{translate.orders('discount')}</Text>
+                <Text>-{formatCurrency(order.discount)}</Text>
               </div>
             )}
-            <div className="flex justify-between mt-2 border-t pt-2">
-              <span className="text-base font-medium">{translate.orders('total')}</span>
-              <span className="text-base font-bold">{formatCurrency(order.total)}</span>
+            <div>
+              <Text>{translate.orders('total')}</Text>
+              <Text>{formatCurrency(order.total)}</Text>
             </div>
             
             {/* Payment Information */}
             <div className="mt-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600">{translate.orders('paymentInformation')}</span>
-                <button
+                <Text>{translate.orders('paymentInformation')}</Text>
+                <Button
                   onClick={() => setShowPaymentDetails(!showPaymentDetails)}
-                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
+                  outline
                 >
                   {showPaymentDetails ? translate.common('hide') : translate.common('show')} {translate.common('details')}
                   {showPaymentDetails ? (
@@ -618,48 +629,48 @@ const OrderDetail: React.FC = () => {
                   ) : (
                     <ChevronDownIcon className="h-3 w-3 ml-1" />
                   )}
-                </button>
+                </Button>
               </div>
               
               <div className="flex justify-between mt-2">
-                <span className="text-sm text-gray-600">{translate.orders('amountPaid')}</span>
-                <span className="text-sm font-medium">{formatCurrency(totalPaid)}</span>
+                <Text>{translate.orders('amountPaid')}</Text>
+                <Text>{formatCurrency(totalPaid)}</Text>
               </div>
               
               <div className="flex justify-between mt-1">
-                <span className="text-sm text-gray-600">{translate.orders('balance')}</span>
-                <span className={`text-sm font-medium ${remainingBalance > 0 ? 'text-red-600' : ''}`}>
+                <Text>{translate.orders('balance')}</Text>
+                <Text className={`text-sm font-medium ${remainingBalance > 0 ? 'text-red-600' : ''}`}>
                   {formatCurrency(remainingBalance)}
-                </span>
+                </Text>
               </div>
               
               {/* Payment Details */}
               {showPaymentDetails && order.payments && order.payments.length > 0 && (
-                <div className="mt-3 border rounded-lg divide-y text-sm">
+                <div className="mt-3 rounded-lg text-sm">
                   {order.payments.map((payment, index) => (
                     <div key={index} className="p-3">
                       <div className="flex justify-between items-center">
                         <div>
-                          <div className="font-medium">
+                          <Text>
                             {payment.method.replace('_', ' ')}
-                          </div>
-                          <div className="text-xs text-gray-500">
+                          </Text>
+                          <Text>
                             {formatDate(payment.createdAt)}
-                          </div>
+                          </Text>
                         </div>
-                        <div className="font-medium">
+                        <Text>
                           {formatCurrency(payment.amount)}
-                        </div>
+                        </Text>
                       </div>
                       {payment.reference && (
-                        <div className="mt-1 text-xs text-gray-500">
+                        <Text>
                           Ref: {payment.reference}
-                        </div>
+                        </Text>
                       )}
                       {payment.notes && (
-                        <div className="mt-1 text-xs text-gray-500">
+                        <Text>
                           Note: {payment.notes}
-                        </div>
+                        </Text>
                       )}
                     </div>
                   ))}
@@ -671,132 +682,113 @@ const OrderDetail: React.FC = () => {
       </div>
 
       {/* Update Status Modal */}
-      <Modal
-        isOpen={statusModalOpen}
+      <Dialog
+        open={statusModalOpen}
         onClose={() => setStatusModalOpen(false)}
-        title={translate.orders('updateOrderStatus')}
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={handleStatusChange}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {translate.orders('updateStatus')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setStatusModalOpen(false)}
-              disabled={submitLoading}
-            >
-              Cancel
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <p className="mb-4">
+        <DialogTitle>
+          {translate.orders('updateOrderStatus')}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+          <Text>
             {translate.orders('updateStatusMessage').replace('{orderNumber}', order.orderNumber.toString())}
-          </p>
+          </Text>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <Text>
               {translate.orders('newStatus')}
-            </label>
-            <select
+            </Text>
+            <Select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="pending">{translate.orders('statusPending')}</option>
               <option value="completed">{translate.orders('statusCompleted')}</option>
               <option value="cancelled">{translate.orders('statusCancelled')}</option>
-            </select>
+            </Select>
           </div>
-        </div>
-      </Modal>
+          </div>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleStatusChange}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {translate.orders('updateStatus')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setStatusModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common('cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Cancel Order Modal */}
-      <Modal
-        isOpen={cancelModalOpen}
+      <Dialog
+        open={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
-        title={translate.orders('cancelOrder')}
-        footer={
-          <>
-            <Button
-              variant="danger"
-              onClick={handleCancelOrder}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {translate.orders('cancelOrder')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setCancelModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common('goBack')}
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <p className="text-gray-600 mb-4">
+        <DialogTitle>
+          {translate.orders('cancelOrder')}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+          <Text>
             {translate.orders('cancelConfirmation').replace('{orderNumber}', order.orderNumber.toString())}
             <br />
             <br />
             {translate.orders('cancelWarning')}
-          </p>
+          </Text>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <Text>
               {translate.orders('cancelReason')}
-            </label>
-            <textarea
+            </Text>
+            <Textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder={translate.orders('cancelReasonPlaceholder')}
             />
           </div>
         </div>
-      </Modal>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            color="red"
+            onClick={handleCancelOrder}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {translate.orders('cancelOrder')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setCancelModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common('cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Add Items Modal */}
-      <Modal
-        isOpen={addItemsModalOpen}
+      <Dialog
+        open={addItemsModalOpen}
         onClose={() => setAddItemsModalOpen(false)}
-        title={translate.orders('addItemsToOrder')}
-        size="lg"
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={handleSubmitAddItems}
-              isLoading={submitLoading}
-              className="ml-3"
-              disabled={selectedItems.size === 0}
-            >
-              {translate.orders('addItems')} {selectedItems.size} {selectedItems.size === 1 ? translate.orders('itemSingular') : translate.orders('itemsPlural')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setAddItemsModalOpen(false)}
-              disabled={submitLoading}
-            >
-              Cancel
-            </Button>
-          </>
-        }
       >
-        <div className="py-4 max-h-[70vh] overflow-hidden flex flex-col">
+        <DialogTitle>
+          {translate.orders('addItemsToOrder')}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4 max-h-[70vh] overflow-hidden flex flex-col">
           {/* Search */}
           <div className="mb-4 relative">
-            <input
-              type="text"
+            <Input
               placeholder={translate.products('searchPlaceholder')}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
               value={productSearch}
               onChange={handleProductSearchChange}
             />
@@ -815,8 +807,8 @@ const OrderDetail: React.FC = () => {
                   return (
                     <div key={key} className="flex justify-between items-center mb-2">
                       <div className="flex-1">
-                        <div className="text-sm font-medium">{product?.name}</div>
-                        {item.variant && <div className="text-xs text-blue-600">{item.variant}</div>}
+                        <Text className="text-sm font-medium">{product?.name}</Text>
+                        {item.variant && <Text className="text-xs text-blue-600">{item.variant}</Text>}
                       </div>
                       <div className="flex items-center">
                         <button
@@ -853,7 +845,7 @@ const OrderDetail: React.FC = () => {
                 <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-10 text-gray-500">
+              <div className="text-center py-10">
                 {translate.products('noProductsFound')}
               </div>
             ) : (
@@ -866,19 +858,19 @@ const OrderDetail: React.FC = () => {
                     } ${selectedItems.has(product.id) ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
                   >
                     <div className="mb-1">
-                      <div className="font-medium">{product.name}</div>
-                      {product.sku && <div className="text-xs text-gray-500">SKU: {product.sku}</div>}
+                      <Text className="font-medium">{product.name}</Text>
+                      {product.sku && <Text className="text-xs">SKU: {product.sku}</Text>}
                     </div>
                     
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-blue-600">{formatCurrency(product.price)}</span>
-                      <span className={`text-xs ${
+                      <Text className="font-bold">{formatCurrency(product.price)}</Text>
+                      <Text className={`text-xs ${
                         product.stock <= 0 ? 'text-red-600' : 
                         product.stock <= (product.lowStockAlert || 5) ? 'text-orange-600' : 
                         'text-green-600'
                       }`}>
                         {product.stock <= 0 ? translate.products('outOfStock') : `${product.stock} ${translate.products('inStock')}`}
-                      </span>
+                      </Text>
                     </div>
                     
                     {/* Handle variants */}
@@ -921,34 +913,34 @@ const OrderDetail: React.FC = () => {
             )}
           </div>
         </div>
-      </Modal>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleSubmitAddItems}
+            disabled={selectedItems.size === 0}
+          >
+            {translate.orders('addItems')} {selectedItems.size} {selectedItems.size === 1 ? translate.orders('itemSingular') : translate.orders('itemsPlural')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setAddItemsModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common('cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Update Discount Modal */}
-      <Modal
-        isOpen={discountModalOpen}
+      <Dialog
+        open={discountModalOpen}
         onClose={() => setDiscountModalOpen(false)}
-        title={translate.orders('updateDiscount')}
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={handleUpdateDiscount}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {translate.orders('applyDiscount')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setDiscountModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common('cancel')}
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
+        <DialogTitle>
+          {translate.orders('updateDiscount')}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
           <div className="mb-4">
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">{translate.orders('subtotal')}</span>
@@ -996,120 +988,124 @@ const OrderDetail: React.FC = () => {
             Applying a discount will reduce the order subtotal.
           </p>
         </div>
-      </Modal>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleUpdateDiscount}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {translate.orders('applyDiscount')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setDiscountModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common('cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Add Payment Modal */}
-      <Modal
-        isOpen={paymentModalOpen}
+      <Dialog
+        open={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
-        title={translate.orders('addPayment')}
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={handleAddPayment}
-              isLoading={submitLoading}
-              className="ml-3"
-              disabled={paymentAmount <= 0 || paymentAmount > remainingBalance}
-            >
-              {translate.orders('processPayment')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setPaymentModalOpen(false)}
-              disabled={submitLoading}
-            >
-              Cancel
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
+        <DialogTitle>
+          {translate.orders('addPayment')}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
           <div className="mb-6 bg-gray-50 p-4 rounded-lg">
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">{translate.orders('orderTotal')}</span>
-              <span className="text-sm font-medium">{formatCurrency(order.total)}</span>
+              <Text>{translate.orders('orderTotal')}</Text>
+              <Text>{formatCurrency(order.total)}</Text>
             </div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">{translate.orders('alreadyPaid')}</span>
-              <span className="text-sm font-medium">{formatCurrency(totalPaid)}</span>
+              <Text>{translate.orders('alreadyPaid')}</Text>
+              <Text>{formatCurrency(totalPaid)}</Text>
             </div>
             <div className="flex justify-between mt-2 text-lg font-bold">
-              <span>{translate.orders('remainingBalance')}</span>
-              <span>{formatCurrency(remainingBalance)}</span>
+              <Text>{translate.orders('remainingBalance')}</Text>
+              <Text>{formatCurrency(remainingBalance)}</Text>
             </div>
           </div>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translate.orders('paymentMethod')}
-              </label>
-              <select
+              <Text>{translate.orders('paymentMethod')}</Text>
+              <Select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="cash">{translate.orders('cash')}</option>
                 <option value="credit_card">{translate.orders('creditCard')}</option>
                 <option value="debit_card">{translate.orders('debitCard')}</option>
                 <option value="transfer">{translate.orders('bankTransfer')}</option>
-              </select>
+              </Select>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translate.orders('amountPaid')}
-              </label>
-              <input
+              <Text>{translate.orders('amountPaid')}</Text>
+              <Input
                 type="number"
                 value={paymentAmount}
                 onChange={(e) => setPaymentAmount(Number(e.target.value))}
                 step="0.01"
                 min="0.01"
                 max={remainingBalance}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
               {paymentAmount > remainingBalance && (
-                <p className="mt-1 text-sm text-red-600">
+                <Text>
                   {translate.orders('amountExceedsBalance')}
-                </p>
+                </Text>
               )}
               {paymentAmount < remainingBalance && paymentAmount > 0 && (
-                <p className="mt-1 text-sm text-yellow-600">
+                <Text>
                   {translate.orders('partialPaymentNote')}
-                </p>
+                </Text>
               )}
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translate.orders('reference')}
-              </label>
-              <input
+              <Text>{translate.orders('reference')}</Text>
+              <Input
                 type="text"
                 value={paymentReference}
                 onChange={(e) => setPaymentReference(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 placeholder={translate.orders('referencePlaceholder')}
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translate.orders('paymentNotes')}
-              </label>
-              <textarea
+              <Text>{translate.orders('paymentNotes')}</Text>
+              <Textarea
                 value={paymentNotes}
                 onChange={(e) => setPaymentNotes(e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 placeholder={translate.orders('paymentNotesPlaceholder')}
               />
             </div>
           </div>
         </div>
-      </Modal>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleAddPayment}
+            disabled={paymentAmount <= 0 || paymentAmount > remainingBalance}
+          >
+            {translate.orders('processPayment')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setPaymentModalOpen(false)}
+            disabled={submitLoading}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

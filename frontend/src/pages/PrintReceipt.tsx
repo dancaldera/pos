@@ -8,6 +8,7 @@ import { getSettings, SystemSettings } from '../api/settings';
 import { useLanguage } from '../context/LanguageContext';
 import { Order } from '../types/orders';
 import { formatCurrency } from '../utils/format-currency';
+import { Button } from '@/components/button';
 
 const PrintReceipt: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -194,13 +195,12 @@ const PrintReceipt: React.FC = () => {
           <div className="text-red-600 text-lg mb-4">
             {error || translate.orders('orderNotFound')}
           </div>
-          <button 
+          <Button 
             onClick={() => navigate(`/orders/${id}`)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             {translate.common('backToOrders')}
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -211,13 +211,12 @@ const PrintReceipt: React.FC = () => {
       {/* Non-printable controls */}
       <div className="container mx-auto px-4 py-8 print:hidden">
         <div className="flex justify-between items-center mb-6">
-          <button 
+          <Button 
             onClick={() => navigate(`/orders/${id}`)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             {translate.orders('backToOrderDetails')}
-          </button>
+          </Button>
         </div>
 
         {/* Tax rate customization controls */}
@@ -254,21 +253,13 @@ const PrintReceipt: React.FC = () => {
         </div>
         
         <div className="flex space-x-2 absolute right-4 top-4 print:hidden">
-          <button
-            onClick={() => navigate(`/orders/${id}`)}
-            className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
-          >
-            <ArrowLeftIcon className="h-4 w-4 mr-1" />
-            {translate.common('back')}
-          </button>
-          <button
+          <Button
             onClick={handleThermalPrint}
             disabled={isPrinting}
-            className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium ${isPrinting ? 'text-gray-400 bg-gray-100' : 'text-gray-700 bg-white hover:bg-gray-50'} focus:outline-none`}
           >
             <PrinterIcon className="h-4 w-4 mr-1" />
             {isPrinting ? translate.common('loading') : 'Thermal Print'}
-          </button>
+          </Button>
         </div>
         
         {/* Printer Status Message (if any) */}
@@ -280,7 +271,7 @@ const PrintReceipt: React.FC = () => {
       </div>
       
       {/* Printable Receipt */}
-      <div id="receipt-to-print" className="receipt-container mx-auto bg-white py-4 px-6 border border-gray-200 shadow-sm rounded-sm">
+      <div id="receipt-to-print" className="mx-auto bg-white py-4 px-6 border border-gray-200 shadow-sm rounded-sm w-[400px]">
         {/* Header */}
         <div className="text-center p-2 mb-3">
           {settings?.logoUrl && (

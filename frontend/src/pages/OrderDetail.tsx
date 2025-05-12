@@ -35,19 +35,6 @@ import { Textarea } from '@/components/textarea';
 import { Input } from '@/components/input';
 import { Badge } from '@/components/badge';
 
-// Status and payment colors
-const statusColors = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
-};
-
-const paymentStatusColors = {
-  paid: 'bg-green-100 text-green-800',
-  partial: 'bg-orange-100 text-orange-800',
-  unpaid: 'bg-red-100 text-red-800',
-};
-
 const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

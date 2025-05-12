@@ -12,7 +12,6 @@ import {
   SquaresPlusIcon,
   UsersIcon,
   UserGroupIcon,
-  ArrowLeftOnRectangleIcon,
   Cog6ToothIcon,
   ChartBarSquareIcon,
 } from '@heroicons/react/24/outline';
@@ -74,7 +73,6 @@ const MainLayout: React.FC = () => {
             </SidebarItem>
           ))}
           <SidebarItem onClick={handleLogout}>
-            <ArrowLeftOnRectangleIcon data-slot="icon" aria-hidden="true" />
             <SidebarLabel>{translate.auth('logout')}</SidebarLabel>
           </SidebarItem>
         </SidebarSection>

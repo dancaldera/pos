@@ -9,6 +9,7 @@ import { Button } from "@/components/button";
 import { Heading } from "@/components/heading";
 import { Select } from "@/components/select";
 import { Language } from "@/i18n";
+import LoadingPage from "@/_components/LoadingPage";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const LoginPage: React.FC = () => {
   const { translate } = useLanguage();
   const { language, setLanguage } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +34,7 @@ const LoginPage: React.FC = () => {
 
   const validateField = (name: string, value: string) => {
     let errorMessage = "";
-    
+
     if (name === "email") {
       if (!value) {
         errorMessage = translate.auth('emailRequired');
@@ -41,7 +42,7 @@ const LoginPage: React.FC = () => {
         errorMessage = translate.common('error');
       }
     }
-    
+
     if (name === "password" && !value) {
       errorMessage = translate.auth('passwordRequired');
     }
@@ -50,7 +51,7 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: errorMessage
     }));
-    
+
     return errorMessage === "";
   };
 
@@ -60,7 +61,7 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: true
     }));
-    
+
     if (name === "email") {
       validateField(name, email);
     } else if (name === "password") {
@@ -70,28 +71,28 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     // Validate all fields
     const isEmailValid = validateField("email", email);
     const isPasswordValid = validateField("password", password);
-    
+
     // Mark all fields as touched
     setTouched({
       email: true,
       password: true
     });
-    
+
     // Return if any validation fails
     if (!isEmailValid || !isPasswordValid) {
       return;
     }
-    
+
     try {
       setIsLoading(true);
-      
+
       // Call login function that now returns result object
       const result = await login({ email, password });
-      
+
       if (result.success) {
         toast.success(translate.auth('welcome'));
         navigate("/");
@@ -107,7 +108,7 @@ const LoginPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Loading...</h2>
   }
 
   return (
@@ -123,8 +124,8 @@ const LoginPage: React.FC = () => {
             value={language}
             onChange={(e) => setLanguage(e.target.value as Language)}
           >
-          <option value="en">English</option>
-          <option value="es">Español</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
           </Select>
         </div>
       </div>
@@ -149,7 +150,7 @@ const LoginPage: React.FC = () => {
           name="password"
           type="password"
           placeholder="••••••••"
-            value={password}
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
           onBlur={handleBlur}
         />

@@ -23,6 +23,7 @@ import PrintReceipt from './pages/PrintReceipt';
 import ProductsPage from './pages/Products';
 import SettingsPage from './pages/Settings';
 import UsersPage from './pages/Users';
+import LoadingPage from './_components/LoadingPage';
 const NotFoundPage = () => <div className="p-4">Page Not Found</div>;
 
 // Protected route component
@@ -31,7 +32,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingPage />;
   }
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -46,7 +47,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingPage />;
   }
 
   if (!isAuthenticated) {
@@ -66,7 +67,7 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingPage />;
   }
 
   if (!isAuthenticated) {

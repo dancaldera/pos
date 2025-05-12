@@ -2,16 +2,18 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getOrders, getOrder, OrderSearchParams } from "../api/orders";
 import { Order } from "../types/orders";
-import Table from "../_components/ui/Table";
-import Button from "../_components/ui/Button";
+import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/table";
+import { Button } from "@/components/button";
+import { Text } from "@/components/text";
 import {
   EyeIcon,
   ArrowPathIcon,
   ShoppingCartIcon,
 } from "@heroicons/react/24/outline";
-import Modal from "../_components/ui/Modal";
+import { Dialog, DialogTitle, DialogBody, DialogActions } from "@/components/dialog";
 import { useLanguage } from "../context/LanguageContext";
 import { formatCurrency } from "@/utils/format-currency";
+import { Heading } from "@/components/heading";
 
 const PendingOrdersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -71,13 +73,13 @@ const PendingOrdersPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">
+          <Heading level={1}>
             {translate.orders("pendingOrders")}
-          </h1>
-          <Button variant="outline" onClick={fetchPendingOrders}>
+          </Heading>
+          <Button outline onClick={fetchPendingOrders}>
             <ArrowPathIcon className="h-5 w-5 mr-1" />
             Refresh
           </Button>
@@ -89,68 +91,67 @@ const PendingOrdersPage: React.FC = () => {
             <p className="mt-2 text-gray-600">{translate.common("loading")}</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table
-              headers={[
-                translate.orders("orderNumber"),
-                translate.common("date"),
-                translate.orders("customer"),
-                translate.common("total"),
-                translate.common("notes"),
-                translate.common("actions"),
-              ]}
-            >
+          <div className="rounded-lg shadow overflow-hidden">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>{translate.orders("orderNumber")}</TableHeader>
+                  <TableHeader>{translate.common("date")}</TableHeader>
+                  <TableHeader>{translate.orders("customer")}</TableHeader>
+                  <TableHeader>{translate.common("total")}</TableHeader>
+                  <TableHeader>{translate.common("notes")}</TableHeader>
+                  <TableHeader>{translate.common("actions")}</TableHeader>
+                </TableRow>
+              </TableHead>
               {orders.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                     {translate.common("noResults")}
                   </td>
                 </tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td
-                      className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium cursor-pointer"
-                      onClick={() => viewDetails(order.id)}
-                    >
-                      #{order.orderNumber}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {new Date(order.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {order.customer
-                        ? order.customer.name
-                        : translate.orders("walkInCustomer")}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      {formatCurrency(order.total)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {order.notes || ""}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <TableRow key={order.id}>
+                    <TableCell>
+                      <div className="text-blue-600 font-medium cursor-pointer" onClick={() => viewDetails(order.id)}>
+                        #{order.orderNumber}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Text>{new Date(order.createdAt).toLocaleString()}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text>
+                        {order.customer
+                          ? order.customer.name
+                          : translate.orders("walkInCustomer")}
+                      </Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text className="font-semibold">{formatCurrency(order.total)}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text>{order.notes || ""}</Text>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex space-x-2 justify-end">
-                        <button
+                        <Button
+                          outline
                           onClick={() => openItemsModal(order.id)}
-                          className="text-gray-600 hover:text-gray-800"
                           title={translate.orders("items")}
                         >
                           <ShoppingCartIcon className="h-5 w-5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          color="blue"
                           onClick={() => viewDetails(order.id)}
-                          className="text-blue-600 hover:text-blue-800"
                           title={translate.common("view")}
                         >
                           <EyeIcon className="h-5 w-5" />
-                        </button>
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </Table>
@@ -158,38 +159,50 @@ const PendingOrdersPage: React.FC = () => {
         )}
       </div>
       {/* Items Modal */}
-      <Modal
-        isOpen={itemsModalOpen}
+      <Dialog
+        open={itemsModalOpen}
         onClose={closeItemsModal}
-        title={translate.orders("items")}
       >
-        {modalLoading ? (
-          <div className="text-center p-4">{translate.common("loading")}</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {orderItemsDetails.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white shadow rounded p-4 flex flex-col items-center"
-              >
-                {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.productName}
-                    className="h-24 w-24 object-cover mb-2"
-                  />
-                ) : (
-                  <div className="h-24 w-24 bg-gray-200 mb-2"></div>
-                )}
-                <p className="text-sm font-semibold text-center">
-                  {item.productName}
-                </p>
-                <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </Modal>
+        <DialogTitle>
+          {translate.orders("items")}
+        </DialogTitle>
+        <DialogBody>
+          {modalLoading ? (
+            <div className="text-center p-4">{translate.common("loading")}</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {orderItemsDetails.map((item) => (
+                <div
+                  key={item.id}
+                  className="shadow rounded p-4 flex flex-col items-center"
+                >
+                  {item.imageUrl ? (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.productName}
+                      className="h-24 w-24 object-cover mb-2"
+                    />
+                  ) : (
+                    <div className="h-24 w-24 bg-gray-200 mb-2"></div>
+                  )}
+                  <Text className="text-sm font-semibold text-center">
+                    {item.productName}
+                  </Text>
+                  <Text className="text-xs text-gray-500">Qty: {item.quantity}</Text>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogBody>
+        <DialogActions>
+          <Button
+            outline
+            onClick={closeItemsModal}
+          >
+            {translate.common("close")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

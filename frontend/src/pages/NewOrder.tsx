@@ -11,8 +11,7 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from "../types/orders";
-import Button from "../_components/ui/Button";
-import Modal from "../_components/ui/Modal";
+// Modal import removed as we're using Dialog components instead
 import { useLanguage } from "../context/LanguageContext";
 import {
   MagnifyingGlassIcon,
@@ -25,6 +24,13 @@ import {
 } from "@heroicons/react/24/outline";
 import { formatCurrency } from "@/utils/format-currency";
 import { toast } from "sonner";
+import { Heading } from "@/components/heading";
+import { Input } from "@/components/input";
+import { Text } from "@/components/text";
+import { Textarea } from "@/components/textarea";
+import { Select } from "@/components/select";
+import { Dialog, DialogTitle, DialogBody, DialogActions } from "@/components/dialog";
+import { Button } from "@/components/button";
 
 interface CartItem extends OrderItemInput {
   productName: string;
@@ -416,24 +422,19 @@ const NewOrder: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
-          {translate.orders("newOrder")}
-        </h1>
+        <Heading>{translate.orders("newOrder")}</Heading>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column - Product Selection */}
-        <div className="md:col-span-2 bg-white rounded-lg shadow p-6 flex flex-col h-[calc(100vh-180px)]">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {translate.products("title")}
-          </h2>
+        <div className="md:col-span-2 rounded-lg shadow p-6 flex flex-col h-[calc(100vh-180px)]">
+          <Heading>{translate.products("title")}</Heading>
 
           {/* Product Search */}
           <div className="relative mb-4">
-            <input
+            <Input
               type="text"
               placeholder={translate.products("searchPlaceholder")}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
               value={productSearch}
               onChange={handleProductSearchChange}
             />
@@ -452,7 +453,7 @@ const NewOrder: React.FC = () => {
               filteredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className={`border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition flex flex-col justify-between h-full ${
+                  className={`border rounded-lg p-3 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition flex flex-col justify-between h-full ${
                     product.stock <= 0 ? "opacity-50 pointer-events-none" : ""
                   }`}
                   onClick={() => product.stock > 0 && addToCart(product)}
@@ -465,7 +466,7 @@ const NewOrder: React.FC = () => {
                         className="h-full w-auto object-contain rounded"
                       />
                     ) : (
-                      <div className="flex items-center justify-center h-full w-full bg-gray-100 rounded">
+                      <div className="flex items-center justify-center h-full w-full bg-zinc-100 dark:bg-zinc-700 rounded">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
@@ -484,23 +485,23 @@ const NewOrder: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <div className="font-medium">{product.name}</div>
+                    <Text>{product.name}</Text>
                     {product.sku && (
-                      <div className="text-xs text-gray-500">
+                      <Text>
                         SKU: {product.sku}
-                      </div>
+                      </Text>
                     )}
                     {product.hasVariants &&
                       product.variants &&
                       product.variants.length > 0 && (
-                        <div className="text-xs text-blue-600 mt-1">
+                        <Text className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                           {product.variants.length}{" "}
                           {translate.products("variantsAvailable")}
-                        </div>
+                        </Text>
                       )}
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="font-bold text-blue-600">
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
                       {formatCurrency(product.price)}
                     </span>
                     <span
@@ -519,8 +520,7 @@ const NewOrder: React.FC = () => {
                   </div>
                   {product.stock > 0 && !product.hasVariants && (
                     <Button
-                      variant="outline"
-                      size="sm"
+                      outline
                       className="mt-2 w-full"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -535,12 +535,11 @@ const NewOrder: React.FC = () => {
                     product.hasVariants &&
                     product.variants &&
                     product.variants.length > 0 && (
-                      <div className="grid grid-cols-2 gap-1 mt-2">
+                      < div className="grid grid-cols-2 gap-1 mt-2">
                         {product.variants.map((variant, idx) => (
                           <Button
                             key={idx}
-                            variant="outline"
-                            size="sm"
+                              outline
                             onClick={(e) => {
                               e.stopPropagation();
                               addToCart(product, variant);
@@ -563,52 +562,50 @@ const NewOrder: React.FC = () => {
         </div>
 
         {/* Right Column - Order Summary */}
-        <div className="bg-white rounded-lg shadow p-6 h-[calc(100vh-180px)] overflow-y-auto">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
+        <div className="rounded-lg shadow p-6 h-[calc(100vh-180px)] overflow-y-auto">
+          <Heading level={2}>
             {translate.orders("orderSummary")}
-          </h2>
+          </Heading>
 
           {/* Customer Selection */}
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <Text>
                 {translate.customers("customer")}
-              </label>
-              <button
+              </Text>
+              <Button
                 onClick={() => setCustomerModalOpen(true)}
-                className="text-sm text-blue-600 hover:text-blue-800"
               >
                 {selectedCustomer
                   ? translate.common("change")
                   : translate.common("select")}{" "}
                 {translate.customers("customer")}
-              </button>
+              </Button>
             </div>
 
             {selectedCustomer ? (
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <div className="font-medium">{selectedCustomer.name}</div>
+                  <Text>{selectedCustomer.name}</Text>
                   {selectedCustomer.email && (
-                    <div className="text-xs text-gray-500">
+                    <Text>
                       {selectedCustomer.email}
-                    </div>
+                    </Text>
                   )}
                   {selectedCustomer.phone && (
-                    <div className="text-xs text-gray-500">
+                    <Text>
                       {selectedCustomer.phone}
-                    </div>
+                    </Text>
                   )}
                 </div>
-                <button
+                <Button
                   onClick={clearCustomer}
-                  className="text-gray-400 hover:text-gray-600"
                 >
                   <XMarkIcon className="h-5 w-5" />
-                </button>
+                </Button>
               </div>
             ) : (
-              <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg flex items-center">
+              <div className="p-3 bg-gray-50 rounded-lg flex items-center">
                 <UserIcon className="h-5 w-5 mr-2 text-gray-400" />
                 {translate.customers("walkIn")}
               </div>
@@ -618,19 +615,19 @@ const NewOrder: React.FC = () => {
           {/* Cart Items */}
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <Text>
                 {translate.orders("items")}
-              </label>
-              <span className="text-sm text-gray-500">
+              </Text>
+              <Text>
                 {cartItems.length}{" "}
                 {cartItems.length !== 1
                   ? translate.orders("itemsPlural")
                   : translate.orders("itemSingular")}
-              </span>
+              </Text>
             </div>
 
             {cartItems.length === 0 ? (
-              <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg flex items-center">
+              <div className="p-3 bg-gray-50 rounded-lg flex items-center">
                 <ShoppingCartIcon className="h-5 w-5 mr-2 text-gray-400" />
                 {translate.orders("noItems")}
               </div>
@@ -642,52 +639,49 @@ const NewOrder: React.FC = () => {
                     className="p-3 flex justify-between items-center"
                   >
                     <div className="flex-1">
-                      <div className="font-medium">{item.productName}</div>
+                      <Text>{item.productName}</Text>
                       {item.variant && (
-                        <div className="text-xs text-blue-600 font-medium mt-0.5">
+                        <Text>
                           {translate.products("variant")}: {item.variant}
-                        </div>
+                        </Text>
                       )}
                       {item.hasVariants && (
-                        <button
+                        <Button
                           onClick={() => openVariantModal(index)}
-                          className="text-xs text-blue-600 underline font-medium mt-0.5"
                         >
                           {translate.products("selectVariant")}
-                        </button>
+                        </Button>
                       )}
-                      <div className="text-sm text-gray-500 mt-0.5">
+                      <Text>
                         {formatCurrency(item.price)} {translate.orders("each")}
-                      </div>
+                      </Text>
                     </div>
                     <div className="flex items-center">
-                      <button
+                      <Button
                         onClick={() =>
                           updateItemQuantity(index, item.quantity - 1)
                         }
-                        className="p-1 rounded-full hover:bg-gray-100"
                         disabled={item.hasVariants}
                       >
-                        <MinusIcon className="h-4 w-4 text-gray-500" />
-                      </button>
-                      <span className="mx-2 w-8 text-center">
+                        <MinusIcon className="h-4 w-4" />
+                      </Button>
+                      <Text className="mx-2 w-8 text-center">
                         {item.quantity}
-                      </span>
-                      <button
+                      </Text>
+                      <Button
                         onClick={() =>
                           updateItemQuantity(index, item.quantity + 1)
                         }
-                        className="p-1 rounded-full hover:bg-gray-100"
                         disabled={item.hasVariants}
                       >
-                        <PlusIcon className="h-4 w-4 text-gray-500" />
-                      </button>
-                      <button
+                        <PlusIcon className="h-4 w-4" />
+                      </Button>
+                      <Button
                         onClick={() => removeFromCart(index)}
-                        className="ml-2 p-1 rounded-full hover:bg-gray-100"
+                        color="red"
                       >
-                        <TrashIcon className="h-4 w-4 text-red-500" />
-                      </button>
+                        <TrashIcon className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -697,14 +691,13 @@ const NewOrder: React.FC = () => {
 
           {/* Order Notes */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <Text>
               {translate.orders("orderNotes")}
-            </label>
-            <textarea
+            </Text>
+            <Textarea
               value={orderNotes}
               onChange={(e) => setOrderNotes(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder={translate.orders("notesPlaceholder")}
             />
           </div>
@@ -712,90 +705,84 @@ const NewOrder: React.FC = () => {
           {/* Order Total */}
           <div className="border-t pt-4 mb-6">
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">
+              <Text>
                 {translate.orders("subtotal")}
-              </span>
-              <span className="text-sm font-medium">
+              </Text>
+              <Text>
                 {formatCurrency(subtotal)}
-              </span>
+              </Text>
             </div>
 
             {/* Discount Section */}
             <div className="mb-3">
               <div className="flex justify-between mb-1">
                 <div className="flex items-center">
-                  <span className="text-sm text-gray-600 mr-2">
+                  <Text>
                     {translate.orders("discount")}
-                  </span>
-                  <select
+                  </Text>
+                  <Select
                     value={discountType}
                     onChange={(e) =>
                       setDiscountType(e.target.value as "percentage" | "fixed")
                     }
-                    className="text-xs border rounded px-1 py-0.5"
                   >
                     <option value="percentage">%</option>
                     <option value="fixed">{translate.orders("fixed")}</option>
-                  </select>
+                  </Select>
                 </div>
-                <input
+                <Input
                   type="number"
                   min="0"
                   max={discountType === "percentage" ? 100 : subtotal}
                   value={discountValue}
                   onChange={(e) => setDiscountValue(Number(e.target.value))}
-                  className="w-16 text-right text-sm border rounded px-2 py-0.5"
                 />
               </div>
               {validDiscountAmount > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">
+                  <Text>
                     {translate.orders("discountAmount")}
-                  </span>
-                  <span className="text-sm font-medium text-red-600">
+                  </Text>
+                  <Text>
                     -{formatCurrency(validDiscountAmount)}
-                  </span>
+                  </Text>
                 </div>
               )}
             </div>
 
             <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">
+              <Text>
                 {translate.orders("tax")} ({taxRate}%)
-              </span>
-              <span className="text-sm font-medium">{formatCurrency(tax)}</span>
+              </Text>
+              <Text>{formatCurrency(tax)}</Text>
             </div>
             <div className="flex justify-between mt-2">
-              <span className="text-base font-medium">
+              <Text>
                 {translate.orders("total")}
-              </span>
-              <span className="text-base font-bold">
+              </Text>
+              <Text>
                 {formatCurrency(total)}
-              </span>
+              </Text>
             </div>
           </div>
 
           {/* Actions */}
           <div className="flex flex-col space-y-3">
             <Button
-              variant="primary"
-              fullWidth
               onClick={openPaymentModal}
               disabled={cartItems.length === 0 || isSubmitting}
             >
               {translate.orders("checkoutPayment")}
             </Button>
             <Button
-              variant="outline"
-              fullWidth
+              outline
               onClick={() => setConfirmSaveModalOpen(true)}
               disabled={cartItems.length === 0 || isSubmitting}
             >
               {translate.orders("saveAsUnpaid")}
             </Button>
             <Button
-              variant="outline"
-              fullWidth
+              outline
               onClick={() => navigate("/orders")}
             >
               {translate.common("cancel")}
@@ -805,242 +792,240 @@ const NewOrder: React.FC = () => {
       </div>
 
       {/* Customer Selection Modal */}
-      <Modal
-        isOpen={customerModalOpen}
+      <Dialog
+        open={customerModalOpen}
         onClose={() => setCustomerModalOpen(false)}
-        title={translate.customers("selectCustomer")}
-        size="lg"
       >
-        <div className="py-4">
-          <div className="relative mb-4">
-            <input
-              type="text"
-              placeholder={translate.customers("searchPlaceholder")}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              value={customerSearch}
-              onChange={handleCustomerSearchChange}
-            />
-            <div className="absolute right-3 top-2.5 text-gray-400">
-              <MagnifyingGlassIcon className="h-5 w-5" />
+        <DialogTitle>
+          {translate.customers("selectCustomer")}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+            <div className="relative mb-4">
+              <Input
+                placeholder={translate.customers("searchPlaceholder")}
+                value={customerSearch}
+                onChange={handleCustomerSearchChange}
+              />
+              <div className="absolute right-3 top-2.5 text-gray-400">
+                <MagnifyingGlassIcon className="h-5 w-5" />
+              </div>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto">
+              {filteredCustomers.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">
+                  {translate.customers("noCustomersFound")}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredCustomers.map((customer) => (
+                    <div
+                      key={customer.id}
+                      className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition"
+                      onClick={() => selectCustomer(customer)}
+                    >
+                      <Text className="font-medium">{customer.name}</Text>
+                      {customer.email && (
+                        <Text className="text-sm text-gray-500">
+                          {customer.email}
+                        </Text>
+                      )}
+                      {customer.phone && (
+                        <Text className="text-sm text-gray-500">
+                          {customer.phone}
+                        </Text>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
+        </DialogBody>
+      </Dialog>
 
-          <div className="max-h-96 overflow-y-auto">
-            {filteredCustomers.length === 0 ? (
-              <div className="text-center py-10 text-gray-500">
-                {translate.customers("noCustomersFound")}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredCustomers.map((customer) => (
-                  <div
-                    key={customer.id}
-                    className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition"
-                    onClick={() => selectCustomer(customer)}
-                  >
-                    <div className="font-medium">{customer.name}</div>
-                    {customer.email && (
-                      <div className="text-sm text-gray-500">
-                        {customer.email}
-                      </div>
-                    )}
-                    {customer.phone && (
-                      <div className="text-sm text-gray-500">
-                        {customer.phone}
-                      </div>
-                    )}
-                  </div>
-                ))}
+      {/* Variant Selection Modal */}
+      <Dialog
+        open={variantModalOpen}
+        onClose={() => setVariantModalOpen(false)}
+      >
+        <DialogTitle>
+          {translate.products("selectVariant")}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+            {selectedItemIndex !== null && cartItems[selectedItemIndex] && (
+              <div>
+                <h3 className="font-medium text-gray-900 mb-3">
+                  {cartItems[selectedItemIndex].productName}
+                </h3>
+                <div className="grid grid-cols-1 gap-2">
+                  {cartItems[selectedItemIndex].availableVariants?.map(
+                    (variant, idx) => (
+                      <Button
+                        key={idx}
+                        outline
+                        onClick={() => selectVariant(selectedItemIndex, variant)}
+                      >
+                        {variant}
+                      </Button>
+                    )
+                  )}
+                </div>
               </div>
             )}
           </div>
-        </div>
-      </Modal>
-
-      {/* Variant Selection Modal */}
-      <Modal
-        isOpen={variantModalOpen}
-        onClose={() => setVariantModalOpen(false)}
-        title={translate.products("selectVariant")}
-        size="sm"
-      >
-        <div className="py-4">
-          {selectedItemIndex !== null && cartItems[selectedItemIndex] && (
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">
-                {cartItems[selectedItemIndex].productName}
-              </h3>
-              <div className="grid grid-cols-1 gap-2">
-                {cartItems[selectedItemIndex].availableVariants?.map(
-                  (variant, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      fullWidth
-                      onClick={() => selectVariant(selectedItemIndex, variant)}
-                    >
-                      {variant}
-                    </Button>
-                  )
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </Modal>
+        </DialogBody>
+      </Dialog>
 
       {/* Payment Modal */}
-      <Modal
-        isOpen={paymentModalOpen}
+      <Dialog
+        open={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
-        title={translate.orders("payment")}
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={() => handleSubmitOrder(false)}
-              isLoading={isSubmitting}
-              className="ml-3"
-            >
-              {translate.orders("completeOrder")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setPaymentModalOpen(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Subtotal</span>
-              <span className="text-sm font-medium">
-                {formatCurrency(subtotal)}
-              </span>
+        <DialogTitle>
+          {translate.orders("payment")}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+            <div className="mb-6 p-4 rounded-lg">
+              <div className="flex justify-between mb-1">
+                <Text>Subtotal</Text>
+                <Text>{formatCurrency(subtotal)}</Text>
+              </div>
+              <div className="flex justify-between mb-1">
+                <Text>Tax ({taxRate}%)</Text>
+                <Text>{formatCurrency(tax)}</Text>
+              </div>
+              <div className="flex justify-between mt-2 text-lg font-bold">
+                <Text>Total</Text>
+                <Text>{formatCurrency(total)}</Text>
+              </div>
             </div>
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Tax ({taxRate}%)</span>
-              <span className="text-sm font-medium">{formatCurrency(tax)}</span>
-            </div>
-            <div className="flex justify-between mt-2 text-lg font-bold">
-              <span>Total</span>
-              <span>{formatCurrency(total)}</span>
+
+            <div className="space-y-4">
+              <div>
+                <Text>
+                  {translate.orders("paymentMethod")}
+                </Text>
+                <Select
+                  value={paymentMethod}
+                  onChange={(e) =>
+                    setPaymentMethod(e.target.value as PaymentMethod)
+                  }
+                >
+                  <option value="cash">{translate.orders("cash")}</option>
+                  <option value="credit_card">
+                    {translate.orders("creditCard")}
+                  </option>
+                  <option value="debit_card">
+                    {translate.orders("debitCard")}
+                  </option>
+                  <option value="transfer">
+                    {translate.orders("bankTransfer")}
+                  </option>
+                </Select>
+              </div>
+
+              <div>
+                <Text>
+                  {translate.orders("amountPaid")}
+                </Text>
+                <Input
+                  type="number"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(Number(e.target.value))}
+                  step="0.01"
+                  min="0"
+                  max={total}
+                />
+                {paymentAmount !== total && (
+                  <Text className="mt-1 text-sm text-yellow-600">
+                    {paymentAmount < total
+                      ? translate.orders("partialPayment")
+                      : translate.orders("overpayment")}
+                  </Text>
+                )}
+              </div>
+
+              <div>
+                <Text>
+                  {translate.orders("reference")}
+                </Text>
+                <Input
+                  type="text"
+                  value={paymentReference}
+                  onChange={(e) => setPaymentReference(e.target.value)}
+                  placeholder={translate.orders("referencePlaceholder")}
+                />
+              </div>
+
+              <div>
+                <Text>
+                  {translate.orders("paymentNotes")}
+                </Text>
+                <Textarea
+                  value={paymentNotes}
+                  onChange={(e) => setPaymentNotes(e.target.value)}
+                  rows={2}
+                  placeholder={translate.orders("paymentNotesPlaceholder")}
+                />
+              </div>
             </div>
           </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translate.orders("paymentMethod")}
-              </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) =>
-                  setPaymentMethod(e.target.value as PaymentMethod)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="cash">{translate.orders("cash")}</option>
-                <option value="credit_card">
-                  {translate.orders("creditCard")}
-                </option>
-                <option value="debit_card">
-                  {translate.orders("debitCard")}
-                </option>
-                <option value="transfer">
-                  {translate.orders("bankTransfer")}
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translate.orders("amountPaid")}
-              </label>
-              <input
-                type="number"
-                value={paymentAmount}
-                onChange={(e) => setPaymentAmount(Number(e.target.value))}
-                step="0.01"
-                min="0"
-                max={total}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-              {paymentAmount !== total && (
-                <p className="mt-1 text-sm text-yellow-600">
-                  {paymentAmount < total
-                    ? translate.orders("partialPayment")
-                    : translate.orders("overpayment")}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translate.orders("reference")}
-              </label>
-              <input
-                type="text"
-                value={paymentReference}
-                onChange={(e) => setPaymentReference(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder={translate.orders("referencePlaceholder")}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translate.orders("paymentNotes")}
-              </label>
-              <textarea
-                value={paymentNotes}
-                onChange={(e) => setPaymentNotes(e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder={translate.orders("paymentNotesPlaceholder")}
-              />
-            </div>
-          </div>
-        </div>
-      </Modal>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={() => handleSubmitOrder(false)}
+            disabled={isSubmitting}
+          >
+            {translate.orders("completeOrder")}
+          </Button>
+          <Button
+            outline
+            onClick={() => setPaymentModalOpen(false)}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Confirm Save As Unpaid Modal */}
-      <Modal
-        isOpen={confirmSaveModalOpen}
+      <Dialog
+        open={confirmSaveModalOpen}
         onClose={() => setConfirmSaveModalOpen(false)}
-        title={translate.orders("saveAsUnpaid")}
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={() => {
-                setConfirmSaveModalOpen(false);
-                handleSubmitOrder(true);
-              }}
-              disabled={isSubmitting}
-            >
-              {translate.common("confirm")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmSaveModalOpen(false)}
-              disabled={isSubmitting}
-            >
-              {translate.common("cancel")}
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <p className="text-gray-700">
-            {translate.orders("saveAsUnpaidConfirm")}
-          </p>
-        </div>
-      </Modal>
+        <DialogTitle>
+          {translate.orders("saveAsUnpaid")}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+            <Text>
+              {translate.orders("saveAsUnpaidConfirm")}
+            </Text>
+          </div>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setConfirmSaveModalOpen(false);
+              handleSubmitOrder(true);
+            }}
+            disabled={isSubmitting}
+          >
+            {translate.common("confirm")}
+          </Button>
+          <Button
+            color="red"
+            onClick={() => setConfirmSaveModalOpen(false)}
+            disabled={isSubmitting}
+          >
+            {translate.common("cancel")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

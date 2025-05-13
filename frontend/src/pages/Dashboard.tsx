@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import Card from '../_components/ui/Card';
+import { Card } from '@/components/card';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
 import {
@@ -295,9 +295,9 @@ const Dashboard: React.FC = () => {
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {/* Products */}
-        <Link to="/products">
-          <Card className={`border-l-4 border-indigo-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/products" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
                 <Heading level={4}>{translate.products('title')}</Heading>
                 <Heading level={2}>{isLoading ? '...' : stats?.totalProducts || 0}</Heading>
@@ -311,12 +311,13 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Categories */}
-        <Link to="/categories">
-          <Card className={`border-l-4 border-purple-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/categories" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
                 <Heading level={4}>{translate.categories('title')}</Heading>
                 <Heading level={2}>{isLoading ? '...' : stats?.totalCategories || 0}</Heading>
+                <Text>&nbsp;</Text>
               </div>
               <div className="bg-purple-100 p-3 rounded-full">
                 <ArchiveBoxIcon className="w-6 h-6 text-purple-500" />
@@ -326,12 +327,13 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Customers */}
-        <Link to="/customers">
-          <Card className={`border-l-4 border-blue-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/customers" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
                 <Heading level={4}>{translate.customers('title')}</Heading>
                 <Heading level={2}>{isLoading ? '...' : stats?.totalCustomers || 0}</Heading>
+                <Text>&nbsp;</Text>
               </div>
               <div className="bg-blue-100 p-3 rounded-full">
                 <UserGroupIcon className="w-6 h-6 text-blue-500" />
@@ -341,9 +343,9 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Orders */}
-        <Link to="/orders">
-          <Card className={`border-l-4 border-green-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/orders" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
                 <Heading level={4}>{translate.orders('title')}</Heading>
                 <Heading level={2}>{isLoading ? '...' : stats?.totalOrders || 0}</Heading>
@@ -358,62 +360,68 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Revenue */}
-        <Card className={`border-l-4 border-yellow-500`}>
-          <div className="flex justify-between items-center">
-            <div>
-              <Heading level={4}>{translate.dashboard('totalSales')}</Heading>
-              <Heading level={2}>{isLoading ? '...' : formatCurrency(stats?.totalRevenue || 0)}</Heading>
-            </div>
-            <div className="bg-yellow-100 p-3 rounded-full">
-              <CurrencyDollarIcon className="w-6 h-6 text-yellow-500" />
-            </div>
-          </div>
-        </Card>
-
-        {/* Growth */}
-        <Card className={`border-l-4 border-emerald-500`}>
-          <div className="flex justify-between items-center">
-            <div>
-              <Heading level={4}>{(() => {
-                  switch (salesPeriod) {
-                    case 'today':
-                      return translate.dashboard('dailySales');
-                    case 'thisWeek':
-                      return translate.dashboard('weeklySales');
-                    case 'thisYear':
-                      return translate.dashboard('monthlySales');
-                    default:
-                      return '';
-                  }
-                })()}
-              </Heading>
-              <Heading level={2}>{isLoading || monthlyGrowth === null ? '...' : 
-                 `${monthlyGrowth.toFixed(1)}%`}</Heading>
-              <div className="flex items-center text-xs mt-1">
-                <Select
-                  value={salesPeriod}
-                  onChange={(e) => setSalesPeriod(e.target.value as any)}
-                  className="text-xs"
-                >
-                  <option value="today">{translate.dashboard('today')}</option>
-                  <option value="thisWeek">{translate.dashboard('thisWeek')}</option>
-                  <option value="thisYear">{translate.dashboard('thisYear')}</option>
-                </Select>
+        <div className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
+              <div>
+                <Heading level={4}>{translate.dashboard('totalSales')}</Heading>
+                <Heading level={2}>{isLoading ? '...' : formatCurrency(stats?.totalRevenue || 0)}</Heading>
+                <Text>&nbsp;</Text>
+              </div>
+              <div className="bg-yellow-100 p-3 rounded-full">
+                <CurrencyDollarIcon className="w-6 h-6 text-yellow-500" />
               </div>
             </div>
-            <div className="bg-emerald-100 p-3 rounded-full">
-              <ArrowTrendingUpIcon className="w-6 h-6 text-emerald-500" />
+          </Card>
+        </div>
+
+        {/* Growth */}
+        <div className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
+              <div>
+                <Heading level={4}>{(() => {
+                    switch (salesPeriod) {
+                      case 'today':
+                        return translate.dashboard('dailySales');
+                      case 'thisWeek':
+                        return translate.dashboard('weeklySales');
+                      case 'thisYear':
+                        return translate.dashboard('monthlySales');
+                      default:
+                        return '';
+                    }
+                  })()}
+                </Heading>
+                <Heading level={2}>{isLoading || monthlyGrowth === null ? '...' : 
+                   `${monthlyGrowth.toFixed(1)}%`}</Heading>
+                <div className="flex items-center text-xs mt-1">
+                  <Select
+                    value={salesPeriod}
+                    onChange={(e) => setSalesPeriod(e.target.value as any)}
+                    className="text-xs"
+                  >
+                    <option value="today">{translate.dashboard('today')}</option>
+                    <option value="thisWeek">{translate.dashboard('thisWeek')}</option>
+                    <option value="thisYear">{translate.dashboard('thisYear')}</option>
+                  </Select>
+                </div>
+              </div>
+              <div className="bg-emerald-100 p-3 rounded-full">
+                <ArrowTrendingUpIcon className="w-6 h-6 text-emerald-500" />
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
         {/* Pending Orders */}
-        <Link to="/orders?status=pending">
-          <Card className={`border-l-4 border-orange-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/orders?status=pending" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
                 <Heading level={4}>{translate.orders('pendingOrders')}</Heading>
                 <Heading level={2}>{isLoading ? '...' : stats?.pendingOrders || 0}</Heading>
+                <Text>&nbsp;</Text>
               </div>
               <div className="bg-orange-100 p-3 rounded-full">
                 <ClockIcon className="w-6 h-6 text-orange-500" />
@@ -423,12 +431,13 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Low Stock */}
-        <Link to="/products?lowStock=true">
-          <Card className={`border-l-4 border-red-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/products?lowStock=true" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
                 <Heading level={4}>{translate.products('lowStock')}</Heading>
                 <Heading level={2}>{isLoading ? '...' : stats?.lowStockProducts || 0}</Heading>
+                <Text>&nbsp;</Text>
               </div>
               <div className="bg-red-100 p-3 rounded-full">
                 <ExclamationTriangleIcon className="w-6 h-6 text-red-500" />

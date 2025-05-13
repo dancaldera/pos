@@ -23,7 +23,7 @@ import PrintReceipt from './pages/PrintReceipt';
 import ProductsPage from './pages/Products';
 import SettingsPage from './pages/Settings';
 import UsersPage from './pages/Users';
-import LoadingPage from './_components/LoadingPage';
+import { LoadingPage } from './components/loading-page';
 const NotFoundPage = () => <div className="p-4">Page Not Found</div>;
 
 // Protected route component

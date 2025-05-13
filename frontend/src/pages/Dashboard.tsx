@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import Card from '../components/ui/Card';
+import { Card } from '@/components/card';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
 import {
@@ -40,6 +40,11 @@ import {
 } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { formatCurrency } from '@/utils/format-currency';
+import { Heading } from '@/components/heading';
+import { Text } from '@/components/text';
+import { Button } from '@/components/button';
+import { Select } from '@/components/select';
+import { Badge } from '@/components/badge';
 
 // Register ChartJS components
 ChartJS.register(
@@ -231,6 +236,12 @@ const Dashboard: React.FC = () => {
         beginAtZero: true,
       }
     },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+      },
+    },
   };
 
   const barChartOptions: ChartOptions<'bar'> = {
@@ -251,13 +262,13 @@ const Dashboard: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'green';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'yellow';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'red';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'zinc';
     }
   };
 
@@ -267,34 +278,30 @@ const Dashboard: React.FC = () => {
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{translate.dashboard('title')}</h1>
-          <p className="text-gray-600">{translate.dashboard('welcome')}, {user?.name}</p>
+          <Heading level={3}>{translate.dashboard('title')}</Heading>
+          <Text>{translate.dashboard('welcome')}, {user?.name}</Text>
         </div>
         <div className="mt-4 md:mt-0">
-          <Link 
-            to="/orders/new"
+          <Button
+            href="/orders/new"
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium flex items-center"
           >
             <ShoppingCartIcon className="w-5 h-5 mr-2" />
             {translate.orders('newOrder')}
-          </Link>
+          </Button>
         </div>
       </div>
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {/* Products */}
-        <Link to="/products">
-          <Card className={`border-l-4 border-indigo-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/products" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
-                <p className="text-sm font-medium text-gray-600">{translate.products('title')}</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats?.totalProducts || 0}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {isLoading ? '' : `${stats?.activeProducts || 0} ${translate.common('active').toLowerCase()}`}
-                </p>
+                <Heading level={4}>{translate.products('title')}</Heading>
+                <Heading level={2}>{isLoading ? '...' : stats?.totalProducts || 0}</Heading>
+                <Text>{isLoading ? '' : `${stats?.activeProducts || 0} ${translate.common('active').toLowerCase()}`}</Text>
               </div>
               <div className="bg-indigo-100 p-3 rounded-full">
                 <SquaresPlusIcon className="w-6 h-6 text-indigo-500" />
@@ -304,14 +311,13 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Categories */}
-        <Link to="/categories">
-          <Card className={`border-l-4 border-purple-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/categories" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
-                <p className="text-sm font-medium text-gray-600">{translate.categories('title')}</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats?.totalCategories || 0}
-                </p>
+                <Heading level={4}>{translate.categories('title')}</Heading>
+                <Heading level={2}>{isLoading ? '...' : stats?.totalCategories || 0}</Heading>
+                <Text>&nbsp;</Text>
               </div>
               <div className="bg-purple-100 p-3 rounded-full">
                 <ArchiveBoxIcon className="w-6 h-6 text-purple-500" />
@@ -321,14 +327,13 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Customers */}
-        <Link to="/customers">
-          <Card className={`border-l-4 border-blue-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/customers" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
-                <p className="text-sm font-medium text-gray-600">{translate.customers('title')}</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats?.totalCustomers || 0}
-                </p>
+                <Heading level={4}>{translate.customers('title')}</Heading>
+                <Heading level={2}>{isLoading ? '...' : stats?.totalCustomers || 0}</Heading>
+                <Text>&nbsp;</Text>
               </div>
               <div className="bg-blue-100 p-3 rounded-full">
                 <UserGroupIcon className="w-6 h-6 text-blue-500" />
@@ -338,17 +343,14 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Orders */}
-        <Link to="/orders">
-          <Card className={`border-l-4 border-green-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/orders" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
-                <p className="text-sm font-medium text-gray-600">{translate.orders('title')}</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats?.totalOrders || 0}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {isLoading ? '' : `${stats?.completedOrders || 0} ${translate.orders('completed').toLowerCase()}`}
-                </p>
+                <Heading level={4}>{translate.orders('title')}</Heading>
+                <Heading level={2}>{isLoading ? '...' : stats?.totalOrders || 0}</Heading>
+                <Text>{isLoading ? '' : `${stats?.completedOrders || 0} ${translate.orders('completed').toLowerCase()}`}
+                </Text>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
                 <ShoppingCartIcon className="w-6 h-6 text-green-500" />
@@ -358,69 +360,68 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Revenue */}
-        <Card className={`border-l-4 border-yellow-500`}>
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm font-medium text-gray-600">{translate.dashboard('totalSales')}</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {isLoading ? '...' : formatCurrency(stats?.totalRevenue || 0)}
-              </p>
-            </div>
-            <div className="bg-yellow-100 p-3 rounded-full">
-              <CurrencyDollarIcon className="w-6 h-6 text-yellow-500" />
-            </div>
-          </div>
-        </Card>
-
-        {/* Growth */}
-        <Card className={`border-l-4 border-emerald-500`}>
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                {(() => {
-                  switch (salesPeriod) {
-                    case 'today':
-                      return translate.dashboard('dailySales');
-                    case 'thisWeek':
-                      return translate.dashboard('weeklySales');
-                    case 'thisYear':
-                      return translate.dashboard('monthlySales');
-                    default:
-                      return '';
-                  }
-                })()}
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                {isLoading || monthlyGrowth === null ? '...' : 
-                 `${monthlyGrowth.toFixed(1)}%`}
-              </p>
-              <div className="flex items-center text-xs mt-1">
-                <select
-                  value={salesPeriod}
-                  onChange={(e) => setSalesPeriod(e.target.value as any)}
-                  className="text-xs border rounded p-1"
-                >
-                  <option value="today">{translate.dashboard('today')}</option>
-                  <option value="thisWeek">{translate.dashboard('thisWeek')}</option>
-                  <option value="thisYear">{translate.dashboard('thisYear')}</option>
-                </select>
+        <div className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
+              <div>
+                <Heading level={4}>{translate.dashboard('totalSales')}</Heading>
+                <Heading level={2}>{isLoading ? '...' : formatCurrency(stats?.totalRevenue || 0)}</Heading>
+                <Text>&nbsp;</Text>
+              </div>
+              <div className="bg-yellow-100 p-3 rounded-full">
+                <CurrencyDollarIcon className="w-6 h-6 text-yellow-500" />
               </div>
             </div>
-            <div className="bg-emerald-100 p-3 rounded-full">
-              <ArrowTrendingUpIcon className="w-6 h-6 text-emerald-500" />
+          </Card>
+        </div>
+
+        {/* Growth */}
+        <div className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
+              <div>
+                <Heading level={4}>{(() => {
+                    switch (salesPeriod) {
+                      case 'today':
+                        return translate.dashboard('dailySales');
+                      case 'thisWeek':
+                        return translate.dashboard('weeklySales');
+                      case 'thisYear':
+                        return translate.dashboard('monthlySales');
+                      default:
+                        return '';
+                    }
+                  })()}
+                </Heading>
+                <Heading level={2}>{isLoading || monthlyGrowth === null ? '...' : 
+                   `${monthlyGrowth.toFixed(1)}%`}</Heading>
+                <div className="flex items-center text-xs mt-1">
+                  <Select
+                    value={salesPeriod}
+                    onChange={(e) => setSalesPeriod(e.target.value as any)}
+                    className="text-xs"
+                  >
+                    <option value="today">{translate.dashboard('today')}</option>
+                    <option value="thisWeek">{translate.dashboard('thisWeek')}</option>
+                    <option value="thisYear">{translate.dashboard('thisYear')}</option>
+                  </Select>
+                </div>
+              </div>
+              <div className="bg-emerald-100 p-3 rounded-full">
+                <ArrowTrendingUpIcon className="w-6 h-6 text-emerald-500" />
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
         {/* Pending Orders */}
-        <Link to="/orders?status=pending">
-          <Card className={`border-l-4 border-orange-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/orders?status=pending" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
-                <p className="text-sm font-medium text-gray-600">{translate.orders('pendingOrders')}</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats?.pendingOrders || 0}
-                </p>
+                <Heading level={4}>{translate.orders('pendingOrders')}</Heading>
+                <Heading level={2}>{isLoading ? '...' : stats?.pendingOrders || 0}</Heading>
+                <Text>&nbsp;</Text>
               </div>
               <div className="bg-orange-100 p-3 rounded-full">
                 <ClockIcon className="w-6 h-6 text-orange-500" />
@@ -430,14 +431,13 @@ const Dashboard: React.FC = () => {
         </Link>
 
         {/* Low Stock */}
-        <Link to="/products?lowStock=true">
-          <Card className={`border-l-4 border-red-500`}>
-            <div className="flex justify-between items-center">
+        <Link to="/products?lowStock=true" className="h-full">
+          <Card className="h-full">
+            <div className="flex justify-between items-center h-full">
               <div>
-                <p className="text-sm font-medium text-gray-600">{translate.products('lowStock')}</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats?.lowStockProducts || 0}
-                </p>
+                <Heading level={4}>{translate.products('lowStock')}</Heading>
+                <Heading level={2}>{isLoading ? '...' : stats?.lowStockProducts || 0}</Heading>
+                <Text>&nbsp;</Text>
               </div>
               <div className="bg-red-100 p-3 rounded-full">
                 <ExclamationTriangleIcon className="w-6 h-6 text-red-500" />
@@ -465,9 +465,9 @@ const Dashboard: React.FC = () => {
           <div className="h-80">
             {isLoading || salesData.length === 0 ? (
               <div className="h-full flex items-center justify-center">
-                <p className="text-gray-500 italic">
+                <Text>
                   {isLoading ? translate.common('loading') : translate.reports('noData')}
-                </p>
+                </Text>
               </div>
             ) : (
               <Line options={chartOptions} data={prepareSalesChartData()} />
@@ -480,13 +480,13 @@ const Dashboard: React.FC = () => {
           <div className="h-80 overflow-y-auto">
             {isLoading || recentOrders.length === 0 ? (
               <div className="h-full flex items-center justify-center">
-                <p className="text-gray-500 italic">
+                <Text>
                   {isLoading ? translate.common('loading') : translate.common('noResults')}
-                </p>
+                </Text>
               </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-zinc-50 dark:bg-zinc-800">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {translate.orders('orderNumber')}
@@ -502,24 +502,24 @@ const Dashboard: React.FC = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-200 dark:bg-zinc-800 dark:divide-zinc-700">
                   {recentOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 whitespace-nowrap">
+                    <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-zinc-700">
+                      <td className="px-4 py-3 whitespace-nowrap dark:text-zinc-100">
                         <Link to={`/orders/${order.id}`} className="text-blue-600 hover:text-blue-900">
                           #{order.orderNumber}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap dark:text-zinc-100">
                         {order.customer?.name || translate.orders('walkInCustomer')}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap dark:text-zinc-100">
                         {formatCurrency(order.total)}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                      <td className="px-4 py-3 whitespace-nowrap dark:text-zinc-100">
+                        <Badge color={getStatusColor(order.status)}>
                           {translate.orders(order.status as 'pending' | 'completed' | 'cancelled')}
-                        </span>
+                        </Badge>
                       </td>
                     </tr>
                   ))}
@@ -537,9 +537,9 @@ const Dashboard: React.FC = () => {
           <div className="h-80">
             {isLoading || topProducts.length === 0 ? (
               <div className="h-full flex items-center justify-center">
-                <p className="text-gray-500 italic">
+                <Text>
                   {isLoading ? translate.common('loading') : translate.reports('noData')}
-                </p>
+                </Text>
               </div>
             ) : (
               <Bar options={barChartOptions} data={prepareTopProductsChartData()} />
@@ -552,9 +552,9 @@ const Dashboard: React.FC = () => {
           <div className="h-80">
             {isLoading || paymentStats.length === 0 ? (
               <div className="h-full flex items-center justify-center">
-                <p className="text-gray-500 italic">
+                <Text>
                   {isLoading ? translate.common('loading') : translate.reports('noData')}
-                </p>
+                </Text>
               </div>
             ) : (
               <Doughnut options={doughnutOptions} data={preparePaymentStatsChartData()} />

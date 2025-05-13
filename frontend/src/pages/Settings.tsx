@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getSettings, updateSettings, SystemSettings } from '../api/settings';
-import Button from '../components/ui/Button';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
-import PageLanguageSelector from '../components/PageLanguageSelector';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Heading } from '@/components/heading';
+import { Text } from '@/components/text';
+import { Input } from '@/components/input';
+import { Textarea } from '@/components/textarea';
+import { Select } from '@/components/select';
+import { Language } from '@/i18n';
+import { Button } from '@/components/button';
 
 const CURRENCIES = [
   { code: 'USD', name: 'US Dollar ($)' },
@@ -19,7 +24,7 @@ const CURRENCIES = [
 
 const Settings: React.FC = () => {
   const { user } = useAuthStore();
-  const { translate } = useLanguage();
+  const { translate, language, setLanguage } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<SystemSettings>({
@@ -202,16 +207,16 @@ const Settings: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{translate.settings('title')}</h1>
+        <Heading>{translate.settings('title')}</Heading>
       </div>
 
       {!isAdmin && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
           <div className="flex">
             <div>
-              <p className="text-sm text-yellow-700">
+              <Text>
                 {translate.common('warning')}: {translate.common('readOnly')}
-              </p>
+              </Text>
             </div>
           </div>
         </div>
@@ -221,51 +226,47 @@ const Settings: React.FC = () => {
         <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
           <div className="flex">
             <div>
-              <p className="text-sm text-green-700">{successMessage}</p>
+              <Text>{successMessage}</Text>
             </div>
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="rounded-lg shadow overflow-hidden">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">{translate.settings('businessName')}</h3>
+              <Heading level={3}>{translate.settings('businessName')}</Heading>
               
               {/* Business Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Text>
                   {translate.settings('businessName')} *
-                </label>
-                <input
+                </Text>
+                <Input
                   type="text"
                   name="businessName"
                   value={formData.businessName}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                    formErrors.businessName ? 'border-red-500' : 'border-gray-300'
-                  }`}
                   placeholder={translate.settings('businessName')}
                   disabled={!isAdmin}
                 />
                 {formErrors.businessName && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.businessName}</p>
+                  <Text className="mt-1 text-sm text-red-600">{formErrors.businessName}</Text>
                 )}
               </div>
               
               {/* Address */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Text>
                   {translate.settings('businessAddress')}
-                </label>
-                <textarea
+                </Text>
+                <Textarea 
                   name="address"
                   value={formData.address || ''}
                   onChange={handleInputChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder={translate.settings('businessAddress')}
                   disabled={!isAdmin}
                 />
@@ -274,37 +275,30 @@ const Settings: React.FC = () => {
               {/* Contact Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Text>
                     {translate.settings('businessPhone')}
-                  </label>
-                  <input
+                  </Text>
+                  <Input
                     type="text"
                     name="phone"
                     value={formData.phone || ''}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder={translate.settings('businessPhone')}
                     disabled={!isAdmin}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Text>
                     {translate.settings('businessEmail')}
-                  </label>
-                  <input
+                  </Text>
+                  <Input
                     type="email"
                     name="email"
                     value={formData.email || ''}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                      formErrors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
                     placeholder={translate.settings('businessEmail')}
                     disabled={!isAdmin}
                   />
-                  {formErrors.email && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
-                  )}
                 </div>
               </div>
             </div>
@@ -315,11 +309,19 @@ const Settings: React.FC = () => {
               
               {/* Language Settings */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Text>
                   {translate.settings('language')}
-                </label>
+                </Text>
                 <div className="max-w-xs">
-                  <PageLanguageSelector />
+                  <Select
+                    id="language"
+                    name="language"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as Language)}
+                  >
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                  </Select>
                 </div>
               </div>
               
@@ -328,17 +330,14 @@ const Settings: React.FC = () => {
               {/* Tax Rate and Currency */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Text>
                     {translate.settings('taxRate')}
-                  </label>
-                  <input
+                  </Text>
+                  <Input
                     type="number"
                     name="taxRate"
                     value={formData.taxRate}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                      formErrors.taxRate ? 'border-red-500' : 'border-gray-300'
-                    }`}
                     placeholder={translate.settings('taxRate')}
                     step="0.01"
                     min="0"
@@ -350,14 +349,13 @@ const Settings: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Text>
                     {translate.settings('currency')}
-                  </label>
-                  <select
+                  </Text>
+                  <Select
                     name="currency"
                     value={formData.currency}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     disabled={!isAdmin}
                   >
                     {CURRENCIES.map(currency => (
@@ -365,21 +363,20 @@ const Settings: React.FC = () => {
                         {currency.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
               
               {/* Receipt Footer */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Text>
                   {translate.settings('receiptFooter')}
-                </label>
-                <textarea
+                </Text>
+                <Textarea
                   name="receiptFooter"
                   value={formData.receiptFooter || ''}
                   onChange={handleInputChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder={translate.settings('receiptFooter')}
                   disabled={!isAdmin}
                 />
@@ -387,9 +384,9 @@ const Settings: React.FC = () => {
               
               {/* Logo Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Text>
                   {translate.settings('logoImage')}
-                </label>
+                </Text>
                 <div className="flex items-center">
                   {logoPreview ? (
                     <div className="relative">
@@ -416,12 +413,9 @@ const Settings: React.FC = () => {
                   
                   {isAdmin && !logoPreview && (
                     <div className="ml-5">
-                      <label
-                        htmlFor="logo-upload"
-                        className="cursor-pointer py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
+                      <Text>
                         {translate.settings('uploadLogo')}
-                      </label>
+                      </Text>
                       <input
                         id="logo-upload"
                         ref={fileInputRef}
@@ -434,9 +428,9 @@ const Settings: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
+                <Text>
                   {translate.common('recommendation')}: 200x200 px, 2MB max.
-                </p>
+                </Text>
               </div>
             </div>
           </div>
@@ -445,8 +439,7 @@ const Settings: React.FC = () => {
             <div className="pt-5 border-t flex justify-end">
               <Button
                 type="submit"
-                variant="primary"
-                isLoading={saving}
+                disabled={saving}
               >
                 {translate.settings('saveSettings')}
               </Button>

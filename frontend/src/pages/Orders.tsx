@@ -1,33 +1,26 @@
+import { Badge } from "@/components/badge";
+import { Button } from "@/components/button";
+import { Dialog, DialogActions, DialogBody, DialogTitle } from "@/components/dialog";
+import { Field, Label } from "@/components/fieldset";
+import { Heading } from "@/components/heading";
+import { Input } from "@/components/input";
+import { Select } from "@/components/select";
+import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/table";
+import { Text } from "@/components/text";
+import { Textarea } from "@/components/textarea";
 import { formatCurrency } from "@/utils/format-currency";
 import {
   ArrowPathIcon,
   EyeIcon,
-  MagnifyingGlassIcon,
   PlusIcon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { OrderSearchParams, cancelOrder, getOrders } from "../api/orders";
-import Button from "../components/ui/Button";
-import Modal from "../components/ui/Modal";
-import Table from "../components/ui/Table";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuthStore } from "../store/authStore";
 import { Order, OrderStatus } from "../types/orders";
-
-// Order status colors and badges
-const statusColors = {
-  pending: "bg-yellow-100 text-yellow-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-};
-
-const paymentStatusColors = {
-  paid: "bg-green-100 text-green-800",
-  partial: "bg-orange-100 text-orange-800",
-  unpaid: "bg-red-100 text-red-800",
-};
 
 const Orders: React.FC = () => {
   const navigate = useNavigate();
@@ -235,15 +228,13 @@ const Orders: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
-          {translate.orders("title")}
-        </h1>
+        <Heading>{translate.orders("title")}</Heading>
         <div className="flex space-x-2">
-          <Button variant="secondary" onClick={handlePendingOrdersPage}>
+          <Button onClick={handlePendingOrdersPage} outline>
             <ArrowPathIcon className="h-5 w-5 mr-1" />
             {translate.orders("pendingOrders")}
           </Button>
-          <Button variant="primary" onClick={handleNewOrder}>
+          <Button onClick={handleNewOrder}>
             <PlusIcon className="h-5 w-5 mr-1" />
             {translate.orders("newOrder")}
           </Button>
@@ -251,38 +242,28 @@ const Orders: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
+      <div className="p-4 rounded-lg shadow mb-6">
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="flex-1">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={translate.common("search") + "..."}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                value={search}
-                onChange={handleSearchChange}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-              <button
-                className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
-                onClick={handleSearch}
-              >
-                <MagnifyingGlassIcon className="h-5 w-5" />
-              </button>
-            </div>
+            <Input
+              type="text"
+              placeholder={translate.common("search") + "..."}
+              value={search}
+              onChange={handleSearchChange}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <Field>
+            <Label>
               {translate.common("status")}
-            </label>
-            <select
+            </Label>
+            <Select
               name="status"
               value={filters.status}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">
                 {translate.common("all")} {translate.common("status")}
@@ -290,17 +271,16 @@ const Orders: React.FC = () => {
               <option value="pending">{translate.orders("pending")}</option>
               <option value="completed">{translate.orders("completed")}</option>
               <option value="cancelled">{translate.orders("cancelled")}</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            </Select>
+          </Field>
+          <Field>
+            <Label>
               {translate.orders("paymentStatus")}
-            </label>
-            <select
+            </Label>
+            <Select
               name="paymentStatus"
               value={filters.paymentStatus}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">
                 {translate.common("all")} {translate.orders("paymentStatus")}
@@ -308,39 +288,37 @@ const Orders: React.FC = () => {
               <option value="paid">{translate.orders("paid")}</option>
               <option value="partial">{translate.orders("partial")}</option>
               <option value="unpaid">{translate.orders("unpaid")}</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            </Select>
+          </Field>
+          <Field>
+            <Label>
               {translate.reports("startDate")}
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               name="startDate"
               value={filters.startDate}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          </Field>
+          <Field>
+            <Label>
               {translate.reports("endDate")}
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               name="endDate"
               value={filters.endDate}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
-          </div>
+          </Field>
         </div>
 
         <div className="flex justify-end mt-4 space-x-2">
-          <Button variant="outline" size="sm" onClick={resetFilters}>
+          <Button outline onClick={resetFilters}>
             {translate.common("cancel")}
           </Button>
-          <Button variant="primary" size="sm" onClick={applyFilters}>
+          <Button onClick={applyFilters}>
             {translate.common("search")}
           </Button>
         </div>
@@ -354,120 +332,106 @@ const Orders: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table
-              headers={[
-                translate.orders("orderNumber"),
-                translate.common("date"),
-                translate.orders("customer"),
-                translate.common("total"),
-                translate.common("status"),
-                translate.common("payment"),
-                translate.common("actions"),
-              ]}
-            >
+          <div className="rounded-lg shadow overflow-hidden">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>{translate.orders("orderNumber")}</TableHeader>
+                  <TableHeader>{translate.common("date")}</TableHeader>
+                  <TableHeader>{translate.orders("customer")}</TableHeader>
+                  <TableHeader>{translate.common("total")}</TableHeader>
+                  <TableHeader>{translate.common("status")}</TableHeader>
+                  <TableHeader>{translate.common("payment")}</TableHeader>
+                  <TableHeader>{translate.common("actions")}</TableHeader>
+                </TableRow>
+              </TableHead>
               {orders.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
                     {translate.common("noResults")}
                   </td>
                 </tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <TableRow key={order.id}>
+                    <TableCell>
                       <div
                         className="font-bold text-blue-600 hover:text-blue-900 cursor-pointer"
                         onClick={() => viewOrderDetails(order.id)}
                       >
                         #{order.orderNumber}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                    </TableCell>
+                    <TableCell>
+                      <Text className="text-sm text-gray-900">
                         {formatDate(order.createdAt)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      </Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text>
                         {order.customer
                           ? order.customer.name
                           : translate.orders("walkInCustomer")}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                      </Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text className="font-medium">
                         {formatCurrency(order.total)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          statusColors[order.status]
-                        }`}
-                      >
+                      </Text>
+                    </TableCell>
+                    <TableCell>
+                      <Badge color={
+                        order.status === "completed" ? "green" :
+                        order.status === "cancelled" ? "red" : "yellow"
+                      }>
                         {translate.orders(
                           order.status as "pending" | "completed" | "cancelled"
                         )}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          paymentStatusColors[order.paymentStatus]
-                        }`}
-                      >
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge color={
+                        order.paymentStatus === "paid" ? "green" :
+                        order.paymentStatus === "partial" ? "yellow" : "red"
+                      }>
                         {translate.orders(
                           order.paymentStatus as "paid" | "partial" | "unpaid"
                         )}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex space-x-2 justify-end">
-                        <button
+                        <Button
+                          outline
                           onClick={() => viewOrderDetails(order.id)}
-                          className="text-blue-600 hover:text-blue-900"
                           title={translate.common("details")}
                         >
                           <EyeIcon className="h-5 w-5" />
-                        </button>
+                        </Button>
 
                         {canManageOrders && order.status !== "cancelled" && (
                           <>
-                            <button
+                            <Button
+                              outline
                               onClick={() => openStatusModal(order)}
-                              className="text-orange-600 hover:text-orange-900"
                               title={translate.orders("updateStatus")}
                             >
                               <ArrowPathIcon className="h-5 w-5" />
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
+                              color="red"
                               onClick={() => openCancelModal(order)}
-                              className="text-red-600 hover:text-red-900"
                               disabled={order.status === "completed"}
-                              title={
-                                order.status === "completed"
-                                  ? translate.orders("cancelOrder")
-                                  : translate.orders("cancelOrder")
-                              }
+                              title={translate.orders("cancelOrder")}
                             >
-                              <XMarkIcon
-                                className={`h-5 w-5 ${
-                                  order.status === "completed"
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : ""
-                                }`}
-                              />
-                            </button>
+                              <XMarkIcon className="h-5 w-5" />
+                            </Button>
                           </>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </Table>
@@ -477,20 +441,12 @@ const Orders: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                {pagination.total > 0
-                  ? `${
-                      (pagination.page - 1) * pagination.limit + 1
-                    } - ${Math.min(
-                      pagination.page * pagination.limit,
-                      pagination.total
-                    )} / ${pagination.total}`
-                  : "0"}{" "}
-                {translate.orders("title").toLowerCase()}
+                {pagination.total > 0 ?
+                  `${(pagination.page - 1) * pagination.limit + 1} - ${Math.min(pagination.page * pagination.limit, pagination.total)} / ${pagination.total}` : "0"} {translate.orders("title").toLowerCase()}
               </div>
               <div className="flex space-x-2">
                 <Button
-                  variant="outline"
-                  size="sm"
+                  outline
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page <= 1}
                 >
@@ -502,8 +458,7 @@ const Orders: React.FC = () => {
                   </span>
                 </div>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  outline
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages}
                 >
@@ -516,96 +471,97 @@ const Orders: React.FC = () => {
       )}
 
       {/* Update Status Modal */}
-      <Modal
-        isOpen={statusModalOpen}
+      <Dialog
+        open={statusModalOpen}
         onClose={() => setStatusModalOpen(false)}
-        title={translate.orders("updateStatus")}
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={handleStatusChange}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {translate.orders("updateStatus")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setStatusModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common("cancel")}
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <p className="mb-4">
-            {translate.orders("updateStatus")}{" "}
-            <span className="font-bold">#{selectedOrder?.orderNumber}</span>
-          </p>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {translate.orders("orderStatus")}
-            </label>
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="pending">{translate.orders("pending")}</option>
-              <option value="completed">{translate.orders("completed")}</option>
-              <option value="cancelled">{translate.orders("cancelled")}</option>
-            </select>
+        <DialogTitle>
+          {translate.orders("updateStatus")}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+            <Text className="mb-4">
+              {translate.orders("updateStatus")}{" "}
+              <span className="font-bold">#{selectedOrder?.orderNumber}</span>
+            </Text>
+            <Field>
+              <Label>
+                {translate.orders("orderStatus")}
+              </Label>
+              <Select
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
+              >
+                <option value="pending">{translate.orders("pending")}</option>
+                <option value="completed">{translate.orders("completed")}</option>
+                <option value="cancelled">{translate.orders("cancelled")}</option>
+              </Select>
+            </Field>
           </div>
-        </div>
-      </Modal>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleStatusChange}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {translate.orders("updateStatus")}
+          </Button>
+          <Button
+            outline
+            onClick={() => setStatusModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common("cancel")}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Cancel Order Modal */}
-      <Modal
-        isOpen={cancelModalOpen}
+      <Dialog
+        open={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
-        title={translate.orders("cancelOrder")}
-        footer={
-          <>
-            <Button
-              variant="danger"
-              onClick={handleCancelOrder}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {translate.orders("cancelOrder")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setCancelModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common("back")}
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <p className="text-gray-600 mb-4">
-            {translate.orders("cancelConfirmation")}
-            <span className="font-bold"> #{selectedOrder?.orderNumber}</span>
-          </p>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {translate.orders("cancelReason")}
-            </label>
-            <textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder={translate.orders("cancelReason")}
-            />
+        <DialogTitle>
+          {translate.orders("cancelOrder")}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+            <Text className="text-gray-600 mb-4">
+              {translate.orders("cancelConfirmation")}
+              <span className="font-bold"> #{selectedOrder?.orderNumber}</span>
+            </Text>
+            <Field>
+              <Label>
+                {translate.orders("cancelReason")}
+              </Label>
+              <Textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={3}
+                placeholder={translate.orders("cancelReason")}
+              />
+            </Field>
           </div>
-        </div>
-      </Modal>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            color="red"
+            onClick={handleCancelOrder}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {translate.orders("cancelOrder")}
+          </Button>
+          <Button
+            outline
+            onClick={() => setCancelModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common("back")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

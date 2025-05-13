@@ -1,18 +1,22 @@
-import React, { useState, FormEvent } from "react";
+import { Button } from "@/components/button";
+import { Heading } from "@/components/heading";
+import { Input } from "@/components/input";
+import { Select } from "@/components/select";
+import { Language } from "@/i18n";
+import React, { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import { useLanguage } from "../../context/LanguageContext";
-import PageLanguageSelector from "../../components/PageLanguageSelector";
 import { toast } from 'sonner';
+import { useLanguage } from "../../context/LanguageContext";
 import { useAuthStore } from "../../store/authStore";
+import { Text } from "@/components/text";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
   const { translate } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +33,7 @@ const LoginPage: React.FC = () => {
 
   const validateField = (name: string, value: string) => {
     let errorMessage = "";
-    
+
     if (name === "email") {
       if (!value) {
         errorMessage = translate.auth('emailRequired');
@@ -37,7 +41,7 @@ const LoginPage: React.FC = () => {
         errorMessage = translate.common('error');
       }
     }
-    
+
     if (name === "password" && !value) {
       errorMessage = translate.auth('passwordRequired');
     }
@@ -46,7 +50,7 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: errorMessage
     }));
-    
+
     return errorMessage === "";
   };
 
@@ -56,7 +60,7 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: true
     }));
-    
+
     if (name === "email") {
       validateField(name, email);
     } else if (name === "password") {
@@ -66,28 +70,28 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     // Validate all fields
     const isEmailValid = validateField("email", email);
     const isPasswordValid = validateField("password", password);
-    
+
     // Mark all fields as touched
     setTouched({
       email: true,
       password: true
     });
-    
+
     // Return if any validation fails
     if (!isEmailValid || !isPasswordValid) {
       return;
     }
-    
+
     try {
       setIsLoading(true);
-      
+
       // Call login function that now returns result object
       const result = await login({ email, password });
-      
+
       if (result.success) {
         toast.success(translate.auth('welcome'));
         navigate("/");
@@ -102,49 +106,65 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Loading...</h2>
+  }
+
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md">
+    <div className="p-8">
+      <div className="text-center mb-6">
+        <Heading>{translate.layout('appName')}</Heading>
+        <Text>{translate.layout('appDescription')}</Text>
+      </div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
+        <Heading level={2}>
           {translate.auth('login')}
-        </h2>
-        <PageLanguageSelector />
+        </Heading>
+        <div className="w-32">
+          <Select
+            id="language"
+            name="language"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as Language)}
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </Select>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label={translate.auth('email')}
           id="email"
           name="email"
           type="email"
           placeholder="your@email.com"
-          fullWidth
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onBlur={handleBlur}
-          error={touched.email && validationErrors.email ? validationErrors.email : undefined}
         />
 
+        {touched.email && validationErrors.email && (
+          <p className="text-red-500 text-sm mt-2">{validationErrors.email}</p>
+        )}
+
         <Input
-          label={translate.auth('password')}
           id="password"
           name="password"
           type="password"
           placeholder="••••••••"
-          fullWidth
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onBlur={handleBlur}
-          error={touched.password && validationErrors.password ? validationErrors.password : undefined}
         />
+
+        {touched.password && validationErrors.password && (
+          <p className="text-red-500 text-sm mt-2">{validationErrors.password}</p>
+        )}
 
         <div className="pt-2">
           <Button
             type="submit"
-            variant="primary"
-            fullWidth
-            isLoading={isLoading}
-            disabled={isLoading}
           >
             {translate.auth('login')}
           </Button>

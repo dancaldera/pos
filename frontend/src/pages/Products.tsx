@@ -1,10 +1,21 @@
+import { Badge } from "@/components/badge";
+import { Button } from "@/components/button";
+import { Checkbox } from "@/components/checkbox";
+import { Dialog, DialogActions, DialogBody, DialogTitle } from "@/components/dialog";
+import { Field, Fieldset, Label } from "@/components/fieldset";
+import { Heading } from "@/components/heading";
+import { Input } from "@/components/input";
+import { Select } from "@/components/select";
+import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/table";
+import { Text } from "@/components/text";
 import { formatCurrency } from "@/utils/format-currency";
 import {
-  MagnifyingGlassIcon,
+  CheckCircleIcon,
   PencilIcon,
   PhotoIcon,
   PlusIcon,
   TrashIcon,
+  XCircleIcon
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { getCategories } from "../api/categories";
@@ -15,11 +26,9 @@ import {
   getProducts,
   updateProduct,
 } from "../api/products";
-import Button from "../components/ui/Button";
-import Modal from "../components/ui/Modal";
-import Table from "../components/ui/Table";
 import { useLanguage } from "../context/LanguageContext";
 import { Product, ProductFormData } from "../types/products";
+import { Textarea } from "@/components/textarea";
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -323,39 +332,25 @@ const Products: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
-          {translate.products("title")}
-        </h1>
-        <Button variant="primary" onClick={openCreateModal}>
+        <Heading>{translate.products("title")}</Heading>
+        <Button onClick={openCreateModal}>
           <PlusIcon className="h-5 w-5 mr-1" />
           {translate.products("addProduct")}
         </Button>
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={translate.products("searchProducts")}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                value={search}
-                onChange={handleSearchChange}
+      
+      <div className="flex justify-between items-center mb-6">
+          <Input
+            type="text"
+            placeholder={translate.products("searchProducts")}
+            value={search}
+            onChange={handleSearchChange}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
-              <button
-                className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
-                onClick={handleSearch}
-              >
-                <MagnifyingGlassIcon className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
           <div className="w-full md:w-64">
-            <select
-              className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            <Select
               value={searchParams.categoryId}
               onChange={handleCategoryFilter}
             >
@@ -367,9 +362,8 @@ const Products: React.FC = () => {
                   {category.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
-        </div>
       </div>
 
       {/* Products Table */}
@@ -380,140 +374,138 @@ const Products: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table
-              headers={[
-                translate.common("image"),
-                translate.common("name"),
-                translate.categories("title"),
-                translate.common("price"),
-                translate.products("productStock"),
-                translate.products("variants"),
-                translate.common("status"),
-                translate.common("actions"),
-              ]}
-            >
-              {products.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    {translate.common("noResults")}
-                  </td>
-                </tr>
-              ) : (
-                products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {product.imageUrl ? (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="h-12 w-12 object-cover rounded"
-                        />
-                      ) : (
-                        <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center">
-                          <PhotoIcon className="h-6 w-6 text-gray-400" />
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {product.name}
+          <div className="rounded-lg shadow overflow-hidden">
+            <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>{translate.common("image")}</TableHeader>
+                <TableHeader>{translate.common("name")}</TableHeader>
+                <TableHeader>{translate.categories("title")}</TableHeader>
+                <TableHeader>{translate.common("price")}</TableHeader>
+                <TableHeader>{translate.products("productStock")}</TableHeader>
+                <TableHeader>{translate.products("variants")}</TableHeader>
+                <TableHeader>{translate.common("status")}</TableHeader>
+                <TableHeader>{translate.common("actions")}</TableHeader>
+              </TableRow>
+            </TableHead>
+            {products.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                  {translate.common("noResults")}
+                </td>
+              </tr>
+            ) : (
+              products.map((product) => (
+                <TableRow key={product.id}>
+                  <TableCell>
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="h-12 w-12 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center">
+                        <PhotoIcon className="h-6 w-6 text-gray-400" />
                       </div>
-                      {product.sku && (
-                        <div className="text-xs text-gray-500">
-                          SKU: {product.sku}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {product.category?.name || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {formatCurrency(product.price)}
-                      </div>
-                      {product.cost && (
-                        <div className="text-xs text-gray-500">
-                          {translate.products("productCost")}:{" "}
-                          {formatCurrency(product.cost)}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div
-                        className={`text-sm ${
-                          product.lowStockAlert &&
-                          product.stock <= product.lowStockAlert
-                            ? "text-red-600 font-medium"
-                            : "text-gray-900"
-                        }`}
-                      >
-                        {product.stock}{" "}
-                        {translate.products("inStock").toLowerCase()}
-                      </div>
-                      {product.lowStockAlert && (
-                        <div className="text-xs text-gray-500">
-                          {translate.products("lowStockAlert")}:{" "}
-                          {product.lowStockAlert}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {product.hasVariants &&
-                      product.variants &&
-                      product.variants.length > 0 ? (
-                        <div className="text-sm text-gray-900">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {product.variants.length}{" "}
-                            {translate.products("variantsAvailable")}
-                          </span>
-                          <div className="mt-1 text-xs text-gray-500 max-w-[150px] truncate">
-                            {product.variants.join(", ")}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-500">
-                          {translate.common("no")}{" "}
-                          {translate.products("variants")}
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Text>
+                      {product.name}
+                    </Text>
+                    {product.sku && (
+                      <Text className="text-xs text-gray-500">
+                        SKU: {product.sku}
+                      </Text>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Text>{product.category?.name || "-"}</Text>
+                  </TableCell>
+                  <TableCell>
+                    <Text className="text-sm text-gray-900">
+                      {formatCurrency(product.price)}
+                    </Text>
+                    {product.cost && (
+                      <Text className="text-xs text-gray-500">
+                        {translate.products("productCost")}:{" "}
+                        {formatCurrency(product.cost)}
+                      </Text>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Text
+                      className={`text-sm ${
+                        product.lowStockAlert &&
+                        product.stock <= product.lowStockAlert
+                          ? "text-red-600 font-medium"
+                          : "text-gray-900"
+                      }`}
+                    >
+                      {product.stock}{" "}
+                      {translate.products("inStock").toLowerCase()}
+                    </Text>
+                    {product.lowStockAlert && (
+                      <Text>
+                        {translate.products("lowStockAlert")}:{" "}
+                        {product.lowStockAlert}
+                      </Text>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {product.hasVariants &&
+                    product.variants &&
+                    product.variants.length > 0 ? (
+                      <Text>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {product.variants.length}{" "}
+                          {translate.products("variantsAvailable")}
                         </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          product.active
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
+                        <Text className="mt-1 text-xs text-gray-500 max-w-[150px] truncate">
+                          {product.variants.join(", ")}
+                        </Text>
+                      </Text>
+                    ) : (
+                      <Text>
+                        {translate.common("no")}{" "}
+                        {translate.products("variants")}
+                      </Text>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {product.active ? (
+                      <Badge color="green">
+                        <CheckCircleIcon className="h-5 w-5 mr-1" />
+                        {translate.common("active")}
+                      </Badge>
+                    ) : (
+                      <Badge color="red">
+                        <XCircleIcon className="h-5 w-5 mr-1" />
+                        {translate.common("inactive")}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2 justify-end">
+                      <Button
+                        outline
+                        onClick={() => openEditModal(product)}
                       >
-                        {product.active
-                          ? translate.common("active")
-                          : translate.common("inactive")}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex space-x-2 justify-end">
-                        <button
-                          onClick={() => openEditModal(product)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <PencilIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => openDeleteModal(product)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </Table>
+                        <PencilIcon className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        color="red"
+                        onClick={() => openDeleteModal(product)}
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </Table>
           </div>
 
           {/* Pagination */}
@@ -525,8 +517,7 @@ const Products: React.FC = () => {
               </div>
               <div className="flex space-x-2">
                 <Button
-                  variant="outline"
-                  size="sm"
+                  outline
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page <= 1}
                 >
@@ -538,8 +529,7 @@ const Products: React.FC = () => {
                   </span>
                 </div>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  outline
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages}
                 >
@@ -552,410 +542,384 @@ const Products: React.FC = () => {
       )}
 
       {/* Product Form Modal */}
-      <Modal
-        isOpen={isModalOpen}
+      <Dialog
+        open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={
-          currentProduct
+      >
+        <DialogTitle>
+          {currentProduct
             ? translate.products("editProduct")
             : translate.products("addProduct")
         }
-        size="lg"
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {currentProduct
-                ? translate.common("save")
-                : translate.common("add")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common("cancel")}
-            </Button>
-          </>
-        }
-      >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Left Column */}
-            <div className="space-y-4">
-              {/* Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {translate.products("productName")} *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                    formErrors.name ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder={translate.products("productName")}
-                />
-                {formErrors.name && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
-                )}
-              </div>
+        </DialogTitle>
+        <DialogBody>
+        <form onSubmit={handleSubmit}>
+          {formErrors.form && (
+            <Text className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+              {formErrors.form}
+            </Text>
+          )}
+          <Fieldset className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left Column */}
+              <div className="space-y-4">
+                {/* Name */}
+                <Field>
+                  <Label>
+                    {translate.products("productName")} *
+                  </Label>
+                  <Input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder={translate.products("productName")}
+                  />
+                  {formErrors.name && (
+                    <Text className="mt-1 text-sm text-red-600">{formErrors.name}</Text>
+                  )}
+                </Field>
 
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {translate.products("productDescription")}
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={translate.products("productDescription")}
-                />
-              </div>
+                {/* Description */}
+                <Field>
+                  <Label>
+                    {translate.products("productDescription")}
+                  </Label>
+                  <Textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    placeholder={translate.products("productDescription")}
+                  />
+                </Field>
 
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {translate.products("productCategory")}
-                </label>
-                <select
-                  name="categoryId"
-                  value={formData.categoryId}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">
-                    {translate.common("select")}{" "}
-                    {translate.categories("title").toLowerCase()}
-                  </option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
+                {/* Category */}
+                <Field>
+                  <Label>
+                    {translate.products("productCategory")}
+                  </Label>
+                  <Select
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">
+                      {translate.common("select")}{" "}
+                      {translate.categories("title").toLowerCase()}
                     </option>
-                  ))}
-                </select>
-              </div>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
 
-              {/* Price and Cost */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {translate.products("productPrice")} *
-                  </label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                      formErrors.price ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                  />
-                  {formErrors.price && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {formErrors.price}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {translate.products("productCost")}
-                  </label>
-                  <input
-                    type="number"
-                    name="cost"
-                    value={formData.cost || ""}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="space-y-4">
-              {/* Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {translate.products("productImage")}
-                </label>
-                <div className="mt-1 flex items-center">
-                  {imagePreview ? (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="h-32 w-32 object-cover rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >
-                        <XIcon className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-32 w-32 border-2 border-dashed border-gray-300 rounded-md">
-                      <label htmlFor="file-upload" className="cursor-pointer">
-                        <div className="space-y-1 text-center">
-                          <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="text-xs text-gray-600">
-                            {translate.products("uploadImage")}
-                          </div>
-                        </div>
-                        <input
-                          id="file-upload"
-                          name="image"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="sr-only"
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* SKU and Barcode */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {translate.products("productSKU")}
-                  </label>
-                  <input
-                    type="text"
-                    name="sku"
-                    value={formData.sku || ""}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={translate.products("productSKU")}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {translate.products("productBarcode")}
-                  </label>
-                  <input
-                    type="text"
-                    name="barcode"
-                    value={formData.barcode || ""}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={translate.products("productBarcode")}
-                  />
-                </div>
-              </div>
-
-              {/* Stock and Low Stock Alert */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {translate.products("stockQuantity")}
-                  </label>
-                  <input
-                    type="number"
-                    name="stock"
-                    value={formData.stock}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                      formErrors.stock ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="0"
-                    min="0"
-                  />
-                  {formErrors.stock && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {formErrors.stock}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {translate.products("lowStockAlert")}
-                  </label>
-                  <input
-                    type="number"
-                    name="lowStockAlert"
-                    value={formData.lowStockAlert || ""}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
-              </div>
-
-              {/* Active Status */}
-              <div className="flex items-center mt-4">
-                <input
-                  type="checkbox"
-                  id="active"
-                  name="active"
-                  checked={formData.active}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      active: e.target.checked,
-                    })
-                  }
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="active"
-                  className="ml-2 block text-sm text-gray-700"
-                >
-                  {translate.products("activeForSale")}
-                </label>
-              </div>
-
-              {/* Product Variants */}
-              <div className="mt-4">
-                <div className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    id="hasVariants"
-                    name="hasVariants"
-                    checked={formData.hasVariants}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        hasVariants: e.target.checked,
-                      })
-                    }
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="hasVariants"
-                    className="ml-2 block text-sm text-gray-700"
-                  >
-                    {translate.products("hasVariants")}
-                  </label>
-                </div>
-
-                {formData.hasVariants && (
-                  <div
-                    className={`mt-3 border rounded-md p-3 ${
-                      formErrors.variants ? "border-red-500" : "border-gray-200"
-                    }`}
-                  >
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {translate.products("variants")}
-                    </label>
-                    {formErrors.variants && (
-                      <p className="text-sm text-red-600 mb-2">
-                        {formErrors.variants}
-                      </p>
+                {/* Price and Cost */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <Label>
+                      {translate.products("productPrice")} *
+                    </Label>
+                    <Input
+                      type="number"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
+                    />
+                    {formErrors.price && (
+                      <Text className="mt-1 text-sm text-red-600">
+                        {formErrors.price}
+                      </Text>
                     )}
-                    <div className="space-y-2 mb-2">
-                      {(formData.variants || []).map((variant, index) => (
-                        <div key={index} className="flex items-center">
+                  </Field>
+                  <Field>
+                    <Label>
+                      {translate.products("productCost")}
+                    </Label>
+                    <Input
+                      type="number"
+                      name="cost"
+                      value={formData.cost || ""}
+                      onChange={handleInputChange}
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-4">
+                {/* Image Upload */}
+                <Field>
+                  <Label>
+                    {translate.products("productImage")}
+                  </Label>
+                  <div className="mt-1 flex items-center">
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="h-32 w-32 object-cover rounded-md"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <XIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-32 w-32 border-2 border-dashed border-gray-300 rounded-md">
+                        <label htmlFor="file-upload" className="cursor-pointer">
+                          <div className="space-y-1 text-center">
+                            <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
+                            <div className="text-xs text-gray-600">
+                              {translate.products("uploadImage")}
+                            </div>
+                          </div>
                           <input
-                            type="text"
-                            value={variant}
-                            onChange={(e) => {
-                              const newVariants = [
-                                ...(formData.variants || []),
-                              ];
-                              newVariants[index] = e.target.value;
-                              setFormData({
-                                ...formData,
-                                variants: newVariants,
-                              });
-                            }}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder={translate.products("selectVariant")}
+                            id="file-upload"
+                            name="image"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="sr-only"
                           />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newVariants = [
-                                ...(formData.variants || []),
-                              ];
-                              newVariants.splice(index, 1);
-                              setFormData({
-                                ...formData,
-                                variants: newVariants,
-                              });
-                            }}
-                            className="ml-2 p-2 text-red-500 hover:text-red-700"
-                          >
-                            <XIcon className="h-5 w-5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          variants: [...(formData.variants || []), ""],
-                        });
-                      }}
-                      className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      <PlusIcon className="h-4 w-4 mr-2" />
-                      {translate.products("addVariant")}
-                    </button>
+                        </label>
+                      </div>
+                    )}
                   </div>
-                )}
+                </Field>
+
+                {/* SKU and Barcode */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <Label>
+                      {translate.products("productSKU")}
+                    </Label>
+                    <Input
+                      type="text"
+                      name="sku"
+                      value={formData.sku || ""}
+                      onChange={handleInputChange}
+                      placeholder={translate.products("productSKU")}
+                    />
+                  </Field>
+                  <Field>
+                    <Label>
+                      {translate.products("productBarcode")}
+                    </Label>
+                    <Input
+                      type="text"
+                      name="barcode"
+                      value={formData.barcode || ""}
+                      onChange={handleInputChange}
+                      placeholder={translate.products("productBarcode")}
+                    />
+                  </Field>
+                </div>
+
+                {/* Stock and Low Stock Alert */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <Label>
+                      {translate.products("stockQuantity")}
+                    </Label>
+                    <Input
+                      type="number"
+                      name="stock"
+                      value={formData.stock}
+                      onChange={handleInputChange}
+                      placeholder="0"
+                      min="0"
+                    />
+                    {formErrors.stock && (
+                      <Text className="mt-1 text-sm text-red-600">
+                        {formErrors.stock}
+                      </Text>
+                    )}
+                  </Field>
+                  <Field>
+                    <Label>
+                      {translate.products("lowStockAlert")}
+                    </Label>
+                    <Input
+                      type="number"
+                      name="lowStockAlert"
+                      value={formData.lowStockAlert || ""}
+                      onChange={handleInputChange}
+                      placeholder="0"
+                      min="0"
+                    />
+                  </Field>
+                </div>
+
+                {/* Active Status */}
+                <Field>
+                  <Checkbox
+                    id="active"
+                    name="active"
+                    checked={formData.active}
+                    onChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
+                  />
+                  <Label htmlFor="active">
+                    {translate.products("activeForSale")}
+                  </Label>
+                </Field>
+
+                {/* Product Variants */}
+                <Field>
+                  <div className="flex items-center mb-2">
+                    <Checkbox
+                      id="hasVariants"
+                      name="hasVariants"
+                      checked={formData.hasVariants}
+                      onChange={(checked) => setFormData(prev => ({ ...prev, hasVariants: checked }))}
+                    />
+                    <Label htmlFor="hasVariants">
+                      {translate.products("hasVariants")}
+                    </Label>
+                  </div>
+
+                  {formData.hasVariants && (
+                    <div
+                      className={`mt-3 border rounded-md p-3 ${
+                        formErrors.variants ? "border-red-500" : "border-gray-200"
+                      }`}
+                    >
+                      <Label className="block mb-2">
+                        {translate.products("variants")}
+                      </Label>
+                      {formErrors.variants && (
+                        <Text className="text-sm text-red-600 mb-2">
+                          {formErrors.variants}
+                        </Text>
+                      )}
+                      <div className="space-y-2 mb-2">
+                        {(formData.variants || []).map((variant, index) => (
+                          <div key={index} className="flex items-center">
+                            <Input
+                              type="text"
+                              value={variant}
+                              onChange={(e) => {
+                                const newVariants = [
+                                  ...(formData.variants || []),
+                                ];
+                                newVariants[index] = e.target.value;
+                                setFormData({
+                                  ...formData,
+                                  variants: newVariants,
+                                });
+                              }}
+                              className="flex-1"
+                              placeholder={translate.products("selectVariant")}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newVariants = [
+                                  ...(formData.variants || []),
+                                ];
+                                newVariants.splice(index, 1);
+                                setFormData({
+                                  ...formData,
+                                  variants: newVariants,
+                                });
+                              }}
+                              className="ml-2 p-2 text-red-500 hover:text-red-700"
+                            >
+                              <XIcon className="h-5 w-5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        outline
+                        type="button"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            variants: [...(formData.variants || []), ""],
+                          });
+                        }}
+                        className="mt-2"
+                      >
+                        <PlusIcon className="h-4 w-4 mr-2" />
+                        {translate.products("addVariant")}
+                      </Button>
+                    </div>
+                  )}
+                </Field>
               </div>
             </div>
-          </div>
+          </Fieldset>
         </form>
-      </Modal>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleSubmit}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {currentProduct
+              ? translate.common("save")
+              : translate.common("add")}
+          </Button>
+          <Button
+            outline
+            onClick={() => setIsModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common("cancel")}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
+      <Dialog
+        open={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title={translate.common("delete")}
-        footer={
-          <>
-            <Button
-              variant="danger"
-              onClick={handleDelete}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {translate.common("delete")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common("cancel")}
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <p className="text-gray-600">
-            {translate.categories("deleteConfirmation")}{" "}
-            <span className="font-medium text-gray-900">
-              {currentProduct?.name}
-            </span>
-          </p>
-        </div>
-      </Modal>
+        <DialogTitle>
+          {translate.common("delete")}
+        </DialogTitle>
+        <DialogBody>
+          <div className="py-4">
+            <Text className="text-gray-600">
+              {translate.categories("deleteConfirmation")}{" "}
+              <span className="font-medium text-gray-900">
+                {currentProduct?.name}
+              </span>
+            </Text>
+          </div>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            color="red"
+            onClick={handleDelete}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {translate.common("delete")}
+          </Button>
+          <Button
+            outline
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common("cancel")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

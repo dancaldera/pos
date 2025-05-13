@@ -1,17 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { 
+import { Button } from '@/components/button';
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '@/components/dialog';
+import { Divider } from '@/components/divider';
+import { Field, Fieldset, Label } from '@/components/fieldset';
+import { Heading } from '@/components/heading';
+import { Input } from '@/components/input';
+import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table';
+import { Text } from '@/components/text';
+import { Textarea } from '@/components/textarea';
+import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState } from 'react';
+import {
   CategorySearchParams,
-  getCategories, 
-  createCategory, 
-  updateCategory, 
-  deleteCategory 
+  createCategory,
+  deleteCategory,
+  getCategories,
+  updateCategory
 } from '../api/categories';
-import { Category } from '../types/products';
-import Table from '../components/ui/Table';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import { PencilIcon, TrashIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useLanguage } from '../context/LanguageContext';
+import { Category } from '../types/products';
 
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -129,23 +135,23 @@ const Categories: React.FC = () => {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       errors.name = translate.categories('nameRequired');
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     try {
       setSubmitLoading(true);
-      
+
       if (currentCategory) {
         // Update category
         await updateCategory(currentCategory.id, formData);
@@ -153,7 +159,7 @@ const Categories: React.FC = () => {
         // Create category
         await createCategory(formData);
       }
-      
+
       setIsModalOpen(false);
       fetchCategories();
     } catch (error: any) {
@@ -173,7 +179,7 @@ const Categories: React.FC = () => {
 
   const handleDelete = async () => {
     if (!currentCategory) return;
-    
+
     try {
       setSubmitLoading(true);
       await deleteCategory(currentCategory.id);
@@ -192,18 +198,17 @@ const Categories: React.FC = () => {
 
   const getSortIcon = (column: string) => {
     if (searchParams.sortBy !== column) return null;
-    
-    return searchParams.sortOrder === 'asc' 
-      ? <span className="ml-1">↑</span> 
+
+    return searchParams.sortOrder === 'asc'
+      ? <span className="ml-1">↑</span>
       : <span className="ml-1">↓</span>;
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{translate.categories('title')}</h1>
-        <Button 
-          variant="primary" 
+        <Heading>{translate.categories('title')}</Heading>
+        <Button
           onClick={openCreateModal}
         >
           <PlusIcon className="h-5 w-5 mr-1" />
@@ -212,53 +217,47 @@ const Categories: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={translate.categories('searchCategories')}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                value={search}
-                onChange={handleSearchChange}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              />
-              <button
-                className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
-                onClick={handleSearch}
-              >
-                <MagnifyingGlassIcon className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+
+      <Input
+        type="text"
+        placeholder={translate.categories('searchCategories')}
+        value={search}
+        onChange={handleSearchChange}
+        className='mb-4'
+        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+      />
 
       {/* Categories Table */}
       {loading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">{translate.common('loading')}</p>
+          <Text>{translate.common('loading')}</Text>
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table 
-              headers={[
-                <div key="name" className="cursor-pointer flex items-center" onClick={() => handleSortChange('name')}>
-                  {translate.common('name')} {getSortIcon('name')}
-                </div>,
-                translate.common('description'),
-                <div key="productCount" className="cursor-pointer flex items-center" onClick={() => handleSortChange('productCount')}>
-                  {translate.categories('productsInCategory')} {getSortIcon('productCount')}
-                </div>,
-                <div key="createdAt" className="cursor-pointer flex items-center" onClick={() => handleSortChange('createdAt')}>
-                  {translate.common('created')} {getSortIcon('createdAt')}
-                </div>,
-                translate.common('actions')
-              ]}
-            >
+          <div className="rounded-lg shadow overflow-hidden">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>
+                    <div className="cursor-pointer flex items-center" onClick={() => handleSortChange('name')}>
+                      {translate.common('name')} {getSortIcon('name')}
+                    </div>
+                  </TableHeader>
+                  <TableHeader>{translate.common('description')}</TableHeader>
+                  <TableHeader>
+                    <div className="cursor-pointer flex items-center" onClick={() => handleSortChange('productCount')}>
+                      {translate.categories('productsInCategory')} {getSortIcon('productCount')}
+                    </div>
+                  </TableHeader>
+                  <TableHeader>
+                    <div className="cursor-pointer flex items-center" onClick={() => handleSortChange('createdAt')}>
+                      {translate.common('created')} {getSortIcon('createdAt')}
+                    </div>
+                  </TableHeader>
+                  <TableHeader>{translate.common('actions')}</TableHeader>
+                </TableRow>
+              </TableHead>
               {categories.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
@@ -267,42 +266,40 @@ const Categories: React.FC = () => {
                 </tr>
               ) : (
                 categories.map(category => (
-                  <tr key={category.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{category.name}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500 line-clamp-2">
+                  <TableRow key={category.id}>
+                    <TableCell>
+                      <Text className="font-medium">{category.name}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text className="line-clamp-2">
                         {category.description || '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{category.productCount || 0}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
-                        {new Date(category.createdAt).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      </Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text>{category.productCount || 0}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text>{new Date(category.createdAt).toLocaleDateString()}</Text>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex space-x-2 justify-end">
-                        <button
+                        <Button
+                          outline
                           onClick={() => openEditModal(category)}
-                          className="text-blue-600 hover:text-blue-900"
                         >
                           <PencilIcon className="h-5 w-5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          color="red"
                           onClick={() => openDeleteModal(category)}
-                          className="text-red-600 hover:text-red-900"
                           disabled={category.productCount ? category.productCount > 0 : false}
                           title={category.productCount && category.productCount > 0 ? "Categories with products cannot be deleted" : ""}
                         >
                           <TrashIcon className={`h-5 w-5 ${category.productCount && category.productCount > 0 ? 'opacity-40 cursor-not-allowed' : ''}`} />
-                        </button>
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </Table>
@@ -312,13 +309,12 @@ const Categories: React.FC = () => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-gray-500">
-                {pagination.total > 0 ? 
+                {pagination.total > 0 ?
                   `${(pagination.page - 1) * pagination.limit + 1} - ${Math.min(pagination.page * pagination.limit, pagination.total)} / ${pagination.total}` : "0"} {translate.categories('title').toLowerCase()}
               </div>
               <div className="flex space-x-2">
                 <Button
-                  variant="outline"
-                  size="sm"
+                  outline
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page <= 1}
                 >
@@ -330,8 +326,7 @@ const Categories: React.FC = () => {
                   </span>
                 </div>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  outline
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages}
                 >
@@ -344,99 +339,105 @@ const Categories: React.FC = () => {
       )}
 
       {/* Category Form Modal */}
-      <Modal
-        isOpen={isModalOpen}
+      <Dialog
+        open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentCategory ? translate.categories('editCategory') : translate.categories('addCategory')}
-        footer={
-          <>
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {currentCategory ? translate.common('save') : translate.common('add')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common('cancel')}
-            </Button>
-          </>
-        }
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {translate.categories('categoryName')} *
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                formErrors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={translate.categories('categoryName')}
-            />
-            {formErrors.name && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+        <DialogTitle>
+          {currentCategory ? translate.categories('editCategory') : translate.categories('addCategory')}
+        </DialogTitle>
+        <DialogBody>
+          <form onSubmit={handleSubmit}>
+            {formErrors.form && (
+              <Text className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {formErrors.form}
+              </Text>
             )}
-          </div>
+            <Fieldset className="space-y-4">
+              {/* Name */}
+              <Field>
+                <Label>
+                  {translate.categories('categoryName')} *
+                </Label>
+                <Input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder={translate.categories('categoryName')}
+                />
+                {formErrors.name && (
+                  <Text className="mt-1 text-sm text-red-600">{formErrors.name}</Text>
+                )}
+              </Field>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {translate.categories('categoryDescription')}
-            </label>
-            <textarea
-              name="description"
-              value={formData.description || ""}
-              onChange={handleInputChange}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder={translate.categories('categoryDescription')}
-            />
-          </div>
-        </form>
-      </Modal>
+              {/* Description */}
+              <Field>
+                <Label>
+                  {translate.categories('categoryDescription')}
+                </Label>
+                <Textarea
+                  name="description"
+                  value={formData.description || ""}
+                  onChange={handleInputChange}
+                  rows={4}
+                  placeholder={translate.categories('categoryDescription')}
+                />
+              </Field>
+            </Fieldset>
+          </form>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            onClick={handleSubmit}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {currentCategory ? translate.common('save') : translate.common('add')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setIsModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common('cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
+      <Dialog
+        open={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title={translate.common('delete')}
-        footer={
-          <>
-            <Button
-              variant="danger"
-              onClick={handleDelete}
-              isLoading={submitLoading}
-              className="ml-3"
-            >
-              {translate.common('delete')}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteModalOpen(false)}
-              disabled={submitLoading}
-            >
-              {translate.common('cancel')}
-            </Button>
-          </>
-        }
       >
-        <div className="py-4">
-          <p className="text-gray-600">
+        <DialogTitle>{translate.common('delete')}</DialogTitle>
+        <DialogBody>
+          <Text>
             {translate.categories('deleteConfirmation')}
-            <br />
-            <span className="font-medium text-gray-900">{currentCategory?.name}</span>
-          </p>
-        </div>
-      </Modal>
+            <Divider />
+            <Text>
+              {currentCategory?.name}
+            </Text>
+          </Text>
+        </DialogBody>
+        <DialogActions>
+          <Button
+            color="red"
+            onClick={handleDelete}
+            disabled={submitLoading}
+            className="ml-3"
+          >
+            {translate.common('delete')}
+          </Button>
+          <Button
+            outline
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={submitLoading}
+          >
+            {translate.common('cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

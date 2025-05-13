@@ -366,15 +366,15 @@ const es = {
     noData: 'No hay datos disponibles para el período seleccionado',
   },
   layout: {
-    pos: 'Punto de Venta',
+    pos: 'PPOS',
     menu: 'Menú',
     logout: 'Cerrar sesión',
     profile: 'Mi perfil',
     settings: 'Configuración',
     help: 'Ayuda',
     about: 'Acerca de',
-    appName: 'POS',
-    appDescription: 'Sistema de punto de venta para restaurantes y tiendas',
+    appName: 'PPOS',
+    appDescription: 'Sistema de punto de venta profesional',
   },
 };
 

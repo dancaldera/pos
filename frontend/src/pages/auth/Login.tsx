@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from 'sonner';
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuthStore } from "../../store/authStore";
+import { Text } from "@/components/text";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -111,6 +112,10 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="p-8">
+      <div className="text-center mb-6">
+        <Heading>{translate.layout('appName')}</Heading>
+        <Text>{translate.layout('appDescription')}</Text>
+      </div>
       <div className="flex justify-between items-center mb-6">
         <Heading level={2}>
           {translate.auth('login')}

@@ -365,15 +365,15 @@ const en = {
     noData: 'No data available for the selected period',
   },
   layout: {
-    pos: 'Point of Sale',
+    pos: 'PPOS',
     menu: 'Menu',
     logout: 'Logout',
     profile: 'My Profile',
     settings: 'Settings',
     help: 'Help',
     about: 'About',
-    appName: 'POS',
-    appDescription: 'Point of Sale System',
+    appName: 'PPOS',
+    appDescription: 'Professional Point of Sale System',
   },
 };
 

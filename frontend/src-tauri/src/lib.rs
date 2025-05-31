@@ -34,7 +34,7 @@ async fn print_thermal_receipt(receipt_data: String) -> Result<String, String> {
     
     // Load user's shell configuration and ensure PATH is correctly set
     // This ensures the command is run in the same environment as your terminal
-    let output = Command::new("zsh")
+    let output = Command::new("bash")
         .arg("-l")  // Login shell to load full environment
         .arg("-i")  // Interactive mode to ensure all user configs are loaded
         .arg("-c")

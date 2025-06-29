@@ -36,8 +36,8 @@ const Orders: React.FC = () => {
   const [filters, setFilters] = useState({
     status: "",
     paymentStatus: "",
-    startDate: "",
-    endDate: "",
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
   });
   const [searchParams, setSearchParams] = useState<OrderSearchParams>({
     page: 1,
@@ -45,8 +45,8 @@ const Orders: React.FC = () => {
     search: "",
     status: "",
     paymentStatus: "",
-    startDate: "",
-    endDate: "",
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
     sortBy: "createdAt",
     sortOrder: "desc",
   });
@@ -57,6 +57,7 @@ const Orders: React.FC = () => {
     total: 0,
   });
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Check if user is admin or manager
   const isAdmin = user?.role === "admin";
@@ -117,22 +118,24 @@ const Orders: React.FC = () => {
   };
 
   const resetFilters = () => {
+    const today = new Date().toISOString().split('T')[0];
     setFilters({
       status: "",
       paymentStatus: "",
-      startDate: "",
-      endDate: "",
+      startDate: today,
+      endDate: today,
     });
     setSearchParams({
       ...searchParams,
       status: "",
       paymentStatus: "",
-      startDate: "",
-      endDate: "",
+      startDate: today,
+      endDate: today,
       search: "",
       page: 1,
     });
     setSearch("");
+    setSelectedDate(today);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -225,6 +228,33 @@ const Orders: React.FC = () => {
 
   const { translate } = useLanguage();
 
+  const handleDateChange = (date: string) => {
+    setSelectedDate(date);
+    setFilters({
+      ...filters,
+      startDate: date,
+      endDate: date,
+    });
+    setSearchParams({
+      ...searchParams,
+      startDate: date,
+      endDate: date,
+      page: 1,
+    });
+  };
+
+  const goToYesterday = () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    handleDateChange(yesterdayStr);
+  };
+
+  const goToToday = () => {
+    const today = new Date().toISOString().split('T')[0];
+    handleDateChange(today);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -241,8 +271,43 @@ const Orders: React.FC = () => {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="p-4 rounded-lg shadow mb-6">
+      {/* Quick Date Navigation */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <h3 className="text-lg font-medium text-gray-900">
+              {translate.orders("ordersFor")}
+            </h3>
+            <div className="flex items-center gap-2">
+              <Button
+                outline
+                onClick={goToYesterday}
+                className="text-sm"
+              >
+                {translate.common("yesterday")}
+              </Button>
+              <Button
+                onClick={goToToday}
+                className="text-sm"
+                color={selectedDate === new Date().toISOString().split('T')[0] ? 'blue' : 'zinc'}
+              >
+                {translate.common("today")}
+              </Button>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="w-auto"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Advanced Filters */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="flex-1">
             <Input
@@ -253,74 +318,80 @@ const Orders: React.FC = () => {
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Field>
-            <Label>
-              {translate.common("status")}
-            </Label>
-            <Select
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-            >
-              <option value="">
-                {translate.common("all")} {translate.common("status")}
-              </option>
-              <option value="pending">{translate.orders("pending")}</option>
-              <option value="completed">{translate.orders("completed")}</option>
-              <option value="cancelled">{translate.orders("cancelled")}</option>
-            </Select>
-          </Field>
-          <Field>
-            <Label>
-              {translate.orders("paymentStatus")}
-            </Label>
-            <Select
-              name="paymentStatus"
-              value={filters.paymentStatus}
-              onChange={handleFilterChange}
-            >
-              <option value="">
-                {translate.common("all")} {translate.orders("paymentStatus")}
-              </option>
-              <option value="paid">{translate.orders("paid")}</option>
-              <option value="partial">{translate.orders("partial")}</option>
-              <option value="unpaid">{translate.orders("unpaid")}</option>
-            </Select>
-          </Field>
-          <Field>
-            <Label>
-              {translate.reports("startDate")}
-            </Label>
-            <Input
-              type="date"
-              name="startDate"
-              value={filters.startDate}
-              onChange={handleFilterChange}
-            />
-          </Field>
-          <Field>
-            <Label>
-              {translate.reports("endDate")}
-            </Label>
-            <Input
-              type="date"
-              name="endDate"
-              value={filters.endDate}
-              onChange={handleFilterChange}
-            />
-          </Field>
-        </div>
-
-        <div className="flex justify-end mt-4 space-x-2">
-          <Button outline onClick={resetFilters}>
-            {translate.common("cancel")}
-          </Button>
-          <Button onClick={applyFilters}>
+          <Button onClick={handleSearch}>
             {translate.common("search")}
           </Button>
+        </div>
+
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+            {translate.common("advancedFilters")}
+          </summary>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field>
+              <Label>
+                {translate.common("status")}
+              </Label>
+              <Select
+                name="status"
+                value={filters.status}
+                onChange={handleFilterChange}
+              >
+                <option value="">
+                  {translate.common("all")} {translate.common("status")}
+                </option>
+                <option value="pending">{translate.orders("pending")}</option>
+                <option value="completed">{translate.orders("completed")}</option>
+                <option value="cancelled">{translate.orders("cancelled")}</option>
+              </Select>
+            </Field>
+            <Field>
+              <Label>
+                {translate.orders("paymentStatus")}
+              </Label>
+              <Select
+                name="paymentStatus"
+                value={filters.paymentStatus}
+                onChange={handleFilterChange}
+              >
+                <option value="">
+                  {translate.common("all")} {translate.orders("paymentStatus")}
+                </option>
+                <option value="paid">{translate.orders("paid")}</option>
+                <option value="partial">{translate.orders("partial")}</option>
+                <option value="unpaid">{translate.orders("unpaid")}</option>
+              </Select>
+            </Field>
+          </div>
+          <div className="flex justify-end mt-4 space-x-2">
+            <Button outline onClick={resetFilters}>
+              {translate.common("reset")}
+            </Button>
+            <Button onClick={applyFilters}>
+              {translate.common("apply")}
+            </Button>
+          </div>
+        </details>
+      </div>
+
+      {/* Current Orders Summary */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {selectedDate === new Date().toISOString().split('T')[0] 
+                ? translate.orders("todaysOrders")
+                : translate.orders("ordersForDate")
+              }
+            </h3>
+            <p className="text-sm text-gray-500">
+              {new Date(selectedDate).toLocaleDateString()}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold text-blue-600">{ orders.length }</p>
+            <p className="text-sm text-gray-500">{translate.orders("totalOrders")}</p>
+          </div>
         </div>
       </div>
 
@@ -332,7 +403,7 @@ const Orders: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
             <Table>
               <TableHead>
                 <TableRow>

@@ -56,7 +56,12 @@ const en = {
     of: 'of',
     results: 'results',
     application: 'Application',
-    view: 'View'
+    view: 'View',
+    yesterday: 'Yesterday',
+    today: 'Today',
+    advancedFilters: 'Advanced Filters',
+    reset: 'Reset',
+    apply: 'Apply',
   },
   auth: {
     login: 'Login',
@@ -213,6 +218,10 @@ const en = {
     applyToSubtotal: 'Apply to Subtotal',
     applyToSubtotalMinusDiscount: 'Apply to Subtotal minus Discount',
     appliedToNetAmount: '(applied to net amount)',
+    ordersFor: 'Orders for',
+    todaysOrders: 'Today\'s Orders',
+    ordersForDate: 'Orders for {date}',
+    totalOrders: 'Total Orders',
   },
   products: {
     title: 'Products',

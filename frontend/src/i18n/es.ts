@@ -58,6 +58,11 @@ const es = {
     results: 'resultados',
     application: 'Aplicación',
     view: 'Ver',
+    yesterday: 'Ayer',
+    today: 'Hoy',
+    advancedFilters: 'Filtros avanzados',
+    reset: 'Reiniciar',
+    apply: 'Aplicar',
   },
   auth: {
     login: 'Iniciar sesión',
@@ -214,6 +219,10 @@ const es = {
     applyToSubtotal: 'Aplicar al Subtotal',
     applyToSubtotalMinusDiscount: 'Aplicar al Subtotal menos Descuento',
     appliedToNetAmount: '(aplicado al monto neto)',
+    ordersFor: 'Pedidos para',
+    todaysOrders: 'Pedidos de hoy',
+    ordersForDate: 'Pedidos para {date}',
+    totalOrders: 'Total de pedidos',
   },
   products: {
     title: 'Productos',

@@ -1,85 +1,138 @@
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
-import { Dialog, DialogActions, DialogBody, DialogTitle } from "@/components/dialog";
-import { Field, Label } from "@/components/fieldset";
 import { Heading } from "@/components/heading";
 import { Input } from "@/components/input";
 import { Select } from "@/components/select";
 import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/table";
 import { Text } from "@/components/text";
-import { Textarea } from "@/components/textarea";
 import { formatCurrency } from "@/utils/format-currency";
 import {
-  ArrowPathIcon,
   EyeIcon,
-  PlusIcon,
-  XMarkIcon
+  PlusIcon
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { OrderSearchParams, cancelOrder, getOrders } from "../api/orders";
+import { getOrders, OrderSearchParams } from "../api/orders";
 import { useLanguage } from "../context/LanguageContext";
-import { useAuthStore } from "../store/authStore";
-import { Order, OrderStatus } from "../types/orders";
+import { Order } from "../types/orders";
+
+type DateFilter = 'all' | 'today' | 'week' | string; // string for specific dates
 
 const Orders: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { translate } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusModalOpen, setStatusModalOpen] = useState(false);
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [newStatus, setNewStatus] = useState<OrderStatus>("pending");
-  const [cancelReason, setCancelReason] = useState("");
   const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({
-    status: "",
-    paymentStatus: "",
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
-  });
-  const [searchParams, setSearchParams] = useState<OrderSearchParams>({
-    page: 1,
-    limit: 10,
-    search: "",
-    status: "",
-    paymentStatus: "",
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
-    sortBy: "createdAt",
-    sortOrder: "desc",
-  });
+  const [statusFilter, setStatusFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: 20,
     totalPages: 1,
     total: 0,
   });
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dailyCounts, setDailyCounts] = useState<Record<string, number>>({});
 
-  // Check if user is admin or manager
-  const isAdmin = user?.role === "admin";
-  const isManager = user?.role === "manager";
-  const canManageOrders = isAdmin || isManager;
-
-  // Fetch orders on mount and when search params change
+  // Fetch orders when filters or pagination change
   useEffect(() => {
     fetchOrders();
-  }, [searchParams]);
+  }, [dateFilter, selectedDate, statusFilter, search, pagination.page]);
+
+  // Fetch daily counts for the last 7 days on component mount
+  useEffect(() => {
+    fetchDailyCounts();
+  }, [statusFilter]); // Re-fetch when status filter changes
+
+  const getDateRange = (filter: DateFilter, specificDate?: string) => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // If it's a specific date (YYYY-MM-DD format)
+    if (specificDate && specificDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return { startDate: specificDate, endDate: specificDate };
+    }
+    
+    switch (filter) {
+      case 'today':
+        return { startDate: todayStr, endDate: todayStr };
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(today.getDate() - 7);
+        const weekAgoStr = weekAgo.toISOString().split('T')[0];
+        return { startDate: weekAgoStr, endDate: todayStr };
+      case 'all':
+      default:
+        return {};
+    }
+  };
+
+  // Get last 7 days for the week view
+  const getLastSevenDays = () => {
+    const days = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      days.push(date);
+    }
+    
+    return days;
+  };
+
+  // Fetch daily counts for quick overview
+  const fetchDailyCounts = async () => {
+    try {
+      const counts: Record<string, number> = {};
+      const days = getLastSevenDays();
+      
+      // Fetch counts for each day in parallel
+      const promises = days.map(async (date) => {
+        const dateStr = date.toISOString().split('T')[0];
+        try {
+          const response = await getOrders({
+            startDate: dateStr,
+            endDate: dateStr,
+            status: statusFilter || undefined,
+            limit: 1, // We only need the count
+          });
+          counts[dateStr] = response.total;
+        } catch (error) {
+          console.error(`Error fetching count for ${dateStr}:`, error);
+          counts[dateStr] = 0;
+        }
+      });
+      
+      await Promise.all(promises);
+      setDailyCounts(counts);
+    } catch (error) {
+      console.error("Error fetching daily counts:", error);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await getOrders(searchParams);
+      const dateRange = getDateRange(dateFilter, selectedDate);
+      const params: OrderSearchParams = {
+        page: pagination.page,
+        limit: pagination.limit,
+        search: search || undefined,
+        status: statusFilter || undefined,
+        ...dateRange,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      };
+      
+      const response = await getOrders(params);
       setOrders(response.data);
-      setPagination({
-        page: parseInt(response.pagination.page),
-        limit: parseInt(response.pagination.limit),
+      setPagination(prev => ({
+        ...prev,
         totalPages: response.pagination.totalPages,
         total: response.total,
-      });
+      }));
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
@@ -87,552 +140,332 @@ const Orders: React.FC = () => {
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
-
   const handleSearch = () => {
-    setSearchParams({
-      ...searchParams,
-      search,
-      page: 1, // Reset to first page when searching
-    });
-  };
-
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-  ) => {
-    const { name, value } = e.target;
-    setFilters({
-      ...filters,
-      [name]: value,
-    });
-  };
-
-  const applyFilters = () => {
-    setSearchParams({
-      ...searchParams,
-      ...filters,
-      page: 1, // Reset to first page when filtering
-    });
-  };
-
-  const resetFilters = () => {
-    const today = new Date().toISOString().split('T')[0];
-    setFilters({
-      status: "",
-      paymentStatus: "",
-      startDate: today,
-      endDate: today,
-    });
-    setSearchParams({
-      ...searchParams,
-      status: "",
-      paymentStatus: "",
-      startDate: today,
-      endDate: today,
-      search: "",
-      page: 1,
-    });
-    setSearch("");
-    setSelectedDate(today);
-  };
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > pagination.totalPages) return;
-    setSearchParams((prevParams) => ({
-      ...prevParams,
-      page: newPage,
-    }));
+    setPagination(prev => ({ ...prev, page: 1 }));
+    fetchOrders();
   };
 
   const handleNewOrder = () => {
     navigate("/orders/new");
-  };
-  // Navigate to pending orders page
-  const handlePendingOrdersPage = () => {
-    navigate("/pending-orders");
   };
 
   const viewOrderDetails = (orderId: string) => {
     navigate(`/orders/${orderId}`);
   };
 
-  const openStatusModal = (order: Order) => {
-    setSelectedOrder(order);
-    setNewStatus(order.status);
-    setStatusModalOpen(true);
-  };
-
-  const openCancelModal = (order: Order) => {
-    setSelectedOrder(order);
-    setCancelReason("");
-    setCancelModalOpen(true);
-  };
-
-  const handleStatusChange = async () => {
-    if (!selectedOrder) return;
-
-    try {
-      setSubmitLoading(true);
-      setStatusModalOpen(false);
-
-      // Update the order in the list
-      const updatedOrders = orders.map((order) =>
-        order.id === selectedOrder.id ? { ...order, status: newStatus } : order
-      );
-      setOrders(updatedOrders);
-    } catch (error) {
-      console.error("Error updating order status:", error);
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
-
-  const handleCancelOrder = async () => {
-    if (!selectedOrder) return;
-
-    try {
-      setSubmitLoading(true);
-      await cancelOrder(selectedOrder.id, cancelReason);
-      setCancelModalOpen(false);
-
-      // Update the order in the list
-      const updatedOrders = orders.map((order) =>
-        order.id === selectedOrder.id
-          ? { ...order, status: "cancelled" }
-          : order
-      );
-      setOrders(updatedOrders as Order[]);
-    } catch (error) {
-      console.error("Error cancelling order:", error);
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
-
-  // const handleGetReceipt = async (orderId: string) => {
-  //   try {
-  //     const response = await getReceipt(orderId);
-  //     if (response.success && response.data.receiptUrl) {
-  //       window.open(`/uploads/${response.data.receiptUrl}`, '_blank');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error generating receipt:', error);
-  //   }
-  // };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
 
-  const { translate } = useLanguage();
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, page: newPage }));
+    }
+  };
 
-  const handleDateChange = (date: string) => {
+  const handleDateFilterChange = (filter: DateFilter) => {
+    setDateFilter(filter);
+    setSelectedDate(''); // Clear specific date when using general filters
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleSpecificDateChange = (date: string) => {
     setSelectedDate(date);
-    setFilters({
-      ...filters,
-      startDate: date,
-      endDate: date,
-    });
-    setSearchParams({
-      ...searchParams,
-      startDate: date,
-      endDate: date,
-      page: 1,
-    });
+    setDateFilter('specific'); // Set to specific mode
+    setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  const goToYesterday = () => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+  const handleStatusFilterChange = (status: string) => {
+    setStatusFilter(status);
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const formatDayButton = (date: Date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    
+    const dateStr = date.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
     const yesterdayStr = yesterday.toISOString().split('T')[0];
-    handleDateChange(yesterdayStr);
-  };
-
-  const goToToday = () => {
-    const today = new Date().toISOString().split('T')[0];
-    handleDateChange(today);
+    
+    if (dateStr === todayStr) {
+      return 'Today';
+    } else if (dateStr === yesterdayStr) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+    }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <Heading>{translate.orders("title")}</Heading>
-        <div className="flex space-x-2">
-          <Button onClick={handlePendingOrdersPage} outline>
-            <ArrowPathIcon className="h-5 w-5 mr-1" />
-            {translate.orders("pendingOrders")}
-          </Button>
-          <Button onClick={handleNewOrder}>
-            <PlusIcon className="h-5 w-5 mr-1" />
-            {translate.orders("newOrder")}
-          </Button>
-        </div>
+        <Heading>Orders</Heading>
+        <Button onClick={handleNewOrder}>
+          <PlusIcon className="h-5 w-5 mr-1" />
+          New Order
+        </Button>
       </div>
 
-      {/* Quick Date Navigation */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              {translate.orders("ordersFor")}
-            </h3>
-            <div className="flex items-center gap-2">
-              <Button
-                outline
-                onClick={goToYesterday}
-                className="text-sm"
-              >
-                {translate.common("yesterday")}
-              </Button>
-              <Button
-                onClick={goToToday}
-                className="text-sm"
-                color={selectedDate === new Date().toISOString().split('T')[0] ? 'blue' : 'zinc'}
-              >
-                {translate.common("today")}
-              </Button>
+      {/* Date Filter Section */}
+      <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-6">
+        {/* Quick Filter Buttons */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          <Button
+            onClick={() => handleDateFilterChange('today')}
+            color={dateFilter === 'today' ? 'blue' : 'zinc'}
+            className="text-sm px-4 py-2"
+          >
+            Today
+          </Button>
+          <Button
+            onClick={() => handleDateFilterChange('week')}
+            color={dateFilter === 'week' ? 'blue' : 'zinc'}
+            className="text-sm px-4 py-2"
+          >
+            Last 7 Days
+          </Button>
+          <Button
+            onClick={() => handleDateFilterChange('all')}
+            color={dateFilter === 'all' ? 'blue' : 'zinc'}
+            className="text-sm px-4 py-2"
+          >
+            All Orders
+          </Button>
+        </div>
+
+        {/* Daily Navigation - Last 7 Days */}
+        <div className="border-t border-zinc-200 dark:border-zinc-600 pt-6">
+          <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-4">
+            Quick Day Selection
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {getLastSevenDays().map((date) => {
+              const dateStr = date.toISOString().split('T')[0];
+              const label = formatDayButton(date);
+              const isSelected = selectedDate === dateStr || (dateFilter === 'today' && dateStr === new Date().toISOString().split('T')[0]);
+              const orderCount = dailyCounts[dateStr] || 0;
+              
+              return (
+                <button
+                  key={dateStr}
+                  onClick={() => handleSpecificDateChange(dateStr)}
+                  className={`
+                    p-4 rounded-lg border-2 transition-all duration-200 text-center relative hover:scale-105
+                    ${isSelected 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-md' 
+                      : 'border-zinc-200 dark:border-zinc-600 hover:border-zinc-300 dark:hover:border-zinc-500 bg-zinc-50 dark:bg-zinc-700/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                    }
+                  `}
+                >
+                  <div className="font-medium text-sm">{label}</div>
+                  {orderCount > 0 && (
+                    <div className={`
+                      absolute -top-2 -right-2 min-w-[22px] h-6 flex items-center justify-center text-xs font-bold rounded-full border-2 border-white dark:border-zinc-800
+                      ${isSelected 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-green-500 text-white'
+                      }
+                    `}>
+                      {orderCount}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        
+        <div className="border-t border-zinc-200 dark:border-zinc-600 pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                type="text"
+                placeholder="Search by order number or customer..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              />
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => handleDateChange(e.target.value)}
-              className="w-auto"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Advanced Filters */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="flex-1">
-            <Input
-              type="text"
-              placeholder={translate.common("search") + "..."}
-              value={search}
-              onChange={handleSearchChange}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            />
-          </div>
-          <Button onClick={handleSearch}>
-            {translate.common("search")}
-          </Button>
-        </div>
-
-        <details className="mt-4">
-          <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
-            {translate.common("advancedFilters")}
-          </summary>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field>
-              <Label>
-                {translate.common("status")}
-              </Label>
+            <div className="w-48">
               <Select
-                name="status"
-                value={filters.status}
-                onChange={handleFilterChange}
+                value={statusFilter}
+                onChange={(e) => handleStatusFilterChange(e.target.value)}
               >
-                <option value="">
-                  {translate.common("all")} {translate.common("status")}
-                </option>
-                <option value="pending">{translate.orders("pending")}</option>
-                <option value="completed">{translate.orders("completed")}</option>
-                <option value="cancelled">{translate.orders("cancelled")}</option>
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
               </Select>
-            </Field>
-            <Field>
-              <Label>
-                {translate.orders("paymentStatus")}
-              </Label>
-              <Select
-                name="paymentStatus"
-                value={filters.paymentStatus}
-                onChange={handleFilterChange}
-              >
-                <option value="">
-                  {translate.common("all")} {translate.orders("paymentStatus")}
-                </option>
-                <option value="paid">{translate.orders("paid")}</option>
-                <option value="partial">{translate.orders("partial")}</option>
-                <option value="unpaid">{translate.orders("unpaid")}</option>
-              </Select>
-            </Field>
-          </div>
-          <div className="flex justify-end mt-4 space-x-2">
-            <Button outline onClick={resetFilters}>
-              {translate.common("reset")}
+            </div>
+            <Button onClick={handleSearch} className="px-6">
+              Search
             </Button>
-            <Button onClick={applyFilters}>
-              {translate.common("apply")}
-            </Button>
-          </div>
-        </details>
-      </div>
-
-      {/* Current Orders Summary */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {selectedDate === new Date().toISOString().split('T')[0] 
-                ? translate.orders("todaysOrders")
-                : translate.orders("ordersForDate")
-              }
-            </h3>
-            <p className="text-sm text-gray-500">
-              {new Date(selectedDate).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-blue-600">{ orders.length }</p>
-            <p className="text-sm text-gray-500">{translate.orders("totalOrders")}</p>
           </div>
         </div>
       </div>
 
       {/* Orders Table */}
       {loading ? (
-        <div className="text-center py-10">
+        <div className="text-center py-12">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">{translate.common("loading")}</p>
+          <p className="mt-3 text-zinc-600 dark:text-zinc-300">Loading...</p>
         </div>
       ) : (
-        <>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableHeader>{translate.orders("orderNumber")}</TableHeader>
-                  <TableHeader>{translate.common("date")}</TableHeader>
-                  <TableHeader>{translate.orders("customer")}</TableHeader>
-                  <TableHeader>{translate.common("total")}</TableHeader>
-                  <TableHeader>{translate.common("status")}</TableHeader>
-                  <TableHeader>{translate.common("payment")}</TableHeader>
-                  <TableHeader>{translate.common("actions")}</TableHeader>
+        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Order #</TableHeader>
+                <TableHeader>Date</TableHeader>
+                <TableHeader>Customer</TableHeader>
+                <TableHeader>Total</TableHeader>
+                <TableHeader>Status</TableHeader>
+                <TableHeader>Payment</TableHeader>
+                <TableHeader>Actions</TableHeader>
+              </TableRow>
+            </TableHead>
+            {orders.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
+                  No orders found
+                </td>
+              </tr>
+            ) : (
+              orders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell>
+                    <div
+                      className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer transition-colors"
+                      onClick={() => viewOrderDetails(order.id)}
+                    >
+                      #{order.orderNumber}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Text className="text-sm text-zinc-900 dark:text-zinc-100">
+                      {formatDate(order.createdAt)}
+                    </Text>
+                  </TableCell>
+                  <TableCell>
+                    <Text className="text-zinc-900 dark:text-zinc-100">
+                      {order.customer ? order.customer.name : "Walk-in Customer"}
+                    </Text>
+                  </TableCell>
+                  <TableCell>
+                    <Text className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {formatCurrency(order.total)}
+                    </Text>
+                  </TableCell>
+                  <TableCell>
+                    <Badge color={
+                      order.status === "completed" ? "green" :
+                      order.status === "cancelled" ? "red" : "yellow"
+                    }>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge color={
+                      order.paymentStatus === "paid" ? "green" :
+                      order.paymentStatus === "partial" ? "yellow" : "red"
+                    }>
+                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      outline
+                      onClick={() => viewOrderDetails(order.id)}
+                      title="View Details"
+                      className="p-2"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              {orders.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                    {translate.common("noResults")}
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>
-                      <div
-                        className="font-bold text-blue-600 hover:text-blue-900 cursor-pointer"
-                        onClick={() => viewOrderDetails(order.id)}
-                      >
-                        #{order.orderNumber}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Text className="text-sm text-gray-900">
-                        {formatDate(order.createdAt)}
-                      </Text>
-                    </TableCell>
-                    <TableCell>
-                      <Text>
-                        {order.customer
-                          ? order.customer.name
-                          : translate.orders("walkInCustomer")}
-                      </Text>
-                    </TableCell>
-                    <TableCell>
-                      <Text className="font-medium">
-                        {formatCurrency(order.total)}
-                      </Text>
-                    </TableCell>
-                    <TableCell>
-                      <Badge color={
-                        order.status === "completed" ? "green" :
-                        order.status === "cancelled" ? "red" : "yellow"
-                      }>
-                        {translate.orders(
-                          order.status as "pending" | "completed" | "cancelled"
-                        )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge color={
-                        order.paymentStatus === "paid" ? "green" :
-                        order.paymentStatus === "partial" ? "yellow" : "red"
-                      }>
-                        {translate.orders(
-                          order.paymentStatus as "paid" | "partial" | "unpaid"
-                        )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 justify-end">
-                        <Button
-                          outline
-                          onClick={() => viewOrderDetails(order.id)}
-                          title={translate.common("details")}
-                        >
-                          <EyeIcon className="h-5 w-5" />
-                        </Button>
-
-                        {canManageOrders && order.status !== "cancelled" && (
-                          <>
-                            <Button
-                              outline
-                              onClick={() => openStatusModal(order)}
-                              title={translate.orders("updateStatus")}
-                            >
-                              <ArrowPathIcon className="h-5 w-5" />
-                            </Button>
-
-                            <Button
-                              color="red"
-                              onClick={() => openCancelModal(order)}
-                              disabled={order.status === "completed"}
-                              title={translate.orders("cancelOrder")}
-                            >
-                              <XMarkIcon className="h-5 w-5" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex justify-between items-center mt-6">
-              <div className="text-sm text-gray-500">
-                {pagination.total > 0 ?
-                  `${(pagination.page - 1) * pagination.limit + 1} - ${Math.min(pagination.page * pagination.limit, pagination.total)} / ${pagination.total}` : "0"} {translate.orders("title").toLowerCase()}
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  outline
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page <= 1}
-                >
-                  {translate.common("previous")}
-                </Button>
-                <div className="mx-2 flex items-center">
-                  <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">
-                    {pagination.page} / {pagination.totalPages}
-                  </span>
-                </div>
-                <Button
-                  outline
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page >= pagination.totalPages}
-                >
-                  {translate.common("next")}
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
+              ))
+            )}
+          </Table>
+        </div>
       )}
 
-      {/* Update Status Modal */}
-      <Dialog
-        open={statusModalOpen}
-        onClose={() => setStatusModalOpen(false)}
-      >
-        <DialogTitle>
-          {translate.orders("updateStatus")}
-        </DialogTitle>
-        <DialogBody>
-          <div className="py-4">
-            <Text className="mb-4">
-              {translate.orders("updateStatus")}{" "}
-              <span className="font-bold">#{selectedOrder?.orderNumber}</span>
-            </Text>
-            <Field>
-              <Label>
-                {translate.orders("orderStatus")}
-              </Label>
-              <Select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
-              >
-                <option value="pending">{translate.orders("pending")}</option>
-                <option value="completed">{translate.orders("completed")}</option>
-                <option value="cancelled">{translate.orders("cancelled")}</option>
-              </Select>
-            </Field>
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex justify-between items-center mt-8 px-2">
+          <div className="text-sm text-zinc-500 dark:text-zinc-400">
+            Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} orders
           </div>
-        </DialogBody>
-        <DialogActions>
-          <Button
-            onClick={handleStatusChange}
-            disabled={submitLoading}
-            className="ml-3"
-          >
-            {translate.orders("updateStatus")}
-          </Button>
-          <Button
-            outline
-            onClick={() => setStatusModalOpen(false)}
-            disabled={submitLoading}
-          >
-            {translate.common("cancel")}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Cancel Order Modal */}
-      <Dialog
-        open={cancelModalOpen}
-        onClose={() => setCancelModalOpen(false)}
-      >
-        <DialogTitle>
-          {translate.orders("cancelOrder")}
-        </DialogTitle>
-        <DialogBody>
-          <div className="py-4">
-            <Text className="text-gray-600 mb-4">
-              {translate.orders("cancelConfirmation")}
-              <span className="font-bold"> #{selectedOrder?.orderNumber}</span>
-            </Text>
-            <Field>
-              <Label>
-                {translate.orders("cancelReason")}
-              </Label>
-              <Textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                rows={3}
-                placeholder={translate.orders("cancelReason")}
-              />
-            </Field>
+          <div className="flex items-center space-x-3">
+            <Button
+              outline
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page <= 1}
+              className="text-sm px-4 py-2"
+            >
+              Previous
+            </Button>
+            
+            <div className="flex items-center space-x-2">
+              {/* Show first page */}
+              {pagination.page > 3 && (
+                <>
+                  <Button
+                    outline
+                    onClick={() => handlePageChange(1)}
+                    className="text-sm w-10 h-10"
+                  >
+                    1
+                  </Button>
+                  {pagination.page > 4 && <span className="text-zinc-500 px-2">...</span>}
+                </>
+              )}
+              
+              {/* Show pages around current page */}
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, pagination.page - 2) + i;
+                if (pageNum <= pagination.totalPages && pageNum >= Math.max(1, pagination.page - 2) && pageNum <= Math.min(pagination.totalPages, pagination.page + 2)) {
+                  return (
+                    <Button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      color={pageNum === pagination.page ? 'blue' : 'zinc'}
+                      className="text-sm w-10 h-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                }
+                return null;
+              })}
+              
+              {/* Show last page */}
+              {pagination.page < pagination.totalPages - 2 && (
+                <>
+                  {pagination.page < pagination.totalPages - 3 && <span className="text-zinc-500 px-2">...</span>}
+                  <Button
+                    outline
+                    onClick={() => handlePageChange(pagination.totalPages)}
+                    className="text-sm w-10 h-10"
+                  >
+                    {pagination.totalPages}
+                  </Button>
+                </>
+              )}
+            </div>
+            
+            <Button
+              outline
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page >= pagination.totalPages}
+              className="text-sm px-4 py-2"
+            >
+              Next
+            </Button>
           </div>
-        </DialogBody>
-        <DialogActions>
-          <Button
-            color="red"
-            onClick={handleCancelOrder}
-            disabled={submitLoading}
-            className="ml-3"
-          >
-            {translate.orders("cancelOrder")}
-          </Button>
-          <Button
-            outline
-            onClick={() => setCancelModalOpen(false)}
-            disabled={submitLoading}
-          >
-            {translate.common("back")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };

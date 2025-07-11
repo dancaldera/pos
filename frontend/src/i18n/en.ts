@@ -237,7 +237,6 @@ const en = {
     noOrdersFound: 'No orders found',
     viewDetails: 'View Details',
     orderHash: 'Order #',
-    walkInCustomer: 'Walk-in Customer',
     showing: 'Showing',
     to: 'to',
     of: 'of',

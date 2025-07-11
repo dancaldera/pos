@@ -238,7 +238,6 @@ const es = {
     noOrdersFound: 'No se encontraron pedidos',
     viewDetails: 'Ver detalles',
     orderHash: 'Pedido #',
-    walkInCustomer: 'Cliente sin registro',
     showing: 'Mostrando',
     to: 'a',
     of: 'de',

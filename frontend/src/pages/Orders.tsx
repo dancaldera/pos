@@ -46,8 +46,10 @@ const Orders: React.FC = () => {
   }, [statusFilter]); // Re-fetch when status filter changes
 
   const getDateRange = (filter: DateFilter, specificDate?: string) => {
+    // Use UTC dates to ensure consistency across timezones
     const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const todayUTC = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStr = todayUTC.toISOString().split('T')[0];
     
     // If it's a specific date (YYYY-MM-DD format)
     if (specificDate && specificDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -58,9 +60,9 @@ const Orders: React.FC = () => {
       case 'today':
         return { startDate: todayStr, endDate: todayStr };
       case 'week':
-        const weekAgo = new Date(today);
-        weekAgo.setDate(today.getDate() - 7);
-        const weekAgoStr = weekAgo.toISOString().split('T')[0];
+        const weekAgoUTC = new Date(todayUTC);
+        weekAgoUTC.setDate(todayUTC.getDate() - 7);
+        const weekAgoStr = weekAgoUTC.toISOString().split('T')[0];
         return { startDate: weekAgoStr, endDate: todayStr };
       case 'all':
       default:
@@ -72,10 +74,11 @@ const Orders: React.FC = () => {
   const getLastSevenDays = () => {
     const days = [];
     const today = new Date();
+    const todayUTC = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
+      const date = new Date(todayUTC);
+      date.setDate(todayUTC.getDate() - i);
       days.push(date);
     }
     
@@ -182,12 +185,13 @@ const Orders: React.FC = () => {
 
   const formatDayButton = (date: Date) => {
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
+    const todayUTC = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const yesterdayUTC = new Date(todayUTC);
+    yesterdayUTC.setDate(todayUTC.getDate() - 1);
     
     const dateStr = date.toISOString().split('T')[0];
-    const todayStr = today.toISOString().split('T')[0];
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    const todayStr = todayUTC.toISOString().split('T')[0];
+    const yesterdayStr = yesterdayUTC.toISOString().split('T')[0];
     
     if (dateStr === todayStr) {
       return translate.common('today');
@@ -244,7 +248,11 @@ const Orders: React.FC = () => {
             {getLastSevenDays().map((date) => {
               const dateStr = date.toISOString().split('T')[0];
               const label = formatDayButton(date);
-              const isSelected = selectedDate === dateStr || (dateFilter === 'today' && dateStr === new Date().toISOString().split('T')[0]);
+              // Use UTC date for consistent today comparison
+              const today = new Date();
+              const todayUTC = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+              const todayStr = todayUTC.toISOString().split('T')[0];
+              const isSelected = selectedDate === dateStr || (dateFilter === 'today' && dateStr === todayStr);
               const orderCount = dailyCounts[dateStr] || 0;
               
               // Get translated day name

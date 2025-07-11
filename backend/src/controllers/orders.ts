@@ -52,14 +52,14 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
     }
 
     if (startDate) {
-      const start = new Date(startDate);
-      start.setHours(0, 0, 0, 0); // Start of day
+      // Parse date in UTC to avoid timezone issues
+      const start = new Date(`${startDate}T00:00:00.000Z`);
       whereClause = sql`${whereClause} AND ${orders.createdAt} >= ${start}`;
     }
 
     if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999); // End of day
+      // Parse date in UTC to avoid timezone issues
+      const end = new Date(`${endDate}T23:59:59.999Z`);
       whereClause = sql`${whereClause} AND ${orders.createdAt} <= ${end}`;
     }
 

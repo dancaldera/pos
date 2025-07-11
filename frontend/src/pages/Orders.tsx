@@ -190,9 +190,9 @@ const Orders: React.FC = () => {
     const yesterdayStr = yesterday.toISOString().split('T')[0];
     
     if (dateStr === todayStr) {
-      return 'Today';
+      return translate.common('today');
     } else if (dateStr === yesterdayStr) {
-      return 'Yesterday';
+      return translate.common('yesterday');
     } else {
       return date.toLocaleDateString('en', { month: 'short', day: 'numeric' });
     }
@@ -201,10 +201,10 @@ const Orders: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <Heading>Orders</Heading>
+        <Heading>{translate.orders('title')}</Heading>
         <Button onClick={handleNewOrder}>
           <PlusIcon className="h-5 w-5 mr-1" />
-          New Order
+          {translate.orders('newOrder')}
         </Button>
       </div>
 
@@ -217,28 +217,28 @@ const Orders: React.FC = () => {
             color={dateFilter === 'today' ? 'blue' : 'zinc'}
             className="text-sm px-4 py-2"
           >
-            Today
+            {translate.common('today')}
           </Button>
           <Button
             onClick={() => handleDateFilterChange('week')}
             color={dateFilter === 'week' ? 'blue' : 'zinc'}
             className="text-sm px-4 py-2"
           >
-            Last 7 Days
+            {translate.orders('last7Days')}
           </Button>
           <Button
             onClick={() => handleDateFilterChange('all')}
             color={dateFilter === 'all' ? 'blue' : 'zinc'}
             className="text-sm px-4 py-2"
           >
-            All Orders
+            {translate.orders('allOrders')}
           </Button>
         </div>
 
         {/* Daily Navigation - Last 7 Days */}
-        <div className="border-t border-zinc-200 dark:border-zinc-600 pt-6">
+        <div>
           <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-4">
-            Quick Day Selection
+            {translate.orders('quickDaySelection')}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
             {getLastSevenDays().map((date) => {
@@ -246,6 +246,11 @@ const Orders: React.FC = () => {
               const label = formatDayButton(date);
               const isSelected = selectedDate === dateStr || (dateFilter === 'today' && dateStr === new Date().toISOString().split('T')[0]);
               const orderCount = dailyCounts[dateStr] || 0;
+              
+              // Get translated day name
+              const dayIndex = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+              const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+              const dayName = translate.common(dayKeys[dayIndex] as any);
               
               return (
                 <button
@@ -260,6 +265,7 @@ const Orders: React.FC = () => {
                   `}
                 >
                   <div className="font-medium text-sm">{label}</div>
+                  <div className="text-xs opacity-60 mt-1">{dayName}</div>
                   {orderCount > 0 && (
                     <div className={`
                       absolute -top-2 -right-2 min-w-[22px] h-6 flex items-center justify-center text-xs font-bold rounded-full border-2 border-white dark:border-zinc-800
@@ -277,12 +283,12 @@ const Orders: React.FC = () => {
           </div>
         </div>
         
-        <div className="border-t border-zinc-200 dark:border-zinc-600 pt-6">
+        <div className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
                 type="text"
-                placeholder="Search by order number or customer..."
+                placeholder={translate.orders('searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -293,14 +299,14 @@ const Orders: React.FC = () => {
                 value={statusFilter}
                 onChange={(e) => handleStatusFilterChange(e.target.value)}
               >
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="">{translate.orders('allStatus')}</option>
+                <option value="pending">{translate.orders('pending')}</option>
+                <option value="completed">{translate.orders('completed')}</option>
+                <option value="cancelled">{translate.orders('cancelled')}</option>
               </Select>
             </div>
             <Button onClick={handleSearch} className="px-6">
-              Search
+              {translate.common('search')}
             </Button>
           </div>
         </div>
@@ -310,26 +316,26 @@ const Orders: React.FC = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin h-10 w-10 mx-auto border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          <p className="mt-3 text-zinc-600 dark:text-zinc-300">Loading...</p>
+          <p className="mt-3 text-zinc-600 dark:text-zinc-300">{translate.common('loading')}</p>
         </div>
       ) : (
         <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden">
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeader>Order #</TableHeader>
-                <TableHeader>Date</TableHeader>
-                <TableHeader>Customer</TableHeader>
-                <TableHeader>Total</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Payment</TableHeader>
-                <TableHeader>Actions</TableHeader>
+                <TableHeader>{translate.orders('orderHash')}</TableHeader>
+                <TableHeader>{translate.common('date')}</TableHeader>
+                <TableHeader>{translate.orders('customer')}</TableHeader>
+                <TableHeader>{translate.common('total')}</TableHeader>
+                <TableHeader>{translate.common('status')}</TableHeader>
+                <TableHeader>{translate.common('payment')}</TableHeader>
+                <TableHeader>{translate.common('actions')}</TableHeader>
               </TableRow>
             </TableHead>
             {orders.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
-                  No orders found
+                  {translate.orders('noOrdersFound')}
                 </td>
               </tr>
             ) : (
@@ -350,7 +356,7 @@ const Orders: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Text className="text-zinc-900 dark:text-zinc-100">
-                      {order.customer ? order.customer.name : "Walk-in Customer"}
+                      {order.customer ? order.customer.name : translate.orders('walkInCustomer')}
                     </Text>
                   </TableCell>
                   <TableCell>
@@ -363,7 +369,7 @@ const Orders: React.FC = () => {
                       order.status === "completed" ? "green" :
                       order.status === "cancelled" ? "red" : "yellow"
                     }>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      {translate.orders(order.status as 'pending' | 'completed' | 'cancelled')}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -371,14 +377,14 @@ const Orders: React.FC = () => {
                       order.paymentStatus === "paid" ? "green" :
                       order.paymentStatus === "partial" ? "yellow" : "red"
                     }>
-                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                      {translate.orders(order.paymentStatus as 'paid' | 'partial' | 'unpaid')}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <Button
                       outline
                       onClick={() => viewOrderDetails(order.id)}
-                      title="View Details"
+                      title={translate.orders('viewDetails')}
                       className="p-2"
                     >
                       <EyeIcon className="h-5 w-5" />
@@ -395,7 +401,7 @@ const Orders: React.FC = () => {
       {pagination.totalPages > 1 && (
         <div className="flex justify-between items-center mt-8 px-2">
           <div className="text-sm text-zinc-500 dark:text-zinc-400">
-            Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} orders
+            {translate.orders('showing')} {((pagination.page - 1) * pagination.limit) + 1} {translate.orders('to')} {Math.min(pagination.page * pagination.limit, pagination.total)} {translate.orders('of')} {pagination.total} {translate.orders('orders')}
           </div>
           <div className="flex items-center space-x-3">
             <Button
@@ -404,7 +410,7 @@ const Orders: React.FC = () => {
               disabled={pagination.page <= 1}
               className="text-sm px-4 py-2"
             >
-              Previous
+              {translate.common('previous')}
             </Button>
             
             <div className="flex items-center space-x-2">
@@ -461,7 +467,7 @@ const Orders: React.FC = () => {
               disabled={pagination.page >= pagination.totalPages}
               className="text-sm px-4 py-2"
             >
-              Next
+              {translate.common('next')}
             </Button>
           </div>
         </div>

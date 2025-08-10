@@ -1,0 +1,29 @@
+{
+  "name": "inventory-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Inventory management system monorepo",
+  "scripts": {
+    "dev": "node tools/scripts/dev.js",
+    "build": "node tools/scripts/build.js",
+    "install:all": "pnpm install",
+    "clean": "pnpm -r clean",
+    "validate": "node tools/scripts/validate.js",
+    "frontend": "pnpm --filter frontend",
+    "backend": "pnpm --filter backend",
+    "frontend:dev": "pnpm --filter frontend dev",
+    "backend:dev": "pnpm --filter backend dev",
+    "frontend:build": "pnpm --filter frontend build",
+    "backend:build": "pnpm --filter backend build",
+    "tauri:dev": "pnpm --filter frontend tauri:dev",
+    "tauri:build": "pnpm --filter frontend tauri:build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

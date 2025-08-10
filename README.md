@@ -1,6 +1,6 @@
-# Inventory and Point of Sale System ()
+# Inventory and Point of Sale System
 
-A complete solution for inventory management and point of sale operations, built with React, Express, and PostgreSQL.
+A complete solution for inventory management and point of sale operations, built with React, Express, and PostgreSQL in a monorepo structure.
 
 ## Project Overview
 
@@ -8,10 +8,29 @@ This project is a full-stack application that helps businesses manage their inve
 
 ## Repository Structure
 
-The project is divided into two main parts:
+This is a monorepo managed with pnpm workspaces:
 
-- **`/inventory/frontend`**: React + TypeScript frontend application
-- **`/inventory/backend`**: Express + TypeScript backend API
+```
+inventory-system/
+├── apps/
+│   ├── frontend/          # React + TypeScript frontend application
+│   └── backend/           # Express + TypeScript backend API
+├── packages/
+│   └── shared/            # Shared types and utilities
+├── tools/
+│   └── scripts/           # Development and build scripts
+├── package.json           # Root workspace configuration
+├── pnpm-workspace.yaml    # Workspace definition
+└── tsconfig.json          # Shared TypeScript configuration
+```
+
+## Monorepo Benefits
+
+- **Unified Dependencies**: Shared dependencies are hoisted to reduce duplication
+- **TypeScript Project References**: Efficient builds and better IDE support
+- **Cross-Workspace Imports**: Frontend and backend can import from shared packages
+- **Coordinated Development**: Run all services with a single command
+- **Consistent Tooling**: Shared configurations and development scripts
 
 ## Features
 
@@ -48,7 +67,8 @@ The project is divided into two main parts:
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
+- pnpm (v8 or higher)
 - PostgreSQL
 
 ### Setup
@@ -56,28 +76,59 @@ The project is divided into two main parts:
 1. Clone the repository
 ```bash
 git clone <repository-url>
-cd inventory
+cd inventory-system
 ```
 
-2. Start the backend
+2. Install dependencies for all workspaces
 ```bash
-cd backend
-npm install
-cp .env.example .env  # Configure your environment variables
-npm run db:generate
-npm run db:migrate
-npm run dev
+pnpm install
 ```
 
-3. Start the frontend
+3. Configure environment variables
 ```bash
-cd frontend
-npm install
-cp .env.example .env  # Configure your environment variables
-npm run dev
+# Backend configuration
+cp apps/backend/.env.example apps/backend/.env
+# Frontend configuration  
+cp apps/frontend/.env.example apps/frontend/.env
 ```
 
-4. Access the application at http://localhost:3000
+4. Set up the database
+```bash
+pnpm backend db:generate
+pnpm backend db:migrate
+```
+
+5. Start development servers
+```bash
+# Start both frontend and backend concurrently
+pnpm dev
+
+# Or start individually
+pnpm frontend:dev  # Frontend only
+pnpm backend:dev   # Backend only
+```
+
+6. Access the application at http://localhost:3000
+
+### Available Scripts
+
+#### Root Level Commands
+- `pnpm dev` - Start both frontend and backend development servers concurrently
+- `pnpm build` - Build all workspaces in correct dependency order
+- `pnpm clean` - Clean build artifacts from all workspaces
+- `pnpm install:all` - Install dependencies for all workspaces
+
+#### Workspace-Specific Commands
+- `pnpm frontend:dev` - Start only the frontend development server
+- `pnpm backend:dev` - Start only the backend development server
+- `pnpm frontend:build` - Build only the frontend
+- `pnpm backend:build` - Build only the backend
+
+#### Advanced Workspace Targeting
+- `pnpm --filter frontend [script]` - Run any script in the frontend workspace
+- `pnpm --filter backend [script]` - Run any script in the backend workspace
+- `pnpm --filter shared [script]` - Run any script in the shared package
+- `pnpm -r [script]` - Run script in all workspaces recursively
 
 ## Demo Account
 

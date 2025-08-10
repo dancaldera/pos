@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { db } from '../db/index.js';
 import { users } from '../db/schema.js';
 import { eq, desc } from 'drizzle-orm';

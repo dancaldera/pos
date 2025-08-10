@@ -6,15 +6,13 @@
   "scripts": {
     "dev": "node tools/scripts/dev.js",
     "build": "node tools/scripts/build.js",
-    "install:all": "pnpm install",
     "clean": "pnpm -r clean",
     "validate": "node tools/scripts/validate.js",
-    "frontend": "pnpm --filter frontend",
-    "backend": "pnpm --filter backend",
     "frontend:dev": "pnpm --filter frontend dev",
     "backend:dev": "pnpm --filter backend dev",
     "frontend:build": "pnpm --filter frontend build",
     "backend:build": "pnpm --filter backend build",
+    "start:backend": "pnpm --filter backend start",
     "tauri:dev": "pnpm --filter frontend tauri:dev",
     "tauri:build": "pnpm --filter frontend tauri:build"
   },

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import {
   getOrders,
   getOrder,
@@ -12,7 +12,7 @@ import {
 } from '../controllers/orders.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // All routes in this file require authentication
 router.use(authenticate);

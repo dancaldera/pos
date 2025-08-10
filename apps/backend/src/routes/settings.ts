@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { getSettings, updateSettings, upload } from '../controllers/settings.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // All routes in this file require authentication
 router.use(authenticate);

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Express } from 'express';
 import cors from 'cors';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
@@ -15,7 +15,7 @@ import settingsRoutes from './routes/settings.js';
 import dashboardRoutes from './routes/dashboard.js';
 
 // Create Express server
-const app = express();
+const app: Express = express();
 
 // Express configuration
 app.use(cors());

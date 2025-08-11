@@ -1,10 +1,10 @@
 {
+  "id": "fe616c6f-83da-4a11-8db5-ccb6b1ab1da3",
+  "prevId": "705b98d4-f92f-4520-b03f-3137720b28ba",
   "version": "7",
   "dialect": "postgresql",
-  "id": "5a24339c-cc5c-4a32-9a12-7e878f4d4e97",
-  "prevId": "e55df87b-ac9b-4c57-91cc-b01b8f26d3f7",
   "tables": {
-    "categories": {
+    "public.categories": {
       "name": "categories",
       "schema": "",
       "columns": {
@@ -12,8 +12,7 @@
           "name": "id",
           "type": "varchar(21)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "create_id()"
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -53,9 +52,12 @@
             "name"
           ]
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "customers": {
+    "public.customers": {
       "name": "customers",
       "schema": "",
       "columns": {
@@ -63,8 +65,7 @@
           "name": "id",
           "type": "varchar(21)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "create_id()"
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -116,9 +117,12 @@
             "email"
           ]
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "inventory_transactions": {
+    "public.inventory_transactions": {
       "name": "inventory_transactions",
       "schema": "",
       "columns": {
@@ -126,8 +130,7 @@
           "name": "id",
           "type": "varchar(21)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "create_id()"
+          "notNull": true
         },
         "product_id": {
           "name": "product_id",
@@ -203,9 +206,12 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "order_items": {
+    "public.order_items": {
       "name": "order_items",
       "schema": "",
       "columns": {
@@ -213,8 +219,7 @@
           "name": "id",
           "type": "varchar(21)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "create_id()"
+          "notNull": true
         },
         "order_id": {
           "name": "order_id",
@@ -309,9 +314,12 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "orders": {
+    "public.orders": {
       "name": "orders",
       "schema": "",
       "columns": {
@@ -319,8 +327,7 @@
           "name": "id",
           "type": "varchar(21)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "create_id()"
+          "notNull": true
         },
         "order_number": {
           "name": "order_number",
@@ -343,6 +350,7 @@
         "status": {
           "name": "status",
           "type": "order_status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'pending'"
@@ -381,6 +389,7 @@
         "payment_status": {
           "name": "payment_status",
           "type": "payment_status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'unpaid'"
@@ -388,6 +397,7 @@
         "payment_method": {
           "name": "payment_method",
           "type": "payment_method",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
@@ -444,9 +454,12 @@
             "order_number"
           ]
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "payments": {
+    "public.payments": {
       "name": "payments",
       "schema": "",
       "columns": {
@@ -454,8 +467,7 @@
           "name": "id",
           "type": "varchar(21)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "create_id()"
+          "notNull": true
         },
         "order_id": {
           "name": "order_id",
@@ -472,6 +484,7 @@
         "method": {
           "name": "method",
           "type": "payment_method",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -531,9 +544,12 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "products": {
+    "public.products": {
       "name": "products",
       "schema": "",
       "columns": {
@@ -541,8 +557,7 @@
           "name": "id",
           "type": "varchar(21)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "create_id()"
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -621,7 +636,7 @@
         },
         "variants": {
           "name": "variants",
-          "type": "jsonb",
+          "type": "json",
           "primaryKey": false,
           "notNull": false
         },
@@ -672,9 +687,12 @@
             "barcode"
           ]
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "settings": {
+    "public.settings": {
       "name": "settings",
       "schema": "",
       "columns": {
@@ -745,9 +763,12 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -755,8 +776,7 @@
           "name": "id",
           "type": "varchar(21)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "create_id()"
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -779,6 +799,7 @@
         "role": {
           "name": "role",
           "type": "role",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'waitress'"
@@ -789,6 +810,18 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "reset_token": {
+          "name": "reset_token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reset_token_expiry": {
+          "name": "reset_token_expiry",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -816,48 +849,59 @@
             "email"
           ]
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
-    "order_status": {
+    "public.order_status": {
       "name": "order_status",
-      "values": {
-        "pending": "pending",
-        "completed": "completed",
-        "cancelled": "cancelled"
-      }
+      "schema": "public",
+      "values": [
+        "pending",
+        "completed",
+        "cancelled"
+      ]
     },
-    "payment_method": {
+    "public.payment_method": {
       "name": "payment_method",
-      "values": {
-        "cash": "cash",
-        "credit_card": "credit_card",
-        "debit_card": "debit_card",
-        "transfer": "transfer"
-      }
+      "schema": "public",
+      "values": [
+        "cash",
+        "credit_card",
+        "debit_card",
+        "transfer"
+      ]
     },
-    "payment_status": {
+    "public.payment_status": {
       "name": "payment_status",
-      "values": {
-        "paid": "paid",
-        "unpaid": "unpaid",
-        "partial": "partial"
-      }
+      "schema": "public",
+      "values": [
+        "paid",
+        "unpaid",
+        "partial"
+      ]
     },
-    "role": {
+    "public.role": {
       "name": "role",
-      "values": {
-        "admin": "admin",
-        "manager": "manager",
-        "waitress": "waitress"
-      }
+      "schema": "public",
+      "values": [
+        "admin",
+        "manager",
+        "waitress"
+      ]
     }
   },
   "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
+    "tables": {}
   }
 }

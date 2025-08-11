@@ -1,14 +1,15 @@
 import { Button } from "@/components/button";
 import { Heading } from "@/components/heading";
 import { Input } from "@/components/input";
+import { Link } from "@/components/link";
 import { Select } from "@/components/select";
+import { Text } from "@/components/text";
 import { Language } from "@/i18n";
 import React, { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'sonner';
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuthStore } from "../../store/authStore";
-import { Text } from "@/components/text";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -170,6 +171,14 @@ const LoginPage: React.FC = () => {
           </Button>
         </div>
       </form>
+
+      <div className="mt-6 text-center">
+        <Text>
+          <Link href="/forgot-password" className="text-blue-600 hover:text-blue-500">
+            Forgot your password?
+          </Link>
+        </Text>
+      </div>
     </div>
   );
 };

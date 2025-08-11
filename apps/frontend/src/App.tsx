@@ -10,6 +10,8 @@ import MainLayout from './layouts/MainLayout';
 
 // Auth Pages
 import LoginPage from './pages/auth/Login';
+import ForgotPasswordPage from './pages/auth/ForgotPassword';
+import ResetPasswordPage from './pages/auth/ResetPassword';
 
 // Main Pages
 import CategoriesPage from './pages/Categories';
@@ -88,7 +90,7 @@ const AppRoutes = () => {
 
   // Redirect to dashboard if logged in and trying to access auth pages
   useEffect(() => {
-    if (isAuthenticated && ['/login', '/register'].includes(location.pathname)) {
+    if (isAuthenticated && ['/login', '/register', '/forgot-password', '/reset-password'].includes(location.pathname)) {
       navigate('/');
     }
   }, [isAuthenticated, location.pathname, navigate]);
@@ -98,6 +100,8 @@ const AppRoutes = () => {
       {/* Auth Routes */}
       <Route path="/" element={<AuthLayout />}>
         <Route path="login" element={<LoginPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       {/* Protected Routes */}

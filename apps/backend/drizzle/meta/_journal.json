@@ -15,6 +15,13 @@
       "when": 1744280153201,
       "tag": "0001_product_variants",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1744299500000,
+      "tag": "0002_password_reset",
+      "breakpoints": true
     }
   ]
 }

@@ -14,7 +14,9 @@
     "backend:build": "pnpm --filter backend build",
     "start:backend": "pnpm --filter backend start",
     "tauri:dev": "pnpm --filter frontend tauri:dev",
-    "tauri:build": "pnpm --filter frontend tauri:build"
+    "tauri:build": "pnpm --filter frontend tauri:build",
+    "db:generate": "pnpm --filter backend db:generate",
+    "db:migrate": "pnpm --filter backend db:migrate"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

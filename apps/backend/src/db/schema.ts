@@ -1,5 +1,8 @@
 import { pgTable, serial, varchar, text, integer, timestamp, boolean, pgEnum, uuid, numeric, foreignKey, json } from 'drizzle-orm/pg-core';
-import { createId } from '../utils/id.js';
+import { customAlphabet } from 'nanoid';
+
+// Create a custom ID generator with a custom alphabet and length
+const createId = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);
 
 // Enums
 export const roleEnum = pgEnum('role', ['admin', 'manager', 'waitress']);
@@ -15,6 +18,8 @@ export const users = pgTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   role: roleEnum('role').notNull().default('waitress'),
   active: boolean('active').notNull().default(true),
+  resetToken: varchar('reset_token', { length: 255 }),
+  resetTokenExpiry: timestamp('reset_token_expiry'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

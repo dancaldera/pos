@@ -3,19 +3,17 @@
 
 [phases.setup]
   nixPkgs = ["nodejs_18", "npm-9_x"]
+  aptPkgs = ["..."]
 
 [phases.install]
-  cmds = [
-    "cd apps/backend",
-    "rm -f package-lock.json",
-    "npm install --only=production"
-  ]
+  dependsOn = ["setup"]
+  onlyIncludeFiles = ["apps/backend"]
 
 [phases.build]
-  cmds = [
-    "cd apps/backend", 
-    "npm run build"
-  ]
+  dependsOn = ["install"]  
 
 [start]
-  cmd = "cd apps/backend && npm start"
+  cmd = "npm start"
+
+[build.env]
+  NODE_ENV = "production"

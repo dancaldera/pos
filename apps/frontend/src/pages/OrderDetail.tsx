@@ -1,39 +1,40 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import {
-  getOrder,
-  updateOrderStatus,
-  addPayment,
-  cancelOrder,
-  addItemsToOrder,
-  updateOrderDiscount,
-} from '../api/orders'
-import { Order, OrderStatus, PaymentMethod, OrderItemInput } from '../types/orders'
-import { getProducts } from '../api/products'
-import { Product } from '../types/products'
-import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog'
-import { useLanguage } from '../context/LanguageContext'
-import { useAuthStore } from '../store/authStore'
 import {
   ArrowLeftIcon,
-  CurrencyDollarIcon,
   ArrowPathIcon,
-  XMarkIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  PlusIcon,
-  MinusIcon,
+  CurrencyDollarIcon,
   MagnifyingGlassIcon,
+  MinusIcon,
+  PlusIcon,
   ReceiptRefundIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
-import { formatCurrency } from '@/utils/format-currency'
-import { Button } from '@/components/button'
-import { Heading } from '@/components/heading'
-import { Text } from '@/components/text'
-import { Select } from '@/components/select'
-import { Textarea } from '@/components/textarea'
-import { Input } from '@/components/input'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Badge } from '@/components/badge'
+import { Button } from '@/components/button'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '@/components/dialog'
+import { Heading } from '@/components/heading'
+import { Input } from '@/components/input'
+import { Select } from '@/components/select'
+import { Text } from '@/components/text'
+import { Textarea } from '@/components/textarea'
+import { formatCurrency } from '@/utils/format-currency'
+import {
+  addItemsToOrder,
+  addPayment,
+  cancelOrder,
+  getOrder,
+  updateOrderDiscount,
+  updateOrderStatus,
+} from '../api/orders'
+import { getProducts } from '../api/products'
+import { useLanguage } from '../context/LanguageContext'
+import { useAuthStore } from '../store/authStore'
+import type { Order, OrderItemInput, OrderStatus, PaymentMethod } from '../types/orders'
+import type { Product } from '../types/products'
 
 const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -77,6 +78,7 @@ const OrderDetail: React.FC = () => {
   const isWaitress = user?.role === 'waitress'
   const canManageOrders = isAdmin || isManager || isWaitress
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchOrder uses id parameter internally
   useEffect(() => {
     fetchOrder()
   }, [id])
@@ -250,8 +252,8 @@ const OrderDetail: React.FC = () => {
     const filtered = products.filter(
       (product) =>
         product.name.toLowerCase().includes(searchLower) ||
-        (product.sku && product.sku.toLowerCase().includes(searchLower)) ||
-        (product.barcode && product.barcode.toLowerCase().includes(searchLower))
+        product.sku?.toLowerCase().includes(searchLower) ||
+        product.barcode?.toLowerCase().includes(searchLower)
     )
     setFilteredProducts(filtered)
   }
@@ -543,7 +545,10 @@ const OrderDetail: React.FC = () => {
           <div className="border rounded-lg divide-y mb-6">
             {order.items && order.items.length > 0 ? (
               order.items.map((item, index) => (
-                <div key={index} className="p-3">
+                <div
+                  key={`order-item-${item.productId}-${item.variant || 'default'}-${index}`}
+                  className="p-3"
+                >
                   <div className="flex justify-between items-center">
                     <div>
                       <Text>{item.productName}</Text>
@@ -629,7 +634,7 @@ const OrderDetail: React.FC = () => {
               {showPaymentDetails && order.payments && order.payments.length > 0 && (
                 <div className="mt-3 rounded-lg text-sm">
                   {order.payments.map((payment, index) => (
-                    <div key={index} className="p-3">
+                    <div key={`${payment.method}-${payment.createdAt}-${index}`} className="p-3">
                       <div className="flex justify-between items-center">
                         <div>
                           <Text>{payment.method.replace('_', ' ')}</Text>
@@ -751,6 +756,7 @@ const OrderDetail: React.FC = () => {
                         </div>
                         <div className="flex items-center">
                           <button
+                            type="button"
                             onClick={() => updateSelectedItemQuantity(key, item.quantity - 1)}
                             className="p-1 rounded-full hover:bg-blue-100"
                           >
@@ -758,13 +764,15 @@ const OrderDetail: React.FC = () => {
                           </button>
                           <span className="mx-2 w-6 text-center text-sm">{item.quantity}</span>
                           <button
+                            type="button"
                             onClick={() => updateSelectedItemQuantity(key, item.quantity + 1)}
                             className="p-1 rounded-full hover:bg-blue-100"
                           >
                             <PlusIcon className="h-4 w-4 text-blue-600" />
                           </button>
                           <button
-                            onClick={() => toggleSelectProduct(product!, item.variant)}
+                            type="button"
+                            onClick={() => product && toggleSelectProduct(product, item.variant)}
                             className="ml-2 p-1 rounded-full hover:bg-blue-100"
                           >
                             <XMarkIcon className="h-4 w-4 text-red-500" />
@@ -825,7 +833,8 @@ const OrderDetail: React.FC = () => {
 
                             return (
                               <button
-                                key={idx}
+                                type="button"
+                                key={`${product.id}-variant-${variant}-${idx}`}
                                 onClick={() => toggleSelectProduct(product, variant)}
                                 className={`px-2 py-1 text-xs rounded ${
                                   isSelected
@@ -840,6 +849,7 @@ const OrderDetail: React.FC = () => {
                         </div>
                       ) : (
                         <button
+                          type="button"
                           onClick={() => toggleSelectProduct(product)}
                           className={`w-full mt-2 px-3 py-1.5 text-sm rounded ${
                             selectedItems.has(product.id)
@@ -884,8 +894,11 @@ const OrderDetail: React.FC = () => {
               </div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
-                  <label className="text-gray-600 mr-2">{translate.orders('discountType')}</label>
+                  <label htmlFor="discount-type" className="text-gray-600 mr-2">
+                    {translate.orders('discountType')}
+                  </label>
                   <select
+                    id="discount-type"
                     value={discountType}
                     onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'fixed')}
                     className="border rounded px-2 py-1"
@@ -895,8 +908,11 @@ const OrderDetail: React.FC = () => {
                   </select>
                 </div>
                 <div className="flex items-center">
-                  <label className="text-gray-600 mr-2">{translate.orders('discountValue')}</label>
+                  <label htmlFor="discount-value" className="text-gray-600 mr-2">
+                    {translate.orders('discountValue')}
+                  </label>
                   <input
+                    id="discount-value"
                     type="number"
                     min="0"
                     max={discountType === 'percentage' ? 100 : order.subtotal}

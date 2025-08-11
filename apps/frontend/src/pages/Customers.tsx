@@ -1,11 +1,3 @@
-import { Button } from '@/components/button'
-import { Heading } from '@/components/heading'
-import { Input } from '@/components/input'
-import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
-import { Text } from '@/components/text'
-import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog'
-import { Field, Fieldset, Label } from '@/components/fieldset'
-import { Divider } from '@/components/divider'
 import {
   EnvelopeIcon,
   MapPinIcon,
@@ -14,17 +6,26 @@ import {
   PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import React, { useEffect, useState } from 'react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { Button } from '@/components/button'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '@/components/dialog'
+import { Divider } from '@/components/divider'
+import { Field, Fieldset, Label } from '@/components/fieldset'
+import { Heading } from '@/components/heading'
+import { Input } from '@/components/input'
+import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
+import { Text } from '@/components/text'
+import { Textarea } from '@/components/textarea'
 import {
+  type CustomerSearchParams,
   createCustomer,
-  CustomerSearchParams,
   deleteCustomer,
   getCustomers,
   updateCustomer,
 } from '../api/customers'
 import { useLanguage } from '../context/LanguageContext'
-import { Customer } from '../types/customers'
-import { Textarea } from '@/components/textarea'
+import type { Customer } from '../types/customers'
 
 const Customers: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -56,6 +57,7 @@ const Customers: React.FC = () => {
   const [submitLoading, setSubmitLoading] = useState(false)
 
   // Fetch customers on mount and when search params change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchCustomers is stable
   useEffect(() => {
     fetchCustomers()
   }, [searchParams])
@@ -226,8 +228,7 @@ const Customers: React.FC = () => {
       console.error('Error deleting customer:', error)
       // Handle the case where customer has associated orders
       if (
-        error.response?.data?.message &&
-        error.response.data.message.includes('Cannot delete customer with associated orders')
+        error.response?.data?.message?.includes('Cannot delete customer with associated orders')
       ) {
         alert(
           'Cannot delete this customer because they have placed orders. Consider marking them as inactive instead.'
@@ -285,21 +286,23 @@ const Customers: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableHeader>
-                    <div
-                      className="cursor-pointer flex items-center"
+                    <button
+                      type="button"
+                      className="cursor-pointer flex items-center bg-transparent border-none p-0 text-left"
                       onClick={() => handleSortChange('name')}
                     >
                       {translate.customers('customerName')} {getSortIcon('name')}
-                    </div>
+                    </button>
                   </TableHeader>
                   <TableHeader>{translate.customers('customerDetails')}</TableHeader>
                   <TableHeader>
-                    <div
-                      className="cursor-pointer flex items-center"
+                    <button
+                      type="button"
+                      className="cursor-pointer flex items-center bg-transparent border-none p-0 text-left"
                       onClick={() => handleSortChange('createdAt')}
                     >
                       {translate.customers('lastOrder')} {getSortIcon('createdAt')}
-                    </div>
+                    </button>
                   </TableHeader>
                   <TableHeader>{translate.common('actions')}</TableHeader>
                 </TableRow>

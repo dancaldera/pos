@@ -1,14 +1,14 @@
-import express, { Router } from 'express'
+import express, { type Router } from 'express'
 import {
-  getOrders,
-  getOrder,
-  createOrder,
-  updateOrderStatus,
-  addPayment,
-  getReceipt,
-  cancelOrder,
   addItemsToOrder,
+  addPayment,
+  cancelOrder,
+  createOrder,
+  getOrder,
+  getOrders,
+  getReceipt,
   updateDiscount,
+  updateOrderStatus,
 } from '../controllers/orders.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 

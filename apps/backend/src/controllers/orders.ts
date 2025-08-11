@@ -1,19 +1,19 @@
-import { Request, Response, NextFunction } from 'express'
+import { eq, sql } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 import { db } from '../db/index.js'
 import {
-  orders,
-  orderItems,
-  products,
   customers,
-  payments,
   inventoryTransactions,
+  orderItems,
+  orders,
+  payments,
+  products,
   settings,
   users,
 } from '../db/schema.js'
-import { eq, desc, sql, and, or, like, gte, lte } from 'drizzle-orm'
-import { NotFoundError, BadRequestError } from '../utils/errors.js'
 import { generateReceipt } from '../services/receipt.js'
-import { Order, OrderItem, OrderItem as OrderItemType, Settings } from '../types/models.js'
+import type { Order, OrderItem, OrderItem as OrderItemType, Settings } from '../types/models.js'
+import { BadRequestError, NotFoundError } from '../utils/errors.js'
 
 // Get all orders with filtering and pagination
 export const getOrders = async (req: Request, res: Response, next: NextFunction) => {
@@ -73,7 +73,7 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
     }
 
     if (search) {
-      whereClause = sql`${whereClause} AND (CAST(${orders.orderNumber} AS TEXT) LIKE ${'%' + search + '%'} OR ${orders.notes} LIKE ${'%' + search + '%'})`
+      whereClause = sql`${whereClause} AND (CAST(${orders.orderNumber} AS TEXT) LIKE ${`%${search}%`} OR ${orders.notes} LIKE ${`%${search}%`})`
     }
 
     // Calculate pagination
@@ -328,7 +328,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       const validDiscount = Math.min(discountAmount, subtotal)
 
       // Store discount metadata if provided
-      const discountMeta =
+      const _discountMeta =
         discountType && discountValue ? { type: discountType, value: discountValue } : null
 
       // Calculate tax and total
@@ -339,7 +339,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       const [newOrder] = await tx
         .insert(orders)
         .values({
-          userId: req.user!.id,
+          userId: req.user?.id || '',
           status,
           subtotal: subtotal.toString(),
           tax: '0', // tax.toString(),
@@ -380,7 +380,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
           type: 'sale',
           reference: `order:${newOrder.id}`,
           notes: `Sale in order #${newOrder.orderNumber}`,
-          userId: req.user!.id,
+          userId: req.user?.id || '',
         })
       }
 
@@ -397,7 +397,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
           method: paymentMethod,
           reference: payment.reference,
           notes: payment.notes,
-          userId: req.user!.id,
+          userId: req.user?.id || '',
         })
 
         // Get existing payments
@@ -546,7 +546,7 @@ export const addPayment = async (req: Request, res: Response, next: NextFunction
       }
 
       // Create payment record
-      const [newPayment] = await tx
+      const [_newPayment] = await tx
         .insert(payments)
         .values({
           orderId: id,
@@ -554,7 +554,7 @@ export const addPayment = async (req: Request, res: Response, next: NextFunction
           method,
           reference,
           notes,
-          userId: req.user!.id,
+          userId: req.user?.id || '',
         })
         .returning()
 
@@ -603,7 +603,7 @@ export const addPayment = async (req: Request, res: Response, next: NextFunction
 export const updateDiscount = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params
-    const { discount, discountType, discountValue } = req.body
+    const { discount, discountType: _discountType, discountValue: _discountValue } = req.body
 
     // Validate input
     if (discount === undefined || discount < 0) {
@@ -806,14 +806,14 @@ export const cancelOrder = async (req: Request, res: Response, next: NextFunctio
             type: 'return',
             reference: `order:${order.id}`,
             notes: `Return from cancelled order #${order.orderNumber}`,
-            userId: req.user!.id,
+            userId: req.user?.id || '',
           })
         }
       }
 
       // Update the order status
       const notesUpdate = reason
-        ? `${order.notes ? order.notes + '\n' : ''}Cancelled: ${reason}`
+        ? `${order.notes ? `${order.notes}\n` : ''}Cancelled: ${reason}`
         : order.notes
 
       const [updatedOrder] = await tx
@@ -932,7 +932,7 @@ export const addItemsToOrder = async (req: Request, res: Response, next: NextFun
           quantity: -item.quantity,
           type: 'sale',
           reference: `Order ${order.orderNumber}`,
-          userId: req.user!.id,
+          userId: req.user?.id || '',
         })
       }
 

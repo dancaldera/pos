@@ -1,10 +1,10 @@
-import express, { Router } from 'express'
+import express, { type Router } from 'express'
 import {
-  getCustomers,
-  getCustomer,
   createCustomer,
-  updateCustomer,
   deleteCustomer,
+  getCustomer,
+  getCustomers,
+  updateCustomer,
 } from '../controllers/customers.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 

@@ -1,5 +1,5 @@
-import express, { Router } from 'express'
-import { getUsers, getUser, createUser, updateUser, deleteUser } from '../controllers/users.js'
+import express, { type Router } from 'express'
+import { createUser, deleteUser, getUser, getUsers, updateUser } from '../controllers/users.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 
 const router: Router = express.Router()

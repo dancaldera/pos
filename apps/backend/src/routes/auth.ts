@@ -1,5 +1,5 @@
-import express, { Router } from 'express'
-import { register, login, getMe, forgotPassword, resetPassword } from '../controllers/auth.js'
+import express, { type Router } from 'express'
+import { forgotPassword, getMe, login, register, resetPassword } from '../controllers/auth.js'
 import { authenticate } from '../middleware/auth.js'
 
 const router: Router = express.Router()

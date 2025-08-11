@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from 'express'
+import { eq } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
+import multer from 'multer'
 import { db } from '../db/index.js'
 import { settings } from '../db/schema.js'
-import { eq } from 'drizzle-orm'
-import { BadRequestError, NotFoundError } from '../utils/errors.js'
 import { deleteFile, uploadFile } from '../services/storage.js'
-import multer from 'multer'
+import { BadRequestError } from '../utils/errors.js'
 
 // Configure multer for memory storage
 export const upload = multer({
@@ -12,18 +12,18 @@ export const upload = multer({
   limits: {
     fileSize: 2 * 1024 * 1024, // 2MB limit
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req, file, cb) => {
     // Accept only images
     if (file.mimetype.startsWith('image/')) {
       cb(null, true)
     } else {
-      cb(new BadRequestError('Only image files are allowed') as any)
+      cb(new BadRequestError('Only image files are allowed') as Error)
     }
   },
 })
 
 // Get system settings
-export const getSettings = async (req: Request, res: Response, next: NextFunction) => {
+export const getSettings = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     // Fetch the settings (there should only be one row)
     const settingsData = await db.select().from(settings).limit(1)
@@ -91,7 +91,7 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
     if (taxRate !== undefined) {
       // Convert string to number and handle potential errors
       parsedTaxRate = typeof taxRate === 'string' ? parseFloat(taxRate) : taxRate
-      if (isNaN(parsedTaxRate)) parsedTaxRate = 0
+      if (Number.isNaN(parsedTaxRate)) parsedTaxRate = 0
     }
 
     // Create settings values object
@@ -109,7 +109,7 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
       updatedAt: new Date(),
     }
 
-    let result
+    let result: any = null
 
     if (currentSettings.length === 0) {
       // If no settings exist, insert new row

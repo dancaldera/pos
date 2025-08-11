@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express'
+import { asc, count, desc, eq, like, sql } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { categories, products } from '../db/schema.js'
-import { eq, desc, asc, like, count, sql } from 'drizzle-orm'
-import { NotFoundError, BadRequestError } from '../utils/errors.js'
+import { BadRequestError, NotFoundError } from '../utils/errors.js'
 
 // Get all categories with filtering and pagination
 export const getCategories = async (req: Request, res: Response, next: NextFunction) => {
@@ -13,14 +13,20 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
       sortOrder = 'asc',
       page: pageStr = '1',
       limit: limitStr = '50',
-    } = req.query as any
+    } = req.query as {
+      search?: string
+      sortBy?: string
+      sortOrder?: string
+      page?: string
+      limit?: string
+    }
 
     // Parse pagination parameters
     const page = parseInt(pageStr as string, 10)
     const limit = parseInt(limitStr as string, 10)
 
     // Build the where clause
-    let whereClause
+    let whereClause: any = null
     if (search) {
       whereClause = like(categories.name, `%${search}%`)
     }
@@ -29,11 +35,11 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
     const offset = (page - 1) * limit
 
     // Build the order clause
-    let orderClause
+    let orderClause: any = null
     if (sortOrder.toLowerCase() === 'asc') {
-      orderClause = asc(categories[sortBy as keyof typeof categories] as any)
+      orderClause = asc(categories[sortBy as keyof typeof categories])
     } else {
-      orderClause = desc(categories[sortBy as keyof typeof categories] as any)
+      orderClause = desc(categories[sortBy as keyof typeof categories])
     }
 
     // Get the categories with product counts
@@ -174,7 +180,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
     }
 
     // Prepare update values
-    const updateValues: any = {}
+    const updateValues: Partial<typeof categories.$inferInsert> = {}
 
     if (name !== undefined) updateValues.name = name
     if (description !== undefined) updateValues.description = description

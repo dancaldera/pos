@@ -1,12 +1,12 @@
-import { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcryptjs'
+import { desc, eq } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { users } from '../db/schema.js'
-import { eq, desc } from 'drizzle-orm'
 import { BadRequestError, NotFoundError } from '../utils/errors.js'
 
 // Get all users
-export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
+export const getUsers = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     // Get all users, sorted by most recently created
     const usersList = await db.query.users.findMany({
@@ -16,7 +16,7 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
     // Return users without password
     const safeUsers = usersList.map((user) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...safeUser } = user
+      const { password: _password, ...safeUser } = user
       return safeUser
     })
 
@@ -46,7 +46,7 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
 
     // Return user without password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...safeUser } = user
+    const { password: _password, ...safeUser } = user
 
     res.status(200).json({
       success: true,
@@ -86,7 +86,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         name,
         email,
         password: hashedPassword,
-        role: role as any, // Cast to any to allow the role value
+        role: role as 'admin' | 'manager' | 'waitress',
         active,
       })
       .returning()
@@ -120,7 +120,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     }
 
     // Prepare update values
-    const updateValues: any = {}
+    const updateValues: Partial<typeof users.$inferInsert> = {}
 
     if (name !== undefined) updateValues.name = name
     if (email !== undefined) updateValues.email = email

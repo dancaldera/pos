@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { getSettings, updateSettings, SystemSettings } from '../api/settings'
-import { useAuthStore } from '../store/authStore'
-import { useLanguage } from '../context/LanguageContext'
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { Heading } from '@/components/heading'
-import { Text } from '@/components/text'
-import { Input } from '@/components/input'
-import { Textarea } from '@/components/textarea'
-import { Select } from '@/components/select'
-import { Language } from '@/i18n'
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/button'
+import { Heading } from '@/components/heading'
+import { Input } from '@/components/input'
+import { Select } from '@/components/select'
+import { Text } from '@/components/text'
+import { Textarea } from '@/components/textarea'
+import type { Language } from '@/i18n'
+import { getSettings, type SystemSettings, updateSettings } from '../api/settings'
+import { useLanguage } from '../context/LanguageContext'
+import { useAuthStore } from '../store/authStore'
 
 const CURRENCIES = [
   { code: 'USD', name: 'US Dollar ($)' },
@@ -48,6 +49,7 @@ const Settings: React.FC = () => {
   // Check if user is admin
   const isAdmin = user?.role === 'admin'
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchSettings is stable
   useEffect(() => {
     fetchSettings()
   }, [])

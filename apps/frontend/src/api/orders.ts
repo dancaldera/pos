@@ -1,5 +1,5 @@
+import type { OrderCreateData } from '../types/orders'
 import apiClient from './client'
-import { OrderCreateData } from '../types/orders'
 
 // Order search params interface
 export interface OrderSearchParams {

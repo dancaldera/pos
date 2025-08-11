@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from 'express'
+import { eq } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { UnauthorizedError, ForbiddenError } from '../utils/errors.js'
 import { config } from '../config/index.js'
 import { db } from '../db/index.js'
 import { users } from '../db/schema.js'
-import { eq } from 'drizzle-orm'
+import { ForbiddenError, UnauthorizedError } from '../utils/errors.js'
 
 // Extend the Express Request interface to include the user
 declare global {
@@ -20,7 +20,7 @@ declare global {
 }
 
 // Auth middleware that verifies the JWT token
-export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
   try {
     // Get the token from the Authorization header
     const authHeader = req.headers.authorization
@@ -68,7 +68,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 
 // Role-based authorization middleware
 export const authorize = (...roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new UnauthorizedError('Authentication required'))
     }

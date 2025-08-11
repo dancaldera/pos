@@ -1,3 +1,7 @@
+import { EyeIcon, PlusIcon } from '@heroicons/react/24/outline'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/badge'
 import { Button } from '@/components/button'
 import { Heading } from '@/components/heading'
@@ -6,12 +10,9 @@ import { Select } from '@/components/select'
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
 import { Text } from '@/components/text'
 import { formatCurrency } from '@/utils/format-currency'
-import { EyeIcon, PlusIcon } from '@heroicons/react/24/outline'
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getOrders, OrderSearchParams } from '../api/orders'
+import { getOrders, type OrderSearchParams } from '../api/orders'
 import { useLanguage } from '../context/LanguageContext'
-import { Order } from '../types/orders'
+import type { Order } from '../types/orders'
 
 type DateFilter = 'all' | 'today' | 'week' | string // string for specific dates
 
@@ -33,11 +34,13 @@ const Orders: React.FC = () => {
   const [dailyCounts, setDailyCounts] = useState<Record<string, number>>({})
 
   // Fetch orders when filters or pagination change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchOrders is stable
   useEffect(() => {
     fetchOrders()
   }, [dateFilter, selectedDate, statusFilter, search, pagination.page])
 
   // Fetch daily counts for the last 7 days on component mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchDailyCounts is stable
   useEffect(() => {
     fetchDailyCounts()
   }, [statusFilter]) // Re-fetch when status filter changes
@@ -49,19 +52,19 @@ const Orders: React.FC = () => {
     const todayStr = todayUTC.toISOString().split('T')[0]
 
     // If it's a specific date (YYYY-MM-DD format)
-    if (specificDate && specificDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    if (specificDate?.match(/^\d{4}-\d{2}-\d{2}$/)) {
       return { startDate: specificDate, endDate: specificDate }
     }
 
     switch (filter) {
       case 'today':
         return { startDate: todayStr, endDate: todayStr }
-      case 'week':
+      case 'week': {
         const weekAgoUTC = new Date(todayUTC)
         weekAgoUTC.setDate(todayUTC.getDate() - 7)
         const weekAgoStr = weekAgoUTC.toISOString().split('T')[0]
         return { startDate: weekAgoStr, endDate: todayStr }
-      case 'all':
+      }
       default:
         return {}
     }
@@ -268,6 +271,7 @@ const Orders: React.FC = () => {
 
               return (
                 <button
+                  type="button"
                   key={dateStr}
                   onClick={() => handleSpecificDateChange(dateStr)}
                   className={`
@@ -356,12 +360,13 @@ const Orders: React.FC = () => {
               orders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>
-                    <div
-                      className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer transition-colors"
+                    <button
+                      type="button"
+                      className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer transition-colors bg-transparent border-none p-0 text-left"
                       onClick={() => viewOrderDetails(order.id)}
                     >
                       #{order.orderNumber}
-                    </div>
+                    </button>
                   </TableCell>
                   <TableCell>
                     <Text className="text-sm text-zinc-900 dark:text-zinc-100">

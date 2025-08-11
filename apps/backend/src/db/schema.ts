@@ -1,16 +1,14 @@
 import {
+  boolean,
+  integer,
+  json,
+  numeric,
+  pgEnum,
   pgTable,
   serial,
-  varchar,
   text,
-  integer,
   timestamp,
-  boolean,
-  pgEnum,
-  uuid,
-  numeric,
-  foreignKey,
-  json,
+  varchar,
 } from 'drizzle-orm/pg-core'
 import { customAlphabet } from 'nanoid'
 

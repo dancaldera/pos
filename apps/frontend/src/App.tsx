@@ -1,16 +1,16 @@
-import React, { useEffect } from 'react'
+import type React from 'react'
+import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import { LoadingPage } from './components/loading-page'
 import { LanguageProvider } from './context/LanguageContext'
-import { useAuthStore } from './store/authStore'
 
 // Layouts
 import AuthLayout from './layouts/AuthLayout'
 import MainLayout from './layouts/MainLayout'
-
+import ForgotPasswordPage from './pages/auth/ForgotPassword'
 // Auth Pages
 import LoginPage from './pages/auth/Login'
-import ForgotPasswordPage from './pages/auth/ForgotPassword'
 import ResetPasswordPage from './pages/auth/ResetPassword'
 
 // Main Pages
@@ -25,7 +25,8 @@ import PrintReceipt from './pages/PrintReceipt'
 import ProductsPage from './pages/Products'
 import SettingsPage from './pages/Settings'
 import UsersPage from './pages/Users'
-import { LoadingPage } from './components/loading-page'
+import { useAuthStore } from './store/authStore'
+
 const NotFoundPage = () => <div className="p-4">Page Not Found</div>
 
 // Protected route component

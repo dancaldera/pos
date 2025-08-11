@@ -1,5 +1,5 @@
-import { and, count, asc, desc, eq, gte, lt, inArray, sql, SQLWrapper } from 'drizzle-orm'
-import { NextFunction, Request, Response } from 'express'
+import { and, count, desc, eq, gte, inArray, lt, type SQLWrapper, sql } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { categories, customers, orderItems, orders, payments, products } from '../db/schema.js'
 
@@ -173,13 +173,14 @@ export const getSalesData = async (req: Request, res: Response, next: NextFuncti
         intervalValue = 'hour'
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
         break
-      case 'yesterday':
+      case 'yesterday': {
         // Yesterday's data grouped by hour
         intervalValue = 'hour'
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
         startDate = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000)
         endDate = todayStart
         break
+      }
       case 'thisWeek':
         // This week's data grouped by day (starting Sunday)
         intervalValue = 'day'
@@ -336,7 +337,7 @@ export const getTopProducts = async (req: Request, res: Response, next: NextFunc
 }
 
 // Get payment method statistics
-export const getPaymentStats = async (req: Request, res: Response, next: NextFunction) => {
+export const getPaymentStats = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     // Get stats grouped by payment method
     const paymentStats = await db

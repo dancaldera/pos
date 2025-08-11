@@ -1,30 +1,30 @@
-import React from 'react'
-import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../store/authStore'
-import { useLanguage } from '../context/LanguageContext'
-import { SidebarLayout } from '../components/sidebar-layout'
 import {
-  Sidebar,
-  SidebarItem,
-  SidebarSection,
-  SidebarHeader,
-  SidebarBody,
-  SidebarFooter,
-  SidebarLabel,
-} from '../components/sidebar'
-import { Avatar } from '../components/avatar'
-import { Navbar, NavbarSection } from '../components/navbar'
-import {
+  ChartBarSquareIcon,
+  Cog6ToothIcon,
   HomeIcon,
   ShoppingCartIcon,
   SquaresPlusIcon,
-  UsersIcon,
   UserGroupIcon,
-  Cog6ToothIcon,
-  ChartBarSquareIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline'
+import type React from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Heading } from '@/components/heading'
 import { Text } from '@/components/text'
+import { Avatar } from '../components/avatar'
+import { Navbar, NavbarSection } from '../components/navbar'
+import {
+  Sidebar,
+  SidebarBody,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarItem,
+  SidebarLabel,
+  SidebarSection,
+} from '../components/sidebar'
+import { SidebarLayout } from '../components/sidebar-layout'
+import { useLanguage } from '../context/LanguageContext'
+import { useAuthStore } from '../store/authStore'
 
 const MainLayout: React.FC = () => {
   const { user, logout } = useAuthStore()

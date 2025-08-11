@@ -1,6 +1,6 @@
-import { Customer } from './customers'
-import { Product } from './products'
-import { User } from './auth'
+import type { User } from './auth'
+import type { Customer } from './customers'
+import type { Product } from './products'
 
 export type OrderStatus = 'pending' | 'completed' | 'cancelled'
 export type PaymentStatus = 'paid' | 'unpaid' | 'partial'

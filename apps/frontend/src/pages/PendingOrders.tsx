@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import { ArrowPathIcon, EyeIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getOrders, getOrder, OrderSearchParams } from '../api/orders'
-import { Order } from '../types/orders'
-import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
 import { Button } from '@/components/button'
-import { Text } from '@/components/text'
-import { EyeIcon, ArrowPathIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
-import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog'
-import { useLanguage } from '../context/LanguageContext'
-import { formatCurrency } from '@/utils/format-currency'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '@/components/dialog'
 import { Heading } from '@/components/heading'
+import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
+import { Text } from '@/components/text'
+import { formatCurrency } from '@/utils/format-currency'
+import { getOrder, getOrders, type OrderSearchParams } from '../api/orders'
+import { useLanguage } from '../context/LanguageContext'
+import type { Order } from '../types/orders'
 
 const PendingOrdersPage: React.FC = () => {
   const navigate = useNavigate()
@@ -60,6 +61,7 @@ const PendingOrdersPage: React.FC = () => {
     setOrderItemsDetails([])
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchPendingOrders is stable
   useEffect(() => {
     fetchPendingOrders()
   }, [])
@@ -107,12 +109,13 @@ const PendingOrdersPage: React.FC = () => {
                 orders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>
-                      <div
-                        className="text-blue-600 font-medium cursor-pointer"
+                      <button
+                        type="button"
+                        className="text-blue-600 font-medium cursor-pointer bg-transparent border-none p-0 text-left"
                         onClick={() => viewDetails(order.id)}
                       >
                         #{order.orderNumber}
-                      </div>
+                      </button>
                     </TableCell>
                     <TableCell>
                       <Text>{new Date(order.createdAt).toLocaleString()}</Text>

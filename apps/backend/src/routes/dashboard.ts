@@ -1,10 +1,10 @@
-import express, { Router } from 'express'
+import express, { type Router } from 'express'
 import {
   getDashboardStats,
+  getPaymentStats,
   getRecentOrders,
   getSalesData,
   getTopProducts,
-  getPaymentStats,
 } from '../controllers/dashboard.js'
 import { authenticate } from '../middleware/auth.js'
 

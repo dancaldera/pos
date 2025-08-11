@@ -1,3 +1,6 @@
+import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/button'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from '@/components/dialog'
 import { Divider } from '@/components/divider'
@@ -7,17 +10,15 @@ import { Input } from '@/components/input'
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
 import { Text } from '@/components/text'
 import { Textarea } from '@/components/textarea'
-import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
-import React, { useEffect, useState } from 'react'
 import {
-  CategorySearchParams,
+  type CategorySearchParams,
   createCategory,
   deleteCategory,
   getCategories,
   updateCategory,
 } from '../api/categories'
 import { useLanguage } from '../context/LanguageContext'
-import { Category } from '../types/products'
+import type { Category } from '../types/products'
 
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([])
@@ -47,6 +48,7 @@ const Categories: React.FC = () => {
   const [submitLoading, setSubmitLoading] = useState(false)
 
   // Fetch categories on mount and when search params change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchCategories is stable
   useEffect(() => {
     fetchCategories()
   }, [searchParams])
@@ -190,8 +192,7 @@ const Categories: React.FC = () => {
       console.error('Error deleting category:', error)
       // Handle the case where category has associated products
       if (
-        error.response?.data?.message &&
-        error.response.data.message.includes('Cannot delete category with associated products')
+        error.response?.data?.message?.includes('Cannot delete category with associated products')
       ) {
         alert(
           'Cannot delete this category because it has associated products. Please remove or reassign all products first.'
@@ -246,29 +247,32 @@ const Categories: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableHeader>
-                    <div
-                      className="cursor-pointer flex items-center"
+                    <button
+                      type="button"
+                      className="cursor-pointer flex items-center bg-transparent border-none p-0 text-left"
                       onClick={() => handleSortChange('name')}
                     >
                       {translate.common('name')} {getSortIcon('name')}
-                    </div>
+                    </button>
                   </TableHeader>
                   <TableHeader>{translate.common('description')}</TableHeader>
                   <TableHeader>
-                    <div
-                      className="cursor-pointer flex items-center"
+                    <button
+                      type="button"
+                      className="cursor-pointer flex items-center bg-transparent border-none p-0 text-left"
                       onClick={() => handleSortChange('productCount')}
                     >
                       {translate.categories('productsInCategory')} {getSortIcon('productCount')}
-                    </div>
+                    </button>
                   </TableHeader>
                   <TableHeader>
-                    <div
-                      className="cursor-pointer flex items-center"
+                    <button
+                      type="button"
+                      className="cursor-pointer flex items-center bg-transparent border-none p-0 text-left"
                       onClick={() => handleSortChange('createdAt')}
                     >
                       {translate.common('created')} {getSortIcon('createdAt')}
-                    </div>
+                    </button>
                   </TableHeader>
                   <TableHeader>{translate.common('actions')}</TableHeader>
                 </TableRow>

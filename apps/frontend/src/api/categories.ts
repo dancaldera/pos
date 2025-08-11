@@ -1,5 +1,5 @@
+import type { Category } from '../types/products'
 import apiClient from './client'
-import { Category } from '../types/products'
 
 // Category search params interface
 export interface CategorySearchParams {

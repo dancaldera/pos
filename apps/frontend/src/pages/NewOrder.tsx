@@ -1,31 +1,32 @@
-import React, { useState, useEffect } from 'react'
-import { createOrder } from '../api/orders'
-import { getProducts } from '../api/products'
-import { getCustomers } from '../api/customers'
-import { useNavigate } from 'react-router-dom'
-import { Product } from '../types/products'
-import { Customer } from '../types/customers'
-import { OrderItemInput, OrderStatus, PaymentMethod, PaymentStatus } from '../types/orders'
-// Modal import removed as we're using Dialog components instead
-import { useLanguage } from '../context/LanguageContext'
 import {
   MagnifyingGlassIcon,
-  PlusIcon,
   MinusIcon,
+  PlusIcon,
+  ShoppingCartIcon,
   TrashIcon,
   UserIcon,
-  ShoppingCartIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import { formatCurrency } from '@/utils/format-currency'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { Button } from '@/components/button'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '@/components/dialog'
 import { Heading } from '@/components/heading'
 import { Input } from '@/components/input'
+import { Select } from '@/components/select'
 import { Text } from '@/components/text'
 import { Textarea } from '@/components/textarea'
-import { Select } from '@/components/select'
-import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog'
-import { Button } from '@/components/button'
+import { formatCurrency } from '@/utils/format-currency'
+import { getCustomers } from '../api/customers'
+import { createOrder } from '../api/orders'
+import { getProducts } from '../api/products'
+// Modal import removed as we're using Dialog components instead
+import { useLanguage } from '../context/LanguageContext'
+import type { Customer } from '../types/customers'
+import type { OrderItemInput, OrderStatus, PaymentMethod, PaymentStatus } from '../types/orders'
+import type { Product } from '../types/products'
 
 interface CartItem extends OrderItemInput {
   productName: string
@@ -64,7 +65,7 @@ const NewOrder: React.FC = () => {
     // Ensure subtotal is always a number
     const itemSubtotal =
       typeof item.subtotal === 'string' ? parseFloat(item.subtotal) : Number(item.subtotal)
-    return sum + (isNaN(itemSubtotal) ? 0 : itemSubtotal)
+    return sum + (Number.isNaN(itemSubtotal) ? 0 : itemSubtotal)
   }, 0)
 
   const taxRate = 0 // This should come from settings
@@ -81,6 +82,7 @@ const NewOrder: React.FC = () => {
   const tax = (subtotal - validDiscountAmount) * (taxRate / 100)
   const total = subtotal - validDiscountAmount + tax
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchProductsAndCustomers is stable
   useEffect(() => {
     // Fetch products and customers on mount
     fetchProductsAndCustomers()
@@ -97,8 +99,8 @@ const NewOrder: React.FC = () => {
     const filtered = products.filter(
       (product) =>
         product.name.toLowerCase().includes(searchLower) ||
-        (product.sku && product.sku.toLowerCase().includes(searchLower)) ||
-        (product.barcode && product.barcode.toLowerCase().includes(searchLower))
+        product.sku?.toLowerCase().includes(searchLower) ||
+        product.barcode?.toLowerCase().includes(searchLower)
     )
     setFilteredProducts(filtered)
   }, [productSearch, products])
@@ -133,8 +135,8 @@ const NewOrder: React.FC = () => {
     ? customers.filter(
         (customer) =>
           customer.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-          (customer.email && customer.email.toLowerCase().includes(customerSearch.toLowerCase())) ||
-          (customer.phone && customer.phone.toLowerCase().includes(customerSearch.toLowerCase()))
+          customer.email?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+          customer.phone?.toLowerCase().includes(customerSearch.toLowerCase())
       )
     : customers
 
@@ -274,7 +276,7 @@ const NewOrder: React.FC = () => {
     }
 
     // Make sure total is a valid number
-    const amountToSet = isNaN(total) ? 0 : total
+    const amountToSet = Number.isNaN(total) ? 0 : total
 
     setPaymentAmount(amountToSet)
     setPaymentModalOpen(true)
@@ -420,12 +422,14 @@ const NewOrder: React.FC = () => {
               </div>
             ) : (
               filteredProducts.map((product) => (
-                <div
+                <button
+                  type="button"
                   key={product.id}
-                  className={`border rounded-lg p-3 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition flex flex-col justify-between h-full ${
+                  className={`border rounded-lg p-3 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition flex flex-col justify-between h-full text-left ${
                     product.stock <= 0 ? 'opacity-50 pointer-events-none' : ''
                   }`}
                   onClick={() => product.stock > 0 && addToCart(product)}
+                  disabled={product.stock <= 0}
                 >
                   <div className="mb-2 flex justify-center h-32">
                     {product.imageUrl ? (
@@ -444,6 +448,7 @@ const NewOrder: React.FC = () => {
                           stroke="currentColor"
                           className="w-12 h-12 text-gray-300"
                         >
+                          <title>Product image placeholder</title>
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -500,14 +505,14 @@ const NewOrder: React.FC = () => {
                       <div className="grid grid-cols-2 gap-1 mt-2">
                         {product.variants.map((variant, idx) => (
                           <Button
-                            key={idx}
+                            key={`${product.id}-variant-${idx}-${variant}`}
                             outline
                             onClick={(e) => {
                               e.stopPropagation()
                               addToCart(product, variant)
                             }}
                             className={
-                              idx === 0 && product.variants!.length === 1 ? 'col-span-2' : ''
+                              idx === 0 && (product.variants?.length || 0) === 1 ? 'col-span-2' : ''
                             }
                           >
                             {variant}
@@ -515,7 +520,7 @@ const NewOrder: React.FC = () => {
                         ))}
                       </div>
                     )}
-                </div>
+                </button>
               ))
             )}
           </div>
@@ -574,7 +579,10 @@ const NewOrder: React.FC = () => {
             ) : (
               <div className="border rounded-lg divide-y max-h-64 overflow-y-auto">
                 {cartItems.map((item, index) => (
-                  <div key={index} className="p-3 flex justify-between items-center">
+                  <div
+                    key={`cart-${item.productId}-${item.variant || 'default'}-${index}`}
+                    className="p-3 flex justify-between items-center"
+                  >
                     <div className="flex-1">
                       <Text>{item.productName}</Text>
                       {item.variant && (
@@ -717,9 +725,10 @@ const NewOrder: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredCustomers.map((customer) => (
-                    <div
+                    <button
+                      type="button"
                       key={customer.id}
-                      className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition"
+                      className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition text-left w-full"
                       onClick={() => selectCustomer(customer)}
                     >
                       <Text className="font-medium">{customer.name}</Text>
@@ -729,7 +738,7 @@ const NewOrder: React.FC = () => {
                       {customer.phone && (
                         <Text className="text-sm text-gray-500">{customer.phone}</Text>
                       )}
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -749,9 +758,9 @@ const NewOrder: React.FC = () => {
                   {cartItems[selectedItemIndex].productName}
                 </h3>
                 <div className="grid grid-cols-1 gap-2">
-                  {cartItems[selectedItemIndex].availableVariants?.map((variant, idx) => (
+                  {cartItems[selectedItemIndex].availableVariants?.map((variant, _idx) => (
                     <Button
-                      key={idx}
+                      key={`variant-${selectedItemIndex}-${variant}`}
                       outline
                       onClick={() => selectVariant(selectedItemIndex, variant)}
                     >

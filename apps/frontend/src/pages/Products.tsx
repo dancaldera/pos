@@ -1,3 +1,13 @@
+import {
+  CheckCircleIcon,
+  PencilIcon,
+  PhotoIcon,
+  PlusIcon,
+  TrashIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 import { Badge } from '@/components/badge'
 import { Button } from '@/components/button'
 import { Checkbox } from '@/components/checkbox'
@@ -8,27 +18,18 @@ import { Input } from '@/components/input'
 import { Select } from '@/components/select'
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
 import { Text } from '@/components/text'
+import { Textarea } from '@/components/textarea'
 import { formatCurrency } from '@/utils/format-currency'
-import {
-  CheckCircleIcon,
-  PencilIcon,
-  PhotoIcon,
-  PlusIcon,
-  TrashIcon,
-  XCircleIcon,
-} from '@heroicons/react/24/outline'
-import React, { useEffect, useState } from 'react'
 import { getCategories } from '../api/categories'
 import {
-  ProductSearchParams,
   createProduct,
   deleteProduct,
   getProducts,
+  type ProductSearchParams,
   updateProduct,
 } from '../api/products'
 import { useLanguage } from '../context/LanguageContext'
-import { Product, ProductFormData } from '../types/products'
-import { Textarea } from '@/components/textarea'
+import type { Product, ProductFormData } from '../types/products'
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
@@ -73,6 +74,7 @@ const Products: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   // Fetch products on mount and when search params change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchProducts and fetchCategories are stable
   useEffect(() => {
     fetchProducts()
     fetchCategories()
@@ -744,7 +746,7 @@ const Products: React.FC = () => {
                         )}
                         <div className="space-y-2 mb-2">
                           {(formData.variants || []).map((variant, index) => (
-                            <div key={index} className="flex items-center">
+                            <div key={`variant-${index}-${variant}`} className="flex items-center">
                               <Input
                                 type="text"
                                 value={variant}
@@ -844,6 +846,7 @@ const XIcon = ({ className }: { className?: string }) => (
     stroke="currentColor"
     className={className}
   >
+    <title>Close icon</title>
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 )

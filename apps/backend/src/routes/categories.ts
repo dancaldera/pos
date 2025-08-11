@@ -1,10 +1,10 @@
-import express, { Router } from 'express'
+import express, { type Router } from 'express'
 import {
+  createCategory,
+  deleteCategory,
   getCategories,
   getCategory,
-  createCategory,
   updateCategory,
-  deleteCategory,
 } from '../controllers/categories.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 

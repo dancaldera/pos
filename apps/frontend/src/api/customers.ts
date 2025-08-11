@@ -1,5 +1,5 @@
+import type { Customer } from '../types/customers'
 import apiClient from './client'
-import { Customer } from '../types/customers'
 
 // Customer search params interface
 export interface CustomerSearchParams {

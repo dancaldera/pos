@@ -1,13 +1,13 @@
-import { Request, Response, NextFunction } from 'express'
+import crypto from 'node:crypto'
 import bcrypt from 'bcryptjs'
+import { and, eq, gt } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import crypto from 'crypto'
+import { config } from '../config/index.js'
 import { db } from '../db/index.js'
 import { users } from '../db/schema.js'
-import { config } from '../config/index.js'
-import { BadRequestError, UnauthorizedError } from '../utils/errors.js'
 import { emailService } from '../services/email.js'
-import { eq, and, gt } from 'drizzle-orm'
+import { BadRequestError, UnauthorizedError } from '../utils/errors.js'
 
 // Register a new user
 export const register = async (req: Request, res: Response, next: NextFunction) => {
@@ -38,7 +38,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         name,
         email,
         password: hashedPassword,
-        role: role as any, // Cast to any to allow the role value
+        role: role as 'admin' | 'manager' | 'waitress',
       })
       .returning()
 
@@ -128,7 +128,7 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
   try {
     // Get the user from the database
     const user = await db.query.users.findFirst({
-      where: eq(users.id, req.user!.id),
+      where: eq(users.id, req.user?.id || ''),
     })
 
     if (!user) {

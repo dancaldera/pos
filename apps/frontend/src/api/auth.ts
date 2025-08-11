@@ -1,5 +1,5 @@
+import type { LoginCredentials, RegisterData, User } from '../types/auth'
 import apiClient from './client'
-import { User, LoginCredentials, RegisterData } from '../types/auth'
 
 // Login the user
 export const login = async (credentials: LoginCredentials) => {

@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import createTranslate, { Language } from '../i18n'
+import type React from 'react'
+import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
+import createTranslate, { type Language } from '../i18n'
 
 interface LanguageContextType {
   language: Language
@@ -33,7 +34,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Set language attribute on first render
   useEffect(() => {
     document.documentElement.lang = language
-  }, [])
+  }, [language])
 
   // Context value
   const value = {

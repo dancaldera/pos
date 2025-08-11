@@ -1,26 +1,27 @@
-import React, { useState, useEffect } from 'react'
-import { getUsers, createUser, updateUser, deleteUser } from '../api/users'
-import { User, Role } from '../types/auth'
-import { useAuthStore } from '../store/authStore'
-import { useLanguage } from '../context/LanguageContext'
 import {
-  PencilIcon,
-  TrashIcon,
-  PlusIcon,
   CheckCircleIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
   XCircleIcon,
 } from '@heroicons/react/24/outline'
-import { Heading } from '@/components/heading'
-import { Button } from '@/components/button'
-import { Input } from '@/components/input'
-import { Text } from '@/components/text'
-import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 import { Badge } from '@/components/badge'
-import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog'
+import { Button } from '@/components/button'
+import { Checkbox } from '@/components/checkbox'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '@/components/dialog'
 import { Divider } from '@/components/divider'
 import { Field, Fieldset, Label } from '@/components/fieldset'
+import { Heading } from '@/components/heading'
+import { Input } from '@/components/input'
 import { Select } from '@/components/select'
-import { Checkbox } from '@/components/checkbox'
+import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
+import { Text } from '@/components/text'
+import { createUser, deleteUser, getUsers, updateUser } from '../api/users'
+import { useLanguage } from '../context/LanguageContext'
+import { useAuthStore } from '../store/authStore'
+import type { Role, User } from '../types/auth'
 
 const ROLE_NAMES: Record<Role, string> = {
   admin: 'Administrator',
@@ -49,6 +50,7 @@ const Users: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
   // Fetch users on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchUsers is stable
   useEffect(() => {
     fetchUsers()
   }, [])
@@ -178,7 +180,7 @@ const Users: React.FC = () => {
       setSubmitLoading(true)
 
       // Create user data object, omitting confirmPassword
-      const { confirmPassword, ...userData } = formData
+      const { confirmPassword: _confirmPassword, ...userData } = formData
 
       // For updates, only include the password if it's not empty
       const dataToSend = selectedUser
@@ -411,7 +413,7 @@ const Users: React.FC = () => {
                 <Label>
                   {selectedUser
                     ? translate.users('userPassword')
-                    : translate.users('userPassword') + ' *'}
+                    : `${translate.users('userPassword')} *`}
                 </Label>
                 <Input
                   type="password"

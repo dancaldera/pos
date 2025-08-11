@@ -1,14 +1,15 @@
 import { ArrowLeftIcon, PrinterIcon } from '@heroicons/react/24/outline'
 import { invoke } from '@tauri-apps/api/core'
-import React, { useEffect, useState } from 'react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { getOrder } from '../api/orders'
-import { getSettings, SystemSettings } from '../api/settings'
-import { useLanguage } from '../context/LanguageContext'
-import { Order } from '../types/orders'
-import { formatCurrency } from '../utils/format-currency'
 import { Button } from '@/components/button'
+import { getOrder } from '../api/orders'
+import { getSettings, type SystemSettings } from '../api/settings'
+import { useLanguage } from '../context/LanguageContext'
+import type { Order } from '../types/orders'
+import { formatCurrency } from '../utils/format-currency'
 
 const PrintReceipt: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -169,7 +170,7 @@ const PrintReceipt: React.FC = () => {
       setCustomTaxRate('')
     } else {
       const numValue = parseFloat(value)
-      if (!isNaN(numValue) && numValue >= 0) {
+      if (!Number.isNaN(numValue) && numValue >= 0) {
         setCustomTaxRate(numValue)
       }
     }
@@ -343,7 +344,10 @@ const PrintReceipt: React.FC = () => {
           </div>
 
           {order?.items?.map((item, index) => (
-            <div key={index} className="flex justify-between text-xs py-1 border-b border-dotted">
+            <div
+              key={`${item.productId}-${item.variant || 'default'}-${index}`}
+              className="flex justify-between text-xs py-1 border-b border-dotted"
+            >
               <div className="w-1/2">
                 <div>{item.productName}</div>
                 {item.variant && <div className="text-xs">{item.variant}</div>}
@@ -397,7 +401,10 @@ const PrintReceipt: React.FC = () => {
             <div className="mt-1">
               <div className="font-bold">{translate.orders('paymentDetails')}:</div>
               {order.payments.map((payment, index) => (
-                <div key={index} className="flex justify-between">
+                <div
+                  key={`${payment.method}-${payment.createdAt}-${index}`}
+                  className="flex justify-between"
+                >
                   <span>
                     {payment.method.replace('_', ' ')} - {formatDate(payment.createdAt)}
                   </span>

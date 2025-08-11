@@ -1,16 +1,16 @@
-import { Request, Response, NextFunction } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import { AppError } from '../utils/errors.js'
 import { logger } from '../utils/logger.js'
 
 // Global error handling middleware
-export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (err: Error, _req: Request, res: Response, _next: NextFunction) => {
   // Log the error
   logger.error(`${err.name}: ${err.message}`, { stack: err.stack })
 
   // Default error response
   let statusCode = 500
   let message = 'Internal server error'
-  let errorDetails = undefined
+  let errorDetails: any = null
 
   // Handle known operational errors
   if (err instanceof AppError) {
@@ -50,7 +50,7 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
 }
 
 // 404 handler middleware
-export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
+export const notFoundHandler = (req: Request, res: Response, _next: NextFunction) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,

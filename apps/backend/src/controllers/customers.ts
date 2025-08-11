@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express'
+import { and, asc, count, desc, eq, like, or, sum } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { customers, orders } from '../db/schema.js'
-import { eq, desc, asc, like, and, or, count, sum } from 'drizzle-orm'
-import { NotFoundError, BadRequestError } from '../utils/errors.js'
+import { BadRequestError, NotFoundError } from '../utils/errors.js'
 
 // Get all customers with filtering and pagination
 export const getCustomers = async (req: Request, res: Response, next: NextFunction) => {
@@ -13,14 +13,20 @@ export const getCustomers = async (req: Request, res: Response, next: NextFuncti
       sortOrder = 'asc',
       page: pageStr = '1',
       limit: limitStr = '20',
-    } = req.query as any
+    } = req.query as {
+      search?: string
+      sortBy?: string
+      sortOrder?: string
+      page?: string
+      limit?: string
+    }
 
     // Parse pagination parameters
     const page = parseInt(pageStr as string, 10)
     const limit = parseInt(limitStr as string, 10)
 
     // Build the where clause
-    let whereClause
+    let whereClause: any = null
     if (search) {
       whereClause = or(
         like(customers.name, `%${search}%`),
@@ -33,11 +39,11 @@ export const getCustomers = async (req: Request, res: Response, next: NextFuncti
     const offset = (page - 1) * limit
 
     // Build the order clause
-    let orderClause
+    let orderClause: any = null
     if (sortOrder.toLowerCase() === 'asc') {
-      orderClause = asc(customers[sortBy as keyof typeof customers] as any)
+      orderClause = asc(customers[sortBy as keyof typeof customers])
     } else {
-      orderClause = desc(customers[sortBy as keyof typeof customers] as any)
+      orderClause = desc(customers[sortBy as keyof typeof customers])
     }
 
     // Get the total count
@@ -50,7 +56,7 @@ export const getCustomers = async (req: Request, res: Response, next: NextFuncti
 
     // Get the customers
     const customersList = await db.query.customers.findMany({
-      where: whereClause as any,
+      where: whereClause,
       orderBy: orderClause,
       limit,
       offset,
@@ -186,7 +192,7 @@ export const updateCustomer = async (req: Request, res: Response, next: NextFunc
     }
 
     // Prepare update values
-    const updateValues: any = {}
+    const updateValues: Partial<typeof customers.$inferInsert> = {}
 
     if (name !== undefined) updateValues.name = name
     if (email !== undefined) updateValues.email = email

@@ -1,6 +1,6 @@
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import { db } from './index.js'
 import { logger } from '../utils/logger.js'
+import { db } from './index.js'
 
 // This script will migrate the database to the latest schema
 async function runMigration() {

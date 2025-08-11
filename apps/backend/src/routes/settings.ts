@@ -1,4 +1,4 @@
-import express, { Router } from 'express'
+import express, { type Router } from 'express'
 import { getSettings, updateSettings, upload } from '../controllers/settings.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 

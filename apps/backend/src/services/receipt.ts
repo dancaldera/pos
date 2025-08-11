@@ -1,7 +1,7 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import PDFDocument from 'pdfkit'
-import { Order, OrderItem, Settings } from '../types/models.js'
-import fs from 'fs'
-import path from 'path'
+import type { Order, OrderItem, Settings } from '../types/models.js'
 import { logger } from '../utils/logger.js'
 
 // Service to generate PDF receipts for orders

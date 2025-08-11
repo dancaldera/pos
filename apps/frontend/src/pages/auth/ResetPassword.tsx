@@ -1,11 +1,12 @@
+import type React from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Button } from '@/components/button'
 import { Heading } from '@/components/heading'
 import { Input } from '@/components/input'
 import { Link } from '@/components/link'
 import { Text } from '@/components/text'
-import React, { FormEvent, useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { toast } from 'sonner'
 import { resetPassword } from '../../api/auth'
 import { useLanguage } from '../../context/LanguageContext'
 
@@ -37,7 +38,7 @@ const ResetPasswordPage: React.FC = () => {
       toast.error(translate.auth('invalidResetToken'))
       navigate('/login')
     }
-  }, [token, navigate])
+  }, [token, navigate, translate.auth])
 
   const validateField = (name: string, value: string) => {
     let errorMessage = ''

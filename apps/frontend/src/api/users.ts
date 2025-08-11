@@ -1,5 +1,5 @@
+import type { User } from '../types/auth'
 import apiClient from './client'
-import { User } from '../types/auth'
 
 // Get all users
 export const getUsers = async () => {

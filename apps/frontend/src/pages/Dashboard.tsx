@@ -1,50 +1,51 @@
-import React, { useState, useEffect } from 'react'
-import { Link, Navigate } from 'react-router-dom'
-import { Card } from '@/components/card'
-import { useAuthStore } from '../store/authStore'
-import { useLanguage } from '../context/LanguageContext'
 import {
-  ShoppingCartIcon,
+  ArchiveBoxIcon,
   ArrowTrendingUpIcon,
+  ClockIcon,
   CurrencyDollarIcon,
   ExclamationTriangleIcon,
+  ShoppingCartIcon,
   SquaresPlusIcon,
   UserGroupIcon,
-  ArchiveBoxIcon,
-  ClockIcon,
 } from '@heroicons/react/24/outline'
 import {
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  type ChartOptions,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+} from 'chart.js'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { Bar, Doughnut, Line } from 'react-chartjs-2'
+import { Link, Navigate } from 'react-router-dom'
+import { Badge } from '@/components/badge'
+import { Button } from '@/components/button'
+import { Card } from '@/components/card'
+import { Heading } from '@/components/heading'
+import { Select } from '@/components/select'
+import { Text } from '@/components/text'
+import { formatCurrency } from '@/utils/format-currency'
+import {
+  type DashboardStats,
   getDashboardStats,
+  getPaymentStats,
   getRecentOrders,
   getSalesData,
   getTopProducts,
-  getPaymentStats,
-  DashboardStats,
-  RecentOrder,
-  SalesDataPoint,
-  TopProduct,
-  PaymentStat,
+  type PaymentStat,
+  type RecentOrder,
+  type SalesDataPoint,
+  type TopProduct,
 } from '../api/dashboard'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-} from 'chart.js'
-import { Line, Bar, Doughnut } from 'react-chartjs-2'
-import { formatCurrency } from '@/utils/format-currency'
-import { Heading } from '@/components/heading'
-import { Text } from '@/components/text'
-import { Button } from '@/components/button'
-import { Select } from '@/components/select'
-import { Badge } from '@/components/badge'
+import { useLanguage } from '../context/LanguageContext'
+import { useAuthStore } from '../store/authStore'
 
 // Register ChartJS components
 ChartJS.register(
@@ -61,10 +62,7 @@ ChartJS.register(
 
 const Dashboard: React.FC = () => {
   const { user } = useAuthStore()
-  // Redirect waitress role away from dashboard
-  if (user?.role === 'waitress') {
-    return <Navigate to="/orders" replace />
-  }
+  const { translate } = useLanguage()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([])
   const [salesData, setSalesData] = useState<SalesDataPoint[]>([])
@@ -74,14 +72,21 @@ const Dashboard: React.FC = () => {
   const [salesPeriod, setSalesPeriod] = useState<'today' | 'thisWeek' | 'thisYear'>('today')
   const [monthlyGrowth, setMonthlyGrowth] = useState<number | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchDashboardData is stable
   useEffect(() => {
     fetchDashboardData()
   }, [])
 
   // Refetch all dashboard data when period changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchDashboardData is stable
   useEffect(() => {
     fetchDashboardData()
   }, [salesPeriod])
+
+  // Redirect waitress role away from dashboard
+  if (user?.role === 'waitress') {
+    return <Navigate to="/orders" replace />
+  }
 
   const fetchDashboardData = async () => {
     try {
@@ -149,7 +154,7 @@ const Dashboard: React.FC = () => {
         // For daily data (format: YYYY-MM-DD)
         try {
           const date = new Date(point.date)
-          if (!isNaN(date.getTime())) {
+          if (!Number.isNaN(date.getTime())) {
             return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
           }
           return point.date
@@ -270,8 +275,6 @@ const Dashboard: React.FC = () => {
         return 'zinc'
     }
   }
-
-  const { translate } = useLanguage()
 
   return (
     <div>

@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from 'express'
-import { db } from '../db/index.js'
-import { products, categories, inventoryTransactions } from '../db/schema.js'
-import { eq, desc, asc, like, sql, and, or } from 'drizzle-orm'
-import { NotFoundError, BadRequestError } from '../utils/errors.js'
-import { uploadFile, deleteFile } from '../services/storage.js'
+import { asc, desc, eq, sql } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 import multer from 'multer'
+import { db } from '../db/index.js'
+import { categories, inventoryTransactions, products } from '../db/schema.js'
+import { deleteFile, uploadFile } from '../services/storage.js'
+import { BadRequestError, NotFoundError } from '../utils/errors.js'
 
 // Configure multer for memory storage
 export const upload = multer({
@@ -12,12 +12,12 @@ export const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req, file, cb) => {
     // Accept only images
     if (file.mimetype.startsWith('image/')) {
       cb(null, true)
     } else {
-      cb(new BadRequestError('Only image files are allowed') as any)
+      cb(new BadRequestError('Only image files are allowed') as Error)
     }
   },
 })
@@ -34,7 +34,16 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       limit: limitStr = '20',
       active,
       lowStock,
-    } = req.query as any
+    } = req.query as {
+      categoryId?: string
+      search?: string
+      sortBy?: string
+      sortOrder?: string
+      page?: string
+      limit?: string
+      active?: string
+      lowStock?: string
+    }
 
     // Parse pagination parameters
     const page = parseInt(pageStr as string, 10)
@@ -69,7 +78,7 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
     const offset = (page - 1) * limit
 
     // Build the order clause
-    let orderClause
+    let orderClause: any = null
     // Special case for category sorting
     if (sortBy === 'category') {
       if (sortOrder.toLowerCase() === 'asc') {
@@ -79,9 +88,9 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       }
     } else {
       if (sortOrder.toLowerCase() === 'asc') {
-        orderClause = asc(products[sortBy as keyof typeof products] as any)
+        orderClause = asc(products[sortBy as keyof typeof products])
       } else {
-        orderClause = desc(products[sortBy as keyof typeof products] as any)
+        orderClause = desc(products[sortBy as keyof typeof products])
       }
     }
 
@@ -267,7 +276,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
         quantity: stock,
         type: 'initial',
         notes: 'Initial stock',
-        userId: req.user!.id,
+        userId: req.user?.id || '',
       })
     }
 
@@ -388,7 +397,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
         quantity: stock - product.stock,
         type: 'adjustment',
         notes: 'Manual stock adjustment',
-        userId: req.user!.id,
+        userId: req.user?.id || '',
       })
     }
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { getCurrentUser, login as loginApi, logout as logoutApi } from '../api/auth'
-import { LoginCredentials, User } from '../types/auth'
+import type { LoginCredentials, User } from '../types/auth'
 
 interface AuthState {
   user: User | null
@@ -94,7 +94,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: false,
         error: null,
       })
-    } catch (error) {
+    } catch (_error) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
 

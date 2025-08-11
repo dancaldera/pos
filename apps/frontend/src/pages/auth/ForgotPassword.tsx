@@ -1,10 +1,11 @@
+import type React from 'react'
+import { type FormEvent, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/button'
 import { Heading } from '@/components/heading'
 import { Input } from '@/components/input'
 import { Link } from '@/components/link'
 import { Text } from '@/components/text'
-import React, { FormEvent, useState } from 'react'
-import { toast } from 'sonner'
 import { forgotPassword } from '../../api/auth'
 import { useLanguage } from '../../context/LanguageContext'
 

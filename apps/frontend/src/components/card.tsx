@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import React, { forwardRef } from 'react'
+import type React from 'react'
+import { forwardRef } from 'react'
 import { Link } from './link'
 
 const styles = {
@@ -69,7 +70,7 @@ export const Card = forwardRef<HTMLElement, CardProps>(function Card(
   { variant = 'default', color, size = 'md', className, children, ...props },
   ref
 ) {
-  let classes = clsx(
+  const classes = clsx(
     className,
     styles.base,
     styles.variants[variant],

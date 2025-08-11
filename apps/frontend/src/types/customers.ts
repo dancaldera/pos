@@ -10,5 +10,5 @@ export interface Customer {
     totalOrders: number
     totalSpent: number
   }
-  recentOrders?: any[]
+  recentOrders?: unknown[]
 }

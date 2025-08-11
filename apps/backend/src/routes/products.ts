@@ -1,10 +1,10 @@
-import express, { Router } from 'express'
+import express, { type Router } from 'express'
 import {
-  getProducts,
-  getProduct,
   createProduct,
-  updateProduct,
   deleteProduct,
+  getProduct,
+  getProducts,
+  updateProduct,
   upload,
 } from '../controllers/products.js'
 import { authenticate, authorize } from '../middleware/auth.js'

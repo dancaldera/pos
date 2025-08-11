@@ -1,6 +1,5 @@
 [variables]
   NODE_VERSION = "18"
-  NPM_CONFIG_UPDATE_NOTIFIER = "false"
 
 [phases.setup]
   nixPkgs = ["nodejs_18"]
@@ -8,19 +7,6 @@
     "corepack enable",
     "corepack prepare pnpm@latest --activate"
   ]
-
-[phases.install]
-  cmds = [
-    "pnpm install --frozen-lockfile --prod"
-  ]
-
-[phases.build]
-  cmds = [
-    "pnpm run backend:build"
-  ]
-
-[start]
-  cmd = "pnpm run start:backend"
 
 [build.env]
   NODE_ENV = "production"

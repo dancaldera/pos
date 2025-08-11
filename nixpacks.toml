@@ -2,11 +2,7 @@
   NODE_VERSION = "18"
 
 [phases.setup]
-  nixPkgs = ["nodejs_18"]
-  cmds = [
-    "corepack enable",
-    "corepack prepare pnpm@latest --activate"
-  ]
+  nixPkgs = ["nodejs_18", "nodePackages.pnpm"]
 
 [build.env]
   NODE_ENV = "production"

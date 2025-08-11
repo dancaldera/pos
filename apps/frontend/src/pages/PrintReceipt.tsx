@@ -1,181 +1,179 @@
-import { ArrowLeftIcon, PrinterIcon } from '@heroicons/react/24/outline';
-import { invoke } from '@tauri-apps/api/core';
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'sonner';
-import { getOrder } from '../api/orders';
-import { getSettings, SystemSettings } from '../api/settings';
-import { useLanguage } from '../context/LanguageContext';
-import { Order } from '../types/orders';
-import { formatCurrency } from '../utils/format-currency';
-import { Button } from '@/components/button';
+import { ArrowLeftIcon, PrinterIcon } from '@heroicons/react/24/outline'
+import { invoke } from '@tauri-apps/api/core'
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
+import { getOrder } from '../api/orders'
+import { getSettings, SystemSettings } from '../api/settings'
+import { useLanguage } from '../context/LanguageContext'
+import { Order } from '../types/orders'
+import { formatCurrency } from '../utils/format-currency'
+import { Button } from '@/components/button'
 
 const PrintReceipt: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { translate, language } = useLanguage();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [settings, setSettings] = useState<SystemSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [customTaxRate, setCustomTaxRate] = useState<number | ''>("");
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [printStatus, setPrintStatus] = useState<string | null>(null);
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { translate, language } = useLanguage()
+  const [order, setOrder] = useState<Order | null>(null)
+  const [settings, setSettings] = useState<SystemSettings | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [customTaxRate, setCustomTaxRate] = useState<number | ''>('')
+  const [isPrinting, setIsPrinting] = useState(false)
+  const [printStatus, setPrintStatus] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!id) return;
-      
+      if (!id) return
+
       try {
-        setLoading(true);
-        setError(null);
-        
+        setLoading(true)
+        setError(null)
+
         // Fetch order data
-        const orderResponse = await getOrder(id);
-        setOrder(orderResponse.data);
-        
+        const orderResponse = await getOrder(id)
+        setOrder(orderResponse.data)
+
         // Fetch company settings
-        const settingsResponse = await getSettings();
-        setSettings(settingsResponse.data);
-        
+        const settingsResponse = await getSettings()
+        setSettings(settingsResponse.data)
+
         // Initialize custom tax rate with system tax rate
         if (settingsResponse.data?.taxRate) {
-          setCustomTaxRate(settingsResponse.data.taxRate);
+          setCustomTaxRate(settingsResponse.data.taxRate)
         }
       } catch (error: any) {
-        console.error('Error fetching data:', error);
-        setError(error?.response?.data?.message || 'Failed to load receipt data');
+        console.error('Error fetching data:', error)
+        setError(error?.response?.data?.message || 'Failed to load receipt data')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, [id]);
+    fetchData()
+  }, [id])
 
   // Handle printing to thermal POS printer via Tauri backend
   const handleThermalPrint = async () => {
-    if (!order || !settings) return;
-    
-    setIsPrinting(true);
-    setPrintStatus(null);
-    
+    if (!order || !settings) return
+
+    setIsPrinting(true)
+    setPrintStatus(null)
+
     try {
       // Format items as an array to match what the printer backend expects
-      const formattedItems = order.items?.map(item => {
-        return {
-          name: item.productName + (item.variant ? ` (${item.variant})` : ''),
-          quantity: item.quantity,
-          price: item.unitPrice,
-          total: item.subtotal
-        };
-      }) || [];
-      
+      const formattedItems =
+        order.items?.map((item) => {
+          return {
+            name: item.productName + (item.variant ? ` (${item.variant})` : ''),
+            quantity: item.quantity,
+            price: item.unitPrice,
+            total: item.subtotal,
+          }
+        }) || []
+
       // Prepare receipt data for the thermal printer
       const receiptData = {
-        title: settings?.businessName || 'Receipt', 
+        title: settings?.businessName || 'Receipt',
         address: settings?.address || '',
         phone: settings?.phone ? `Phone: ${settings.phone}` : '',
         items: formattedItems,
         subtotal: getCustomSubtotal(),
         tax: getCustomTaxAmount(),
-        taxRate: customTaxRate !== '' ? customTaxRate : (settings?.taxRate || 0),
+        taxRate: customTaxRate !== '' ? customTaxRate : settings?.taxRate || 0,
         total: getCustomTotal(),
         footer: settings?.receiptFooter || 'Thank you for your purchase!',
         date: new Date(order.createdAt).toLocaleDateString(),
-        time: new Date(order.createdAt).toLocaleTimeString()
-      };
-      
+        time: new Date(order.createdAt).toLocaleTimeString(),
+      }
+
       // Format the receipt data for the printer
-      const jsonString = JSON.stringify(receiptData);
-      
+      const jsonString = JSON.stringify(receiptData)
+
       // Check if running in Tauri app or web
-      const isTauriApp = 'window' in globalThis && 'invoke' in window;
-      
+      const isTauriApp = 'window' in globalThis && 'invoke' in window
+
       if (isTauriApp) {
         try {
           // We're in the app - use Tauri invoke
-          const response = await invoke('print_thermal_receipt', { receiptData: jsonString });
-          console.log('Print command response:', response);
-          setPrintStatus('Command sent successfully!');
-          toast.success('Command sent successfully!');
+          const response = await invoke('print_thermal_receipt', { receiptData: jsonString })
+          console.log('Print command response:', response)
+          setPrintStatus('Command sent successfully!')
+          toast.success('Command sent successfully!')
         } catch (invokeError) {
           // Handle Tauri invoke error without crashing
-          console.error('Tauri invoke error:', invokeError);
-          setPrintStatus(`Error sending print command: ${invokeError}`);
-          toast.warning(`Print command failed: ${invokeError}`);
+          console.error('Tauri invoke error:', invokeError)
+          setPrintStatus(`Error sending print command: ${invokeError}`)
+          toast.warning(`Print command failed: ${invokeError}`)
           // Continue execution - don't throw to outer catch
-          return; // Exit function here to prevent showing success message
+          return // Exit function here to prevent showing success message
         }
       } else {
         try {
           // We're in the web - use clipboard
-          await navigator.clipboard.writeText(jsonString);
-          setPrintStatus('Receipt data copied to clipboard');
-          toast.success('Receipt data copied to clipboard');
+          await navigator.clipboard.writeText(jsonString)
+          setPrintStatus('Receipt data copied to clipboard')
+          toast.success('Receipt data copied to clipboard')
         } catch (clipboardError) {
           // Handle clipboard error without crashing
-          console.error('Clipboard error:', clipboardError);
-          setPrintStatus(`Error copying to clipboard: ${clipboardError}`);
-          toast.warning(`Clipboard operation failed: ${clipboardError}`);
-          return; // Exit function here to prevent showing success message
+          console.error('Clipboard error:', clipboardError)
+          setPrintStatus(`Error copying to clipboard: ${clipboardError}`)
+          toast.warning(`Clipboard operation failed: ${clipboardError}`)
+          return // Exit function here to prevent showing success message
         }
       }
     } catch (error) {
-      console.error('Error sending print command:', error);
-      setPrintStatus(`Error sending print command: ${error}`);
-      toast.warning(`Error sending print command: ${error}`);
+      console.error('Error sending print command:', error)
+      setPrintStatus(`Error sending print command: ${error}`)
+      toast.warning(`Error sending print command: ${error}`)
     } finally {
-      setIsPrinting(false);
+      setIsPrinting(false)
     }
-  };
+  }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString(language === 'en' ? 'en-US' : 'es-MX');
-  };
+    return new Date(dateString).toLocaleString(language === 'en' ? 'en-US' : 'es-MX')
+  }
 
   // Calculate total paid amount
-  const totalPaid = order?.payments?.reduce(
-    (sum, payment) => sum + payment.amount, 
-    0
-  ) || 0;
-  
-  // Calculate values with custom tax
-  const subtotal = order?.subtotal || 0;
-  const discount = order?.discount || 0;
-  
-  const getCustomTaxAmount = () => {
-    if (customTaxRate === '') return order?.tax || 0;
-    const taxRate = customTaxRate / 100;
-    const taxAmount = subtotal * taxRate;
+  const totalPaid = order?.payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0
 
-    return taxAmount;
-  };
-  
+  // Calculate values with custom tax
+  const subtotal = order?.subtotal || 0
+  const discount = order?.discount || 0
+
+  const getCustomTaxAmount = () => {
+    if (customTaxRate === '') return order?.tax || 0
+    const taxRate = customTaxRate / 100
+    const taxAmount = subtotal * taxRate
+
+    return taxAmount
+  }
+
   const getCustomSubtotal = () => {
-    const customTax = getCustomTaxAmount();
+    const customTax = getCustomTaxAmount()
     return subtotal - customTax
   }
 
   const getCustomTotal = () => {
-    const customTax = getCustomTaxAmount();
-    return Number(getCustomSubtotal()) + Number(customTax);
-  };
-  
+    const customTax = getCustomTaxAmount()
+    return Number(getCustomSubtotal()) + Number(customTax)
+  }
+
   // Calculate remaining balance
-  const remainingBalance = order ? getCustomTotal() - totalPaid : 0;
-  
+  const remainingBalance = order ? getCustomTotal() - totalPaid : 0
+
   const handleTaxRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = e.target.value
     if (value === '') {
-      setCustomTaxRate('');
+      setCustomTaxRate('')
     } else {
-      const numValue = parseFloat(value);
+      const numValue = parseFloat(value)
       if (!isNaN(numValue) && numValue >= 0) {
-        setCustomTaxRate(numValue);
+        setCustomTaxRate(numValue)
       }
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -185,7 +183,7 @@ const PrintReceipt: React.FC = () => {
           <p className="mt-3 text-gray-600">{translate.orders('loadingOrderDetails')}</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error || !order || !settings) {
@@ -195,15 +193,13 @@ const PrintReceipt: React.FC = () => {
           <div className="text-red-600 text-lg mb-4">
             {error || translate.orders('orderNotFound')}
           </div>
-          <Button 
-            onClick={() => navigate(`/orders/${id}`)}
-          >
+          <Button onClick={() => navigate(`/orders/${id}`)}>
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             {translate.common('backToOrders')}
           </Button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -211,9 +207,7 @@ const PrintReceipt: React.FC = () => {
       {/* Non-printable controls */}
       <div className="container mx-auto px-4 py-8 print:hidden">
         <div className="flex justify-between items-center mb-6">
-          <Button 
-            onClick={() => navigate(`/orders/${id}`)}
-          >
+          <Button onClick={() => navigate(`/orders/${id}`)}>
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             {translate.orders('backToOrderDetails')}
           </Button>
@@ -221,8 +215,10 @@ const PrintReceipt: React.FC = () => {
 
         {/* Tax rate customization controls */}
         <div className="bg-white p-4 rounded-md shadow mb-6">
-          <h3 className="font-medium text-gray-700 mb-3">{translate.common('tax')} {translate.settings('settings')}</h3>
-          
+          <h3 className="font-medium text-gray-700 mb-3">
+            {translate.common('tax')} {translate.settings('settings')}
+          </h3>
+
           <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
             <div className="flex-1">
               <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 mb-1">
@@ -245,39 +241,43 @@ const PrintReceipt: React.FC = () => {
                 </div>
               </div>
             </div>
-            
-            <div className="flex-1">
-              {/*  */}
-            </div>
+
+            <div className="flex-1">{/*  */}</div>
           </div>
         </div>
-        
+
         <div className="flex space-x-2 absolute right-4 top-4 print:hidden">
-          <Button
-            onClick={handleThermalPrint}
-            disabled={isPrinting}
-          >
+          <Button onClick={handleThermalPrint} disabled={isPrinting}>
             <PrinterIcon className="h-4 w-4 mr-1" />
             {isPrinting ? translate.common('loading') : 'Thermal Print'}
           </Button>
         </div>
-        
+
         {/* Printer Status Message (if any) */}
         {printStatus && (
-          <div className={`text-center p-2 my-2 text-sm rounded print:hidden ${printStatus.includes('Error') || printStatus.includes('Failed') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+          <div
+            className={`text-center p-2 my-2 text-sm rounded print:hidden ${printStatus.includes('Error') || printStatus.includes('Failed') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+          >
             {printStatus}
           </div>
         )}
       </div>
-      
+
       {/* Printable Receipt */}
-      <div id="receipt-to-print" className="mx-auto bg-white py-4 px-6 border border-gray-200 shadow-sm rounded-sm w-[400px]">
+      <div
+        id="receipt-to-print"
+        className="mx-auto bg-white py-4 px-6 border border-gray-200 shadow-sm rounded-sm w-[400px]"
+      >
         {/* Header */}
         <div className="text-center p-2 mb-3">
           {settings?.logoUrl && (
             <div className="flex justify-center mb-3">
-              <img 
-                src={settings.logoUrl.startsWith('http') ? settings.logoUrl : `/uploads/${settings.logoUrl}`}
+              <img
+                src={
+                  settings.logoUrl.startsWith('http')
+                    ? settings.logoUrl
+                    : `/uploads/${settings.logoUrl}`
+                }
                 alt={settings.businessName}
                 className="h-16 object-contain"
               />
@@ -285,14 +285,22 @@ const PrintReceipt: React.FC = () => {
           )}
           <h1 className="font-bold text-xl mb-1">{settings?.businessName}</h1>
           {settings?.address && <p className="text-xs mb-1">{settings.address}</p>}
-          {settings?.phone && <p className="text-xs mb-0.5">{translate.settings('businessPhone')}: {settings.phone}</p>}
-          {settings?.email && <p className="text-xs">{translate.settings('businessEmail')}: {settings.email}</p>}
+          {settings?.phone && (
+            <p className="text-xs mb-0.5">
+              {translate.settings('businessPhone')}: {settings.phone}
+            </p>
+          )}
+          {settings?.email && (
+            <p className="text-xs">
+              {translate.settings('businessEmail')}: {settings.email}
+            </p>
+          )}
         </div>
-        
+
         <div className="text-center my-3">
           <h2 className="font-bold">{translate.orders('receipt')}</h2>
         </div>
-        
+
         {/* Order Info */}
         <div className="border-t border-b border-dashed py-3 mb-2">
           <div className="flex justify-between text-xs">
@@ -313,16 +321,18 @@ const PrintReceipt: React.FC = () => {
               <span>{order.user.name}</span>
             </div>
           )}
-          
+
           {/* Customer info if available */}
           {order?.customer && (
             <div className="mt-2 text-xs">
-              <div>{translate.customers('customer')}: {order.customer.name}</div>
+              <div>
+                {translate.customers('customer')}: {order.customer.name}
+              </div>
               {order.customer.phone && <div>{order.customer.phone}</div>}
             </div>
           )}
         </div>
-        
+
         {/* Order Items */}
         <div className="py-2 mb-2">
           <div className="flex justify-between font-bold text-xs border-b pb-1">
@@ -331,7 +341,7 @@ const PrintReceipt: React.FC = () => {
             <span className="w-1/6 text-right">{translate.common('price')}</span>
             <span className="w-1/6 text-right">{translate.orders('amount')}</span>
           </div>
-          
+
           {order?.items?.map((item, index) => (
             <div key={index} className="flex justify-between text-xs py-1 border-b border-dotted">
               <div className="w-1/2">
@@ -344,14 +354,14 @@ const PrintReceipt: React.FC = () => {
             </div>
           ))}
         </div>
-        
+
         {/* Totals */}
         <div className="py-2 mb-3">
           <div className="flex justify-between text-xs">
             <span>{translate.orders('subtotal')}:</span>
             <span>{formatCurrency(getCustomSubtotal())}</span>
           </div>
-          {(discount > 0) && (
+          {discount > 0 && (
             <div className="flex justify-between text-xs">
               <span>{translate.orders('discount')}:</span>
               <span>-{formatCurrency(discount)}</span>
@@ -359,7 +369,8 @@ const PrintReceipt: React.FC = () => {
           )}
           <div className="flex justify-between text-xs">
             <span>
-              {translate.orders('tax')} ({customTaxRate !== '' ? customTaxRate : (settings?.taxRate || 0)}%):
+              {translate.orders('tax')} (
+              {customTaxRate !== '' ? customTaxRate : settings?.taxRate || 0}%):
             </span>
             <span>{formatCurrency(getCustomTaxAmount())}</span>
           </div>
@@ -368,29 +379,34 @@ const PrintReceipt: React.FC = () => {
             <span>{formatCurrency(getCustomTotal())}</span>
           </div>
         </div>
-        
+
         {/* Payment Info */}
         <div className="py-2 text-xs mb-3">
           <div className="flex justify-between font-bold">
             <span>{translate.orders('paymentStatus')}:</span>
             <span>
-              {totalPaid >= getCustomTotal() ? translate.orders('paid') : 
-               totalPaid > 0 ? translate.orders('partial') : translate.orders('unpaid')}
+              {totalPaid >= getCustomTotal()
+                ? translate.orders('paid')
+                : totalPaid > 0
+                  ? translate.orders('partial')
+                  : translate.orders('unpaid')}
             </span>
           </div>
-          
+
           {order?.payments && order.payments.length > 0 && (
             <div className="mt-1">
               <div className="font-bold">{translate.orders('paymentDetails')}:</div>
               {order.payments.map((payment, index) => (
                 <div key={index} className="flex justify-between">
-                  <span>{payment.method.replace('_', ' ')} - {formatDate(payment.createdAt)}</span>
+                  <span>
+                    {payment.method.replace('_', ' ')} - {formatDate(payment.createdAt)}
+                  </span>
                   <span>{formatCurrency(payment.amount)}</span>
                 </div>
               ))}
             </div>
           )}
-          
+
           {remainingBalance > 0 && (
             <div className="flex justify-between font-bold mt-1">
               <span>{translate.orders('balance')}:</span>
@@ -398,7 +414,7 @@ const PrintReceipt: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         {/* Footer */}
         {settings?.receiptFooter && (
           <div className="text-center py-2 border-t border-dashed text-xs mb-2">
@@ -407,7 +423,7 @@ const PrintReceipt: React.FC = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PrintReceipt;
+export default PrintReceipt

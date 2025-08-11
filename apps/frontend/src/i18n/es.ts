@@ -84,10 +84,12 @@ const es = {
     invalidCredentials: 'Correo electrónico o contraseña inválidos',
     emailRequired: 'El correo electrónico es obligatorio',
     passwordRequired: 'La contraseña es obligatoria',
-    loginFailed: 'Error al iniciar sesión. Por favor, verifique sus credenciales e intente nuevamente.',
+    loginFailed:
+      'Error al iniciar sesión. Por favor, verifique sus credenciales e intente nuevamente.',
     // Password Reset
     forgotPasswordTitle: 'Recuperar Contraseña',
-    forgotPasswordDescription: 'Ingrese su dirección de correo electrónico y le enviaremos instrucciones para restablecer su contraseña.',
+    forgotPasswordDescription:
+      'Ingrese su dirección de correo electrónico y le enviaremos instrucciones para restablecer su contraseña.',
     sendResetInstructions: 'Enviar Instrucciones',
     sending: 'Enviando...',
     backToLogin: 'Volver al Inicio de Sesión',
@@ -102,13 +104,15 @@ const es = {
     resetPassword: 'Restablecer Contraseña',
     resetting: 'Restableciendo...',
     passwordResetSuccessTitle: 'Contraseña Restablecida con Éxito',
-    passwordResetSuccessMessage: 'Su contraseña ha sido restablecida con éxito. Ahora puede iniciar sesión con su nueva contraseña.',
+    passwordResetSuccessMessage:
+      'Su contraseña ha sido restablecida con éxito. Ahora puede iniciar sesión con su nueva contraseña.',
     goToLogin: 'Ir al Inicio de Sesión',
     confirmPasswordRequired: 'Por favor confirme su contraseña',
     passwordsDoNotMatch: 'Las contraseñas no coinciden',
     passwordMinLength: 'La contraseña debe tener al menos 6 caracteres',
     invalidEmailFormat: 'Por favor ingrese un correo electrónico válido',
-    resetEmailSentSuccess: 'Las instrucciones para restablecer la contraseña han sido enviadas a su correo electrónico',
+    resetEmailSentSuccess:
+      'Las instrucciones para restablecer la contraseña han sido enviadas a su correo electrónico',
     resetEmailSentFailed: 'Error al enviar el correo de restablecimiento',
     resetPasswordFailed: 'Error al restablecer la contraseña',
     invalidResetToken: 'Token de restablecimiento inválido o faltante',
@@ -182,7 +186,8 @@ const es = {
     orderInformation: 'Información del pedido',
     orderNotes: 'Notas del pedido',
     cancelReason: 'Motivo de cancelación',
-    cancelConfirmation: '¿Está seguro de que desea cancelar este pedido? Esta acción no se puede deshacer.',
+    cancelConfirmation:
+      '¿Está seguro de que desea cancelar este pedido? Esta acción no se puede deshacer.',
     amountExceedsBalance: 'El monto no puede exceder el saldo restante',
     willBePartial: 'Esto se registrará como un pago parcial',
     walkInCustomer: 'Cliente sin registro',
@@ -229,7 +234,8 @@ const es = {
     statusPending: 'Pendiente',
     statusCompleted: 'Completado',
     statusCancelled: 'Cancelado',
-    cancelWarning: 'Al cancelar este pedido, se eliminarán todos los artículos y pagos asociados. ¿Está seguro de que desea continuar?',
+    cancelWarning:
+      'Al cancelar este pedido, se eliminarán todos los artículos y pagos asociados. ¿Está seguro de que desea continuar?',
     cancelReasonPlaceholder: 'Ingrese el motivo de la cancelación...',
     addItemsToOrder: 'Agregar artículos al pedido',
     itemSingular: 'Artículo',
@@ -239,7 +245,8 @@ const es = {
     bankTransfer: 'Transferencia bancaria',
     partialPaymentNote: 'Nota: Este pago se registrará como un pago parcial.',
     reference: 'Referencia',
-    emptyCartAlert: 'No se han agregado artículos al pedido. Por favor, agregue artículos antes de continuar.',
+    emptyCartAlert:
+      'No se han agregado artículos al pedido. Por favor, agregue artículos antes de continuar.',
     orderFailedAlert: 'Error al crear el pedido. Por favor, inténtelo de nuevo.',
     each: 'Cada uno',
     partialPayment: 'Pago parcial',
@@ -341,7 +348,8 @@ const es = {
     searchCategories: 'Buscar categorías...',
     nameRequired: 'El nombre es obligatorio',
     nameExists: 'Ya existe una categoría con este nombre',
-    deleteConfirmation: '¿Está seguro de que desea eliminar esta categoría? Esto no eliminará los productos en esta categoría.',
+    deleteConfirmation:
+      '¿Está seguro de que desea eliminar esta categoría? Esto no eliminará los productos en esta categoría.',
   },
   users: {
     title: 'Usuarios',
@@ -431,6 +439,6 @@ const es = {
     appName: 'PPOS',
     appDescription: 'Sistema de punto de venta profesional',
   },
-};
+}
 
-export default es;
+export default es

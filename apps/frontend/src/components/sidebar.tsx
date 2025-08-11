@@ -58,7 +58,12 @@ export function SidebarSection({ className, ...props }: React.ComponentPropsWith
 }
 
 export function SidebarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {
-  return <hr {...props} className={clsx(className, 'my-4 border-t border-zinc-950/5 lg:-mx-4 dark:border-white/5')} />
+  return (
+    <hr
+      {...props}
+      className={clsx(className, 'my-4 border-t border-zinc-950/5 lg:-mx-4 dark:border-white/5')}
+    />
+  )
 }
 
 export function SidebarSpacer({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -67,7 +72,13 @@ export function SidebarSpacer({ className, ...props }: React.ComponentPropsWitho
 
 export function SidebarHeading({ className, ...props }: React.ComponentPropsWithoutRef<'h3'>) {
   return (
-    <h3 {...props} className={clsx(className, 'mb-1 px-2 text-xs/6 font-medium text-zinc-500 dark:text-zinc-400')} />
+    <h3
+      {...props}
+      className={clsx(
+        className,
+        'mb-1 px-2 text-xs/6 font-medium text-zinc-500 dark:text-zinc-400'
+      )}
+    />
   )
 }
 
@@ -88,12 +99,7 @@ type SidebarItemAsLinkProps = {
 type SidebarItemProps = SidebarItemAsButtonProps | SidebarItemAsLinkProps
 
 export const SidebarItem = forwardRef<HTMLElement, SidebarItemProps>(function SidebarItem(
-  {
-    current,
-    className,
-    children,
-    ...props
-  },
+  { current, className, children, ...props },
   ref
 ) {
   let classes = clsx(

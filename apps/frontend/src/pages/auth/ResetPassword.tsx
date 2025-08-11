@@ -115,7 +115,8 @@ const ResetPasswordPage: React.FC = () => {
       setResetSuccess(true)
       toast.success(translate.auth('passwordResetSuccessMessage'))
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : translate.auth('resetPasswordFailed')
+      const errorMessage =
+        err instanceof Error ? err.message : translate.auth('resetPasswordFailed')
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)

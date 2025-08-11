@@ -62,10 +62,7 @@ type DropdownItemAsLinkProps = {
 
 type DropdownItemProps = DropdownItemAsButtonProps | DropdownItemAsLinkProps
 
-export function DropdownItem({
-  className,
-  ...props
-}: DropdownItemProps) {
+export function DropdownItem({ className, ...props }: DropdownItemProps) {
   let classes = clsx(
     className,
     // Base styles
@@ -88,17 +85,13 @@ export function DropdownItem({
   )
 
   return 'href' in props ? (
-    <Headless.MenuItem 
-      as={Link} 
-      {...(props as DropdownItemAsLinkProps)} 
-      className={classes} 
-    />
+    <Headless.MenuItem as={Link} {...(props as DropdownItemAsLinkProps)} className={classes} />
   ) : (
-    <Headless.MenuItem 
-      as="button" 
-      {...(props as DropdownItemAsButtonProps)} 
-      type="button" 
-      className={classes} 
+    <Headless.MenuItem
+      as="button"
+      {...(props as DropdownItemAsButtonProps)}
+      type="button"
+      className={classes}
     />
   )
 }
@@ -158,7 +151,12 @@ export function DropdownLabel({
   ...props
 }: { className?: string } & Omit<Headless.LabelProps, 'as' | 'className'>) {
   return (
-    <Headless.Label {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} {...props} />
+    <Headless.Label
+      {...props}
+      data-slot="label"
+      className={clsx(className, 'col-start-2 row-start-1')}
+      {...props}
+    />
   )
 }
 
@@ -182,7 +180,10 @@ export function DropdownShortcut({
   keys,
   className,
   ...props
-}: { keys: string | string[]; className?: string } & Omit<Headless.DescriptionProps<'kbd'>, 'as' | 'className'>) {
+}: { keys: string | string[]; className?: string } & Omit<
+  Headless.DescriptionProps<'kbd'>,
+  'as' | 'className'
+>) {
   return (
     <Headless.Description
       as="kbd"

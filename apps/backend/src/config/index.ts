@@ -1,7 +1,7 @@
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'
 
 // Load environment variables from .env file
-dotenv.config();
+dotenv.config()
 
 export const config = {
   app: {
@@ -28,7 +28,7 @@ export const config = {
       accessKeyId: process.env.S3_ACCESS_KEY_ID,
       secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
       bucketName: process.env.S3_BUCKET_NAME,
-    }
+    },
   },
   email: {
     host: process.env.EMAIL_HOST,
@@ -37,4 +37,4 @@ export const config = {
     pass: process.env.EMAIL_PASS,
     from: process.env.EMAIL_FROM,
   },
-};
+}

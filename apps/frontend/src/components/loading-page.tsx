@@ -37,14 +37,14 @@ export function LoadingPage({
   color = 'blue',
   fullScreen = false,
 }: LoadingPageProps) {
-  const { translate } = useLanguage();
-  
+  const { translate } = useLanguage()
+
   const spinnerSizes = {
     sm: 'w-6 h-6',
     md: 'w-10 h-10',
     lg: 'w-16 h-16',
   }
-  
+
   const spinnerColors = {
     blue: 'text-blue-600 dark:text-blue-400',
     green: 'text-green-600 dark:text-green-400',
@@ -52,32 +52,36 @@ export function LoadingPage({
     red: 'text-red-600 dark:text-red-400',
     zinc: 'text-zinc-600 dark:text-zinc-400',
   }
-  
+
   const containerClasses = clsx(
     'flex flex-col items-center justify-center',
     fullScreen && 'fixed inset-0 bg-white/80 dark:bg-zinc-900/80 z-50',
     !fullScreen && 'p-8',
     className
   )
-  
+
   return (
     <div className={containerClasses}>
       <div className="relative">
         {/* Spinner track */}
-        <div className={clsx(
-          'rounded-full border-4 border-zinc-200 dark:border-zinc-700',
-          spinnerSizes[size]
-        )} />
-        
+        <div
+          className={clsx(
+            'rounded-full border-4 border-zinc-200 dark:border-zinc-700',
+            spinnerSizes[size]
+          )}
+        />
+
         {/* Spinner */}
-        <div className={clsx(
-          'absolute top-0 left-0 rounded-full border-4 border-t-transparent',
-          spinnerSizes[size],
-          spinnerColors[color],
-          'animate-spin'
-        )} />
+        <div
+          className={clsx(
+            'absolute top-0 left-0 rounded-full border-4 border-t-transparent',
+            spinnerSizes[size],
+            spinnerColors[color],
+            'animate-spin'
+          )}
+        />
       </div>
-      
+
       <p className="mt-4 text-zinc-700 dark:text-zinc-300 font-medium">
         {message || translate.common('loading')}
       </p>
@@ -98,7 +102,7 @@ export function LoadingSpinner({
     md: 'w-6 h-6',
     lg: 'w-8 h-8',
   }
-  
+
   const spinnerColors = {
     blue: 'text-blue-600 dark:text-blue-400',
     green: 'text-green-600 dark:text-green-400',
@@ -106,22 +110,26 @@ export function LoadingSpinner({
     red: 'text-red-600 dark:text-red-400',
     zinc: 'text-zinc-600 dark:text-zinc-400',
   }
-  
+
   return (
     <div className={clsx('relative inline-block', className)}>
       {/* Spinner track */}
-      <div className={clsx(
-        'rounded-full border-2 border-zinc-200 dark:border-zinc-700',
-        spinnerSizes[size]
-      )} />
-      
+      <div
+        className={clsx(
+          'rounded-full border-2 border-zinc-200 dark:border-zinc-700',
+          spinnerSizes[size]
+        )}
+      />
+
       {/* Spinner */}
-      <div className={clsx(
-        'absolute top-0 left-0 rounded-full border-2 border-t-transparent',
-        spinnerSizes[size],
-        spinnerColors[color],
-        'animate-spin'
-      )} />
+      <div
+        className={clsx(
+          'absolute top-0 left-0 rounded-full border-2 border-t-transparent',
+          spinnerSizes[size],
+          spinnerColors[color],
+          'animate-spin'
+        )}
+      />
     </div>
   )
 }
@@ -140,10 +148,7 @@ export function Skeleton({
 }) {
   return (
     <div
-      className={clsx(
-        'animate-pulse bg-zinc-200 dark:bg-zinc-700 rounded',
-        className
-      )}
+      className={clsx('animate-pulse bg-zinc-200 dark:bg-zinc-700 rounded', className)}
       style={{
         width: width,
         height: height,

@@ -16,9 +16,17 @@
     "tauri:dev": "pnpm --filter frontend tauri:dev",
     "tauri:build": "pnpm --filter frontend tauri:build",
     "db:generate": "pnpm --filter backend db:generate",
-    "db:migrate": "pnpm --filter backend db:migrate"
+    "db:migrate": "pnpm --filter backend db:migrate",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "biome:ci": "biome ci ."
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.1.4",
     "concurrently": "^8.2.2",
     "typescript": "^5.3.2"
   },

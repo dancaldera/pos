@@ -5,7 +5,12 @@ import type React from 'react'
 import { createContext, useContext, useState } from 'react'
 import { Link } from './link'
 
-const TableContext = createContext<{ bleed: boolean; dense: boolean; grid: boolean; striped: boolean }>({
+const TableContext = createContext<{
+  bleed: boolean
+  dense: boolean
+  grid: boolean
+  striped: boolean
+}>({
   bleed: false,
   dense: false,
   grid: false,
@@ -20,13 +25,27 @@ export function Table({
   className,
   children,
   ...props
-}: { bleed?: boolean; dense?: boolean; grid?: boolean; striped?: boolean } & React.ComponentPropsWithoutRef<'div'>) {
+}: {
+  bleed?: boolean
+  dense?: boolean
+  grid?: boolean
+  striped?: boolean
+} & React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <TableContext.Provider value={{ bleed, dense, grid, striped } as React.ContextType<typeof TableContext>}>
+    <TableContext.Provider
+      value={{ bleed, dense, grid, striped } as React.ContextType<typeof TableContext>}
+    >
       <div className="flow-root">
-        <div {...props} className={clsx(className, '-mx-(--gutter) overflow-x-auto whitespace-nowrap')}>
-          <div className={clsx('inline-block min-w-full align-middle', !bleed && 'sm:px-(--gutter)')}>
-            <table className="min-w-full text-left text-sm/6 text-zinc-950 dark:text-white">{children}</table>
+        <div
+          {...props}
+          className={clsx(className, '-mx-(--gutter) overflow-x-auto whitespace-nowrap')}
+        >
+          <div
+            className={clsx('inline-block min-w-full align-middle', !bleed && 'sm:px-(--gutter)')}
+          >
+            <table className="min-w-full text-left text-sm/6 text-zinc-950 dark:text-white">
+              {children}
+            </table>
           </div>
         </div>
       </div>
@@ -58,7 +77,9 @@ export function TableRow({
   let { striped } = useContext(TableContext)
 
   return (
-    <TableRowContext.Provider value={{ href, target, title } as React.ContextType<typeof TableRowContext>}>
+    <TableRowContext.Provider
+      value={{ href, target, title } as React.ContextType<typeof TableRowContext>}
+    >
       <tr
         {...props}
         className={clsx(

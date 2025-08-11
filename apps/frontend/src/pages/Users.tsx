@@ -1,43 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { getUsers, createUser, updateUser, deleteUser } from '../api/users';
-import { User, Role } from '../types/auth';
-import { useAuthStore } from '../store/authStore';
-import { useLanguage } from '../context/LanguageContext';
+import React, { useState, useEffect } from 'react'
+import { getUsers, createUser, updateUser, deleteUser } from '../api/users'
+import { User, Role } from '../types/auth'
+import { useAuthStore } from '../store/authStore'
+import { useLanguage } from '../context/LanguageContext'
 import {
   PencilIcon,
   TrashIcon,
   PlusIcon,
   CheckCircleIcon,
-  XCircleIcon
-} from '@heroicons/react/24/outline';
-import { Heading } from '@/components/heading';
-import { Button } from '@/components/button';
-import { Input } from '@/components/input';
-import { Text } from '@/components/text';
-import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table';
-import { Badge } from '@/components/badge';
-import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog';
-import { Divider } from '@/components/divider';
-import { Field, Fieldset, Label } from '@/components/fieldset';
-import { Select } from '@/components/select';
-import { Checkbox } from '@/components/checkbox';
+  XCircleIcon,
+} from '@heroicons/react/24/outline'
+import { Heading } from '@/components/heading'
+import { Button } from '@/components/button'
+import { Input } from '@/components/input'
+import { Text } from '@/components/text'
+import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
+import { Badge } from '@/components/badge'
+import { Dialog, DialogTitle, DialogBody, DialogActions } from '@/components/dialog'
+import { Divider } from '@/components/divider'
+import { Field, Fieldset, Label } from '@/components/fieldset'
+import { Select } from '@/components/select'
+import { Checkbox } from '@/components/checkbox'
 
 const ROLE_NAMES: Record<Role, string> = {
   admin: 'Administrator',
   manager: 'Manager',
   waitress: 'Waitress',
-};
+}
 
 const Users: React.FC = () => {
-  const { user: currentUser } = useAuthStore();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [search, setSearch] = useState('');
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [submitLoading, setSubmitLoading] = useState(false);
+  const { user: currentUser } = useAuthStore()
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [search, setSearch] = useState('')
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
+  const [submitLoading, setSubmitLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -45,50 +45,50 @@ const Users: React.FC = () => {
     confirmPassword: '',
     role: 'waitress' as Role,
     active: true,
-  });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  })
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
   // Fetch users on mount
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers()
+  }, [])
 
   // Filter users when search changes
   useEffect(() => {
     if (!search.trim()) {
-      setFilteredUsers(users);
-      return;
+      setFilteredUsers(users)
+      return
     }
 
-    const lowerSearch = search.toLowerCase().trim();
+    const lowerSearch = search.toLowerCase().trim()
     const filtered = users.filter(
       (user) =>
         user.name.toLowerCase().includes(lowerSearch) ||
         user.email.toLowerCase().includes(lowerSearch) ||
         ROLE_NAMES[user.role].toLowerCase().includes(lowerSearch)
-    );
-    setFilteredUsers(filtered);
-  }, [search, users]);
+    )
+    setFilteredUsers(filtered)
+  }, [search, users])
 
   const fetchUsers = async () => {
     try {
-      setLoading(true);
-      const response = await getUsers();
-      setUsers(response.data);
-      setFilteredUsers(response.data);
+      setLoading(true)
+      const response = await getUsers()
+      setUsers(response.data)
+      setFilteredUsers(response.data)
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching users:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
+    setSearch(e.target.value)
+  }
 
   const openCreateModal = () => {
-    setSelectedUser(null);
+    setSelectedUser(null)
     setFormData({
       name: '',
       email: '',
@@ -96,13 +96,13 @@ const Users: React.FC = () => {
       confirmPassword: '',
       role: 'waitress',
       active: true,
-    });
-    setFormErrors({});
-    setIsModalOpen(true);
-  };
+    })
+    setFormErrors({})
+    setIsModalOpen(true)
+  }
 
   const openEditModal = (user: User) => {
-    setSelectedUser(user);
+    setSelectedUser(user)
     setFormData({
       name: user.name,
       email: user.email,
@@ -110,140 +110,136 @@ const Users: React.FC = () => {
       confirmPassword: '',
       role: user.role,
       active: user.active,
-    });
-    setFormErrors({});
-    setIsModalOpen(true);
-  };
+    })
+    setFormErrors({})
+    setIsModalOpen(true)
+  }
 
   const openDeleteModal = (user: User) => {
-    setSelectedUser(user);
-    setIsDeleteModalOpen(true);
-  };
+    setSelectedUser(user)
+    setIsDeleteModalOpen(true)
+  }
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target as HTMLInputElement;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target as HTMLInputElement
 
     if (type === 'checkbox') {
-      const target = e.target as HTMLInputElement;
+      const target = e.target as HTMLInputElement
       setFormData({
         ...formData,
         [name]: target.checked,
-      });
+      })
     } else {
       setFormData({
         ...formData,
         [name]: value,
-      });
+      })
     }
-  };
+  }
 
-  const { translate } = useLanguage();
+  const { translate } = useLanguage()
 
   const validateForm = () => {
-    const errors: Record<string, string> = {};
+    const errors: Record<string, string> = {}
 
     if (!formData.name.trim()) {
-      errors.name = translate.users('nameRequired');
+      errors.name = translate.users('nameRequired')
     }
 
     if (!formData.email.trim()) {
-      errors.email = translate.users('emailRequired');
+      errors.email = translate.users('emailRequired')
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = translate.common('error');
+      errors.email = translate.common('error')
     }
 
     // If creating new user or password field is filled
     if (!selectedUser || formData.password) {
       if (!selectedUser && !formData.password) {
-        errors.password = translate.users('passwordRequired');
+        errors.password = translate.users('passwordRequired')
       } else if (formData.password.length < 6) {
-        errors.password = translate.common('error');
+        errors.password = translate.common('error')
       }
 
       if (formData.password !== formData.confirmPassword) {
-        errors.confirmPassword = translate.common('error');
+        errors.confirmPassword = translate.common('error')
       }
     }
 
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (!validateForm()) return;
+    if (!validateForm()) return
 
     try {
-      setSubmitLoading(true);
+      setSubmitLoading(true)
 
       // Create user data object, omitting confirmPassword
-      const { confirmPassword, ...userData } = formData;
+      const { confirmPassword, ...userData } = formData
 
       // For updates, only include the password if it's not empty
       const dataToSend = selectedUser
         ? { ...userData, password: userData.password || undefined }
-        : userData;
+        : userData
 
       if (selectedUser) {
         // Update user
-        await updateUser(selectedUser.id, dataToSend);
+        await updateUser(selectedUser.id, dataToSend)
       } else {
         // Create user
-        await createUser(dataToSend);
+        await createUser(dataToSend)
       }
 
-      setIsModalOpen(false);
-      fetchUsers();
+      setIsModalOpen(false)
+      fetchUsers()
     } catch (error: any) {
-      console.error('Error saving user:', error);
+      console.error('Error saving user:', error)
       // Handle API error response
       if (error.response?.data?.message) {
         if (error.response.data.message.includes('Email already registered')) {
           setFormErrors({
             ...formErrors,
             email: translate.users('emailExists'),
-          });
+          })
         } else {
           setFormErrors({
             ...formErrors,
             form: error.response.data.message,
-          });
+          })
         }
       }
     } finally {
-      setSubmitLoading(false);
+      setSubmitLoading(false)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser) return
 
     try {
-      setSubmitLoading(true);
-      await deleteUser(selectedUser.id);
-      setIsDeleteModalOpen(false);
-      fetchUsers();
+      setSubmitLoading(true)
+      await deleteUser(selectedUser.id)
+      setIsDeleteModalOpen(false)
+      fetchUsers()
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('Error deleting user:', error)
     } finally {
-      setSubmitLoading(false);
+      setSubmitLoading(false)
     }
-  };
+  }
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
-  };
+    if (!dateString) return '-'
+    return new Date(dateString).toLocaleDateString()
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <Heading>
-          {translate.users('title')}
-        </Heading>
+        <Heading>{translate.users('title')}</Heading>
         <Button onClick={openCreateModal}>
           <PlusIcon className="h-5 w-5 mr-1" />
           {translate.users('addUser')}
@@ -294,7 +290,11 @@ const Users: React.FC = () => {
                     <Text>{user.email}</Text>
                   </TableCell>
                   <TableCell>
-                    <Badge color={user.role === 'admin' ? 'blue' : user.role === 'manager' ? 'purple' : 'teal'}>
+                    <Badge
+                      color={
+                        user.role === 'admin' ? 'blue' : user.role === 'manager' ? 'purple' : 'teal'
+                      }
+                    >
                       {ROLE_NAMES[user.role]}
                     </Badge>
                   </TableCell>
@@ -320,17 +320,29 @@ const Users: React.FC = () => {
                         outline
                         onClick={() => openEditModal(user)}
                         disabled={user.id === currentUser?.id}
-                        title={user.id === currentUser?.id ? translate.common('error') : translate.common('edit')}
+                        title={
+                          user.id === currentUser?.id
+                            ? translate.common('error')
+                            : translate.common('edit')
+                        }
                       >
-                        <PencilIcon className={`h-5 w-5 ${user.id === currentUser?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
+                        <PencilIcon
+                          className={`h-5 w-5 ${user.id === currentUser?.id ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        />
                       </Button>
                       <Button
-                        color='red'
+                        color="red"
                         onClick={() => openDeleteModal(user)}
                         disabled={user.id === currentUser?.id}
-                        title={user.id === currentUser?.id ? translate.common('error') : translate.common('delete')}
+                        title={
+                          user.id === currentUser?.id
+                            ? translate.common('error')
+                            : translate.common('delete')
+                        }
                       >
-                        <TrashIcon className={`h-5 w-5 ${user.id === currentUser?.id ? 'opacity-40 cursor-not-allowed' : ''}`} />
+                        <TrashIcon
+                          className={`h-5 w-5 ${user.id === currentUser?.id ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        />
                       </Button>
                     </div>
                   </TableCell>
@@ -342,10 +354,7 @@ const Users: React.FC = () => {
       )}
 
       {/* User Form Modal */}
-      <Dialog
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      >
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <DialogTitle>
           {selectedUser ? translate.users('editUser') : translate.users('addUser')}
         </DialogTitle>
@@ -359,9 +368,7 @@ const Users: React.FC = () => {
             <Fieldset className="space-y-4">
               {/* Name */}
               <Field>
-                <Label>
-                  {translate.users('userName')} *
-                </Label>
+                <Label>{translate.users('userName')} *</Label>
                 <Input
                   type="text"
                   name="name"
@@ -376,9 +383,7 @@ const Users: React.FC = () => {
 
               {/* Email */}
               <Field>
-                <Label>
-                  {translate.users('userEmail')} *
-                </Label>
+                <Label>{translate.users('userEmail')} *</Label>
                 <Input
                   type="email"
                   name="email"
@@ -393,14 +398,8 @@ const Users: React.FC = () => {
 
               {/* Role */}
               <Field>
-                <Label>
-                  {translate.users('userRole')} *
-                </Label>
-                <Select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                >
+                <Label>{translate.users('userRole')} *</Label>
+                <Select name="role" value={formData.role} onChange={handleInputChange}>
                   <option value="admin">{translate.users('admin')}</option>
                   <option value="manager">{translate.users('manager')}</option>
                   <option value="waitress">{translate.users('waitress')}</option>
@@ -410,7 +409,9 @@ const Users: React.FC = () => {
               {/* Password - required for new user, optional for edit */}
               <Field>
                 <Label>
-                  {selectedUser ? translate.users('userPassword') : translate.users('userPassword') + ' *'}
+                  {selectedUser
+                    ? translate.users('userPassword')
+                    : translate.users('userPassword') + ' *'}
                 </Label>
                 <Input
                   type="password"
@@ -418,7 +419,7 @@ const Users: React.FC = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder={translate.users('userPassword')}
-                            />
+                />
                 {formErrors.password && (
                   <Text className="mt-1 text-sm text-red-600">{formErrors.password}</Text>
                 )}
@@ -437,9 +438,7 @@ const Users: React.FC = () => {
                   placeholder={translate.users('userPassword')}
                 />
                 {formErrors.confirmPassword && (
-                  <Text className="mt-1 text-sm text-red-600">
-                    {formErrors.confirmPassword}
-                  </Text>
+                  <Text className="mt-1 text-sm text-red-600">{formErrors.confirmPassword}</Text>
                 )}
               </Field>
 
@@ -449,68 +448,44 @@ const Users: React.FC = () => {
                   id="active"
                   name="active"
                   checked={formData.active}
-                  onChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
+                  onChange={(checked) => setFormData((prev) => ({ ...prev, active: checked }))}
                 />
-                <Label htmlFor="active">
-                  {translate.users('userActive')}
-                </Label>
+                <Label htmlFor="active">{translate.users('userActive')}</Label>
               </Field>
-
             </Fieldset>
           </form>
         </DialogBody>
         <DialogActions>
-          <Button
-            onClick={handleSubmit}
-            disabled={submitLoading}
-            className="ml-3"
-          >
+          <Button onClick={handleSubmit} disabled={submitLoading} className="ml-3">
             {selectedUser ? translate.common('save') : translate.common('add')}
           </Button>
-          <Button
-            outline
-            onClick={() => setIsModalOpen(false)}
-            disabled={submitLoading}
-          >
+          <Button outline onClick={() => setIsModalOpen(false)} disabled={submitLoading}>
             {translate.common('cancel')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <Dialog
-        open={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-      >
+      <Dialog open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
         <DialogTitle>{translate.common('delete')}</DialogTitle>
         <DialogBody>
           <Text>
             {translate.users('deleteConfirmation')}
             <Divider />
-            <Text>
-              {selectedUser?.name}
-            </Text>
+            <Text>{selectedUser?.name}</Text>
           </Text>
         </DialogBody>
         <DialogActions>
-          <Button
-            onClick={handleDelete}
-            disabled={submitLoading}
-            className="ml-3"
-          >
+          <Button onClick={handleDelete} disabled={submitLoading} className="ml-3">
             {translate.common('delete')}
           </Button>
-          <Button
-            outline
-            onClick={() => setIsDeleteModalOpen(false)}
-            disabled={submitLoading}
-          >
+          <Button outline onClick={() => setIsDeleteModalOpen(false)} disabled={submitLoading}>
             {translate.common('cancel')}
           </Button>
         </DialogActions>
       </Dialog>
     </div>
-  );
-};
+  )
+}
 
-export default Users;
+export default Users

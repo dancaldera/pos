@@ -1,5 +1,5 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React from 'react'
+import { Outlet } from 'react-router-dom'
 
 const AuthLayout: React.FC = () => {
   return (
@@ -8,7 +8,7 @@ const AuthLayout: React.FC = () => {
         <Outlet />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AuthLayout;
+export default AuthLayout

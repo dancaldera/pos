@@ -52,7 +52,11 @@ type BaseBadgeButtonProps = BadgeButtonAsButtonProps | BadgeButtonAsLinkProps
 
 type BadgeButtonProps = BadgeProps & BaseBadgeButtonProps
 
-export function Badge({ color = 'zinc', className, ...props }: BadgeProps & React.ComponentPropsWithoutRef<'span'>) {
+export function Badge({
+  color = 'zinc',
+  className,
+  ...props
+}: BadgeProps & React.ComponentPropsWithoutRef<'span'>) {
   return (
     <span
       {...props}
@@ -66,12 +70,7 @@ export function Badge({ color = 'zinc', className, ...props }: BadgeProps & Reac
 }
 
 export const BadgeButton = forwardRef<HTMLElement, BadgeButtonProps>(function BadgeButton(
-  {
-    color = 'zinc',
-    className,
-    children,
-    ...props
-  },
+  { color = 'zinc', className, children, ...props },
   ref
 ) {
   let classes = clsx(

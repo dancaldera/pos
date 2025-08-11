@@ -20,8 +20,5 @@
     "rootDir": "./src"
   },
   "include": ["src"],
-  "references": [
-    { "path": "../../packages/shared" },
-    { "path": "./tsconfig.node.json" }
-  ]
+  "references": [{ "path": "../../packages/shared" }, { "path": "./tsconfig.node.json" }]
 }

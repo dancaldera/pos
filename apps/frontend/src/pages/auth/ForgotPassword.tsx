@@ -79,7 +79,8 @@ const ForgotPasswordPage: React.FC = () => {
       setEmailSent(true)
       toast.success(translate.auth('resetEmailSentSuccess'))
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : translate.auth('resetEmailSentFailed')
+      const errorMessage =
+        err instanceof Error ? err.message : translate.auth('resetEmailSentFailed')
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)

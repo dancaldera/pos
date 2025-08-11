@@ -32,30 +32,12 @@ const styles = {
     ],
   },
   colors: {
-    white: [
-      'bg-white text-zinc-950',
-      'dark:bg-zinc-900 dark:text-white',
-    ],
-    zinc: [
-      'bg-zinc-50 text-zinc-950',
-      'dark:bg-zinc-800/50 dark:text-white',
-    ],
-    blue: [
-      'bg-blue-50 text-blue-950',
-      'dark:bg-blue-900/20 dark:text-blue-100',
-    ],
-    green: [
-      'bg-green-50 text-green-950',
-      'dark:bg-green-900/20 dark:text-green-100',
-    ],
-    red: [
-      'bg-red-50 text-red-950',
-      'dark:bg-red-900/20 dark:text-red-100',
-    ],
-    amber: [
-      'bg-amber-50 text-amber-950',
-      'dark:bg-amber-900/20 dark:text-amber-100',
-    ],
+    white: ['bg-white text-zinc-950', 'dark:bg-zinc-900 dark:text-white'],
+    zinc: ['bg-zinc-50 text-zinc-950', 'dark:bg-zinc-800/50 dark:text-white'],
+    blue: ['bg-blue-50 text-blue-950', 'dark:bg-blue-900/20 dark:text-blue-100'],
+    green: ['bg-green-50 text-green-950', 'dark:bg-green-900/20 dark:text-green-100'],
+    red: ['bg-red-50 text-red-950', 'dark:bg-red-900/20 dark:text-red-100'],
+    amber: ['bg-amber-50 text-amber-950', 'dark:bg-amber-900/20 dark:text-amber-100'],
   },
   sizes: {
     sm: 'p-3 sm:p-4',
@@ -77,12 +59,11 @@ type CardAsLinkProps = {
 
 type BaseCardProps = CardAsProps | CardAsLinkProps
 
-type CardProps =
-  | ({
-      variant?: 'default' | 'outline' | 'filled'
-      color?: keyof typeof styles.colors
-      size?: keyof typeof styles.sizes
-    } & BaseCardProps)
+type CardProps = {
+  variant?: 'default' | 'outline' | 'filled'
+  color?: keyof typeof styles.colors
+  size?: keyof typeof styles.sizes
+} & BaseCardProps
 
 export const Card = forwardRef<HTMLElement, CardProps>(function Card(
   { variant = 'default', color, size = 'md', className, children, ...props },
@@ -115,12 +96,13 @@ export const Card = forwardRef<HTMLElement, CardProps>(function Card(
   )
 })
 
-export function CardHeader({ className, children, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function CardHeader({
+  className,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <div
-      {...props}
-      className={clsx(className, 'mb-4 flex flex-col space-y-1.5')}
-    >
+    <div {...props} className={clsx(className, 'mb-4 flex flex-col space-y-1.5')}>
       {children}
     </div>
   )
@@ -128,43 +110,43 @@ export function CardHeader({ className, children, ...props }: React.ComponentPro
 
 export function CardTitle({ className, children, ...props }: React.ComponentPropsWithoutRef<'h3'>) {
   return (
-    <h3
-      {...props}
-      className={clsx(className, 'text-lg font-medium text-zinc-950 dark:text-white')}
-    >
+    <h3 {...props} className={clsx(className, 'text-lg font-medium text-zinc-950 dark:text-white')}>
       {children}
     </h3>
   )
 }
 
-export function CardDescription({ className, children, ...props }: React.ComponentPropsWithoutRef<'p'>) {
+export function CardDescription({
+  className,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<'p'>) {
   return (
-    <p
-      {...props}
-      className={clsx(className, 'text-sm text-zinc-500 dark:text-zinc-400')}
-    >
+    <p {...props} className={clsx(className, 'text-sm text-zinc-500 dark:text-zinc-400')}>
       {children}
     </p>
   )
 }
 
-export function CardContent({ className, children, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function CardContent({
+  className,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <div
-      {...props}
-      className={clsx(className, 'text-base text-zinc-700 dark:text-zinc-300')}
-    >
+    <div {...props} className={clsx(className, 'text-base text-zinc-700 dark:text-zinc-300')}>
       {children}
     </div>
   )
 }
 
-export function CardFooter({ className, children, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function CardFooter({
+  className,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <div
-      {...props}
-      className={clsx(className, 'mt-4 flex items-center justify-between')}
-    >
+    <div {...props} className={clsx(className, 'mt-4 flex items-center justify-between')}>
       {children}
     </div>
   )

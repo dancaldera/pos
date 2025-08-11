@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcryptjs';
-import { db } from '../db/index.js';
-import { users } from '../db/schema.js';
-import { eq, desc } from 'drizzle-orm';
-import { BadRequestError, NotFoundError } from '../utils/errors.js';
+import { Request, Response, NextFunction } from 'express'
+import bcrypt from 'bcryptjs'
+import { db } from '../db/index.js'
+import { users } from '../db/schema.js'
+import { eq, desc } from 'drizzle-orm'
+import { BadRequestError, NotFoundError } from '../utils/errors.js'
 
 // Get all users
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -11,122 +11,125 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
     // Get all users, sorted by most recently created
     const usersList = await db.query.users.findMany({
       orderBy: desc(users.createdAt),
-    });
+    })
 
     // Return users without password
     const safeUsers = usersList.map((user) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...safeUser } = user;
-      return safeUser;
-    });
+      const { password, ...safeUser } = user
+      return safeUser
+    })
 
     res.status(200).json({
       success: true,
       count: safeUsers.length,
       data: safeUsers,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}
 
 // Get a single user
 export const getUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
     // Get the user from the database
     const user = await db.query.users.findFirst({
       where: eq(users.id, id),
-    });
+    })
 
     if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`);
+      throw new NotFoundError(`User with ID ${id} not found`)
     }
 
     // Return user without password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...safeUser } = user;
+    const { password, ...safeUser } = user
 
     res.status(200).json({
       success: true,
       data: safeUser,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}
 
 // Create a new user
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, email, password, role = 'waitress', active = true } = req.body;
+    const { name, email, password, role = 'waitress', active = true } = req.body
 
     // Validate input
     if (!name || !email || !password) {
-      throw new BadRequestError('Name, email, and password are required');
+      throw new BadRequestError('Name, email, and password are required')
     }
 
     // Check if the email is already registered
     const existingUser = await db.query.users.findFirst({
       where: eq(users.email, email),
-    });
+    })
 
     if (existingUser) {
-      throw new BadRequestError('Email already registered');
+      throw new BadRequestError('Email already registered')
     }
 
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10)
 
     // Create the user
-    const [newUser] = await db.insert(users).values({
-      name,
-      email,
-      password: hashedPassword,
-      role: role as any, // Cast to any to allow the role value
-      active,
-    }).returning();
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        name,
+        email,
+        password: hashedPassword,
+        role: role as any, // Cast to any to allow the role value
+        active,
+      })
+      .returning()
 
     // Return user without password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = newUser;
+    const { password: _, ...safeUser } = newUser
 
     res.status(201).json({
       success: true,
       data: safeUser,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}
 
 // Update a user
 export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    const { name, email, role, active, password } = req.body;
+    const { id } = req.params
+    const { name, email, role, active, password } = req.body
 
     // Get the user from the database
     const user = await db.query.users.findFirst({
       where: eq(users.id, id),
-    });
+    })
 
     if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`);
+      throw new NotFoundError(`User with ID ${id} not found`)
     }
 
     // Prepare update values
-    const updateValues: any = {};
+    const updateValues: any = {}
 
-    if (name !== undefined) updateValues.name = name;
-    if (email !== undefined) updateValues.email = email;
-    if (role !== undefined) updateValues.role = role;
-    if (active !== undefined) updateValues.active = active;
+    if (name !== undefined) updateValues.name = name
+    if (email !== undefined) updateValues.email = email
+    if (role !== undefined) updateValues.role = role
+    if (active !== undefined) updateValues.active = active
 
     // If password is provided, hash it
     if (password) {
-      updateValues.password = await bcrypt.hash(password, 10);
+      updateValues.password = await bcrypt.hash(password, 10)
     }
 
     // Update the user
@@ -137,43 +140,43 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
         updatedAt: new Date(),
       })
       .where(eq(users.id, id))
-      .returning();
+      .returning()
 
     // Return user without password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = updatedUser;
+    const { password: _, ...safeUser } = updatedUser
 
     res.status(200).json({
       success: true,
       data: safeUser,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}
 
 // Delete a user
 export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
     // Get the user from the database
     const user = await db.query.users.findFirst({
       where: eq(users.id, id),
-    });
+    })
 
     if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`);
+      throw new NotFoundError(`User with ID ${id} not found`)
     }
 
     // Delete the user
-    await db.delete(users).where(eq(users.id, id));
+    await db.delete(users).where(eq(users.id, id))
 
     res.status(200).json({
       success: true,
       data: {},
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}

@@ -30,7 +30,9 @@ export function Avatar({
         'inline-grid shrink-0 align-middle [--avatar-radius:20%] *:col-start-1 *:row-start-1',
         'outline -outline-offset-1 outline-black/10 dark:outline-white/10',
         // Border radius
-        square ? 'rounded-(--avatar-radius) *:rounded-(--avatar-radius)' : 'rounded-full *:rounded-full'
+        square
+          ? 'rounded-(--avatar-radius) *:rounded-(--avatar-radius)'
+          : 'rounded-full *:rounded-full'
       )}
     >
       {initials && (
@@ -40,7 +42,14 @@ export function Avatar({
           aria-hidden={alt ? undefined : 'true'}
         >
           {alt && <title>{alt}</title>}
-          <text x="50%" y="50%" alignmentBaseline="middle" dominantBaseline="middle" textAnchor="middle" dy=".125em">
+          <text
+            x="50%"
+            y="50%"
+            alignmentBaseline="middle"
+            dominantBaseline="middle"
+            textAnchor="middle"
+            dy=".125em"
+          >
             {initials}
           </text>
         </svg>
@@ -50,20 +59,14 @@ export function Avatar({
   )
 }
 
-type AvatarButtonProps = AvatarProps & (
-  | (Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { href?: never })
-  | (Omit<React.ComponentPropsWithoutRef<'a'>, 'className'> & { href: string })
-)
+type AvatarButtonProps = AvatarProps &
+  (
+    | (Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { href?: never })
+    | (Omit<React.ComponentPropsWithoutRef<'a'>, 'className'> & { href: string })
+  )
 
 export const AvatarButton = forwardRef<HTMLElement, AvatarButtonProps>(function AvatarButton(
-  {
-    src,
-    square = false,
-    initials,
-    alt,
-    className,
-    ...props
-  },
+  { src, square = false, initials, alt, className, ...props },
   ref
 ) {
   let classes = clsx(

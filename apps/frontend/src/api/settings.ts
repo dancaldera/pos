@@ -1,35 +1,35 @@
-import apiClient from './client';
+import apiClient from './client'
 
 export interface SystemSettings {
-  id?: number;
-  businessName: string;
-  address?: string | null;
-  phone?: string | null;
-  email?: string | null;
-  taxRate: number;
-  currency: string;
-  logoUrl?: string | null;
-  receiptFooter?: string | null;
-  updatedAt?: string;
+  id?: number
+  businessName: string
+  address?: string | null
+  phone?: string | null
+  email?: string | null
+  taxRate: number
+  currency: string
+  logoUrl?: string | null
+  receiptFooter?: string | null
+  updatedAt?: string
 }
 
 // Get system settings
 export const getSettings = async () => {
-  const response = await apiClient.get('/settings');
-  return response.data;
-};
+  const response = await apiClient.get('/settings')
+  return response.data
+}
 
 // Update settings
 export const updateSettings = async (settingsData: FormData) => {
   // Debug what's in the FormData before sending
   for (const pair of settingsData.entries()) {
-    console.log(`${pair[0]}: ${typeof pair[1] === 'object' ? 'File' : pair[1]}`);
+    console.log(`${pair[0]}: ${typeof pair[1] === 'object' ? 'File' : pair[1]}`)
   }
-  
+
   const response = await apiClient.put('/settings', settingsData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-  });
-  return response.data;
-};
+  })
+  return response.data
+}

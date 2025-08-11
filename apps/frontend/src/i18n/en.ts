@@ -86,13 +86,14 @@ const en = {
     loginFailed: 'Login failed. Please check your credentials and try again.',
     // Password Reset
     forgotPasswordTitle: 'Forgot Password',
-    forgotPasswordDescription: 'Enter your email address and we\'ll send you instructions to reset your password.',
+    forgotPasswordDescription:
+      "Enter your email address and we'll send you instructions to reset your password.",
     sendResetInstructions: 'Send Reset Instructions',
     sending: 'Sending...',
     backToLogin: 'Back to Login',
     checkYourEmail: 'Check Your Email',
-    emailSentMessage: 'We\'ve sent password reset instructions to',
-    emailNotReceived: 'Didn\'t receive the email? Check your spam folder or try again.',
+    emailSentMessage: "We've sent password reset instructions to",
+    emailNotReceived: "Didn't receive the email? Check your spam folder or try again.",
     tryDifferentEmail: 'Try Different Email',
     resetPasswordTitle: 'Reset Your Password',
     resetPasswordDescription: 'Enter your new password below.',
@@ -101,7 +102,8 @@ const en = {
     resetPassword: 'Reset Password',
     resetting: 'Resetting...',
     passwordResetSuccessTitle: 'Password Reset Successful',
-    passwordResetSuccessMessage: 'Your password has been reset successfully. You can now log in with your new password.',
+    passwordResetSuccessMessage:
+      'Your password has been reset successfully. You can now log in with your new password.',
     goToLogin: 'Go to Login',
     confirmPasswordRequired: 'Please confirm your password',
     passwordsDoNotMatch: 'Passwords do not match',
@@ -253,7 +255,7 @@ const en = {
     applyToSubtotalMinusDiscount: 'Apply to Subtotal minus Discount',
     appliedToNetAmount: '(applied to net amount)',
     ordersFor: 'Orders for',
-    todaysOrders: 'Today\'s Orders',
+    todaysOrders: "Today's Orders",
     ordersForDate: 'Orders for {date}',
     totalOrders: 'Total Orders',
     last7Days: 'Last 7 Days',
@@ -340,7 +342,8 @@ const en = {
     searchCategories: 'Search categories...',
     nameRequired: 'Name is required',
     nameExists: 'A category with this name already exists',
-    deleteConfirmation: 'Are you sure you want to delete this category? This will not delete the products in this category.',
+    deleteConfirmation:
+      'Are you sure you want to delete this category? This will not delete the products in this category.',
   },
   users: {
     title: 'Users',
@@ -430,6 +433,6 @@ const en = {
     appName: 'PPOS',
     appDescription: 'Professional Point of Sale System',
   },
-};
+}
 
-export default en;
+export default en

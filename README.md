@@ -48,21 +48,30 @@ inventory-system/
 
 ### Frontend
 - React + TypeScript
-- Vite
-- React Router
-- TailwindCSS
-- Formik + Yup
-- Axios
-- Heroicons
-- jsPDF
+- Vite (build tool)
+- React Router DOM v7
+- TailwindCSS v4
+- Headless UI (component library)
+- Axios (HTTP client)
+- Heroicons (icons)
+- jsPDF (client-side PDFs)
+- Chart.js + react-chartjs-2 (analytics)
+- Zustand (state management)
+- Yup (validation)
+- Tauri (desktop app framework)
+- Framer Motion (animations)
+- react-to-print (printing)
 
 ### Backend
 - Node.js + Express + TypeScript
 - PostgreSQL
 - Drizzle ORM
 - JWT Authentication
-- PDFKit
-- AWS SDK
+- PDFKit (receipt generation)
+- AWS SDK (S3-compatible storage)
+- bcryptjs (password hashing)
+- nanoid (ID generation)
+- tsx (TypeScript execution)
 
 ## Getting Started
 
@@ -94,8 +103,8 @@ cp apps/frontend/.env.example apps/frontend/.env
 
 4. Set up the database
 ```bash
-pnpm backend db:generate
-pnpm backend db:migrate
+pnpm --filter backend db:generate
+pnpm --filter backend db:migrate
 ```
 
 5. Start development servers
@@ -116,7 +125,7 @@ pnpm backend:dev   # Backend only
 - `pnpm dev` - Start both frontend and backend development servers concurrently
 - `pnpm build` - Build all workspaces in correct dependency order
 - `pnpm clean` - Clean build artifacts from all workspaces
-- `pnpm install:all` - Install dependencies for all workspaces
+- `pnpm validate` - Run validation checks across all workspaces
 
 #### Workspace-Specific Commands
 - `pnpm frontend:dev` - Start only the frontend development server
@@ -129,6 +138,10 @@ pnpm backend:dev   # Backend only
 - `pnpm --filter backend [script]` - Run any script in the backend workspace
 - `pnpm --filter shared [script]` - Run any script in the shared package
 - `pnpm -r [script]` - Run script in all workspaces recursively
+
+#### Tauri Desktop App Commands
+- `pnpm tauri:dev` - Start desktop app in development mode
+- `pnpm tauri:build` - Build desktop app for production
 
 ## Demo Account
 

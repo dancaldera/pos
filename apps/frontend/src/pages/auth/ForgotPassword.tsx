@@ -1,150 +1,142 @@
-import { Button } from "@/components/button";
-import { Heading } from "@/components/heading";
-import { Input } from "@/components/input";
-import { Link } from "@/components/link";
-import { Text } from "@/components/text";
-import React, { FormEvent, useState } from "react";
-import { toast } from 'sonner';
-import { useLanguage } from "../../context/LanguageContext";
-import { forgotPassword } from "../../api/auth";
+import { Button } from '@/components/button'
+import { Heading } from '@/components/heading'
+import { Input } from '@/components/input'
+import { Link } from '@/components/link'
+import { Text } from '@/components/text'
+import React, { FormEvent, useState } from 'react'
+import { toast } from 'sonner'
+import { forgotPassword } from '../../api/auth'
+import { useLanguage } from '../../context/LanguageContext'
 
 const ForgotPasswordPage: React.FC = () => {
-  const { translate } = useLanguage();
-  const [isLoading, setIsLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
+  const { translate } = useLanguage()
+  const [isLoading, setIsLoading] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
   // Form state
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('')
   const [touched, setTouched] = useState({
-    email: false
-  });
+    email: false,
+  })
 
   // Validation errors
   const [validationErrors, setValidationErrors] = useState({
-    email: ""
-  });
+    email: '',
+  })
 
   const validateField = (name: string, value: string) => {
-    let errorMessage = "";
+    let errorMessage = ''
 
-    if (name === "email") {
+    if (name === 'email') {
       if (!value) {
-        errorMessage = translate.auth('emailRequired');
+        errorMessage = translate.auth('emailRequired')
       } else if (!/\S+@\S+\.\S+/.test(value)) {
-        errorMessage = "Please enter a valid email address";
+        errorMessage = translate.auth('invalidEmailFormat')
       }
     }
 
-    setValidationErrors(prev => ({
+    setValidationErrors((prev) => ({
       ...prev,
-      [name]: errorMessage
-    }));
+      [name]: errorMessage,
+    }))
 
-    return errorMessage === "";
-  };
+    return errorMessage === ''
+  }
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name } = e.target;
-    setTouched(prev => ({
+    const { name } = e.target
+    setTouched((prev) => ({
       ...prev,
-      [name]: true
-    }));
+      [name]: true,
+    }))
 
-    if (name === "email") {
-      validateField(name, email);
+    if (name === 'email') {
+      validateField(name, email)
     }
-  };
+  }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     // Validate email field
-    const isEmailValid = validateField("email", email);
+    const isEmailValid = validateField('email', email)
 
     // Mark field as touched
     setTouched({
-      email: true
-    });
+      email: true,
+    })
 
     // Return if validation fails
     if (!isEmailValid) {
-      return;
+      return
     }
 
     try {
-      setIsLoading(true);
+      setIsLoading(true)
 
-      await forgotPassword(email);
-      
-      setEmailSent(true);
-      toast.success("Password reset instructions have been sent to your email");
+      await forgotPassword(email)
+
+      setEmailSent(true)
+      toast.success(translate.auth('resetEmailSentSuccess'))
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to send reset email";
-      toast.error(errorMessage);
+      const errorMessage = err instanceof Error ? err.message : translate.auth('resetEmailSentFailed')
+      toast.error(errorMessage)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (emailSent) {
     return (
       <div className="p-8">
-        <div className="text-center mb-6">
+        <div className="mb-6 text-center">
           <Heading>{translate.layout('appName')}</Heading>
           <Text>{translate.layout('appDescription')}</Text>
         </div>
-        
+
         <div className="text-center">
           <div className="mb-6">
             <Heading level={2} className="text-green-600">
-              Check Your Email
+              {translate.auth('checkYourEmail')}
             </Heading>
             <Text className="mt-4">
-              We've sent password reset instructions to <strong>{email}</strong>
+              {translate.auth('emailSentMessage')} <strong>{email}</strong>
             </Text>
-            <Text className="mt-2 text-sm text-gray-600">
-              Didn't receive the email? Check your spam folder or try again.
-            </Text>
+            <Text className="mt-2 text-sm text-gray-600">{translate.auth('emailNotReceived')}</Text>
           </div>
-          
+
           <div className="space-y-4">
-            <Button 
+            <Button
               onClick={() => {
-                setEmailSent(false);
-                setEmail("");
-                setTouched({ email: false });
-                setValidationErrors({ email: "" });
+                setEmailSent(false)
+                setEmail('')
+                setTouched({ email: false })
+                setValidationErrors({ email: '' })
               }}
               outline
             >
-              Try Different Email
+              {translate.auth('tryDifferentEmail')}
             </Button>
-            
+
             <div className="text-center">
-              <Link href="/login">
-                Back to Login
-              </Link>
+              <Link href="/login">{translate.auth('backToLogin')}</Link>
             </div>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="p-8">
-      <div className="text-center mb-6">
+      <div className="mb-6 text-center">
         <Heading>{translate.layout('appName')}</Heading>
         <Text>{translate.layout('appDescription')}</Text>
       </div>
 
       <div className="mb-6">
-        <Heading level={2}>
-          Forgot Password
-        </Heading>
-        <Text className="mt-2">
-          Enter your email address and we'll send you instructions to reset your password.
-        </Text>
+        <Heading level={2}>{translate.auth('forgotPasswordTitle')}</Heading>
+        <Text className="mt-2">{translate.auth('forgotPasswordDescription')}</Text>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -159,26 +151,25 @@ const ForgotPasswordPage: React.FC = () => {
         />
 
         {touched.email && validationErrors.email && (
-          <p className="text-red-500 text-sm mt-2">{validationErrors.email}</p>
+          <p className="mt-2 text-sm text-red-500">{validationErrors.email}</p>
         )}
 
         <div className="pt-2">
-          <Button
-            type="submit"
-            disabled={isLoading}
-          >
-            {isLoading ? "Sending..." : "Send Reset Instructions"}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? translate.auth('sending') : translate.auth('sendResetInstructions')}
           </Button>
         </div>
       </form>
 
       <div className="mt-6 text-center">
-        <Link href="/login">
-          Back to Login
-        </Link>
+        <Text>
+          <Link href="/login" className="text-blue-600 hover:text-blue-500">
+            {translate.auth('backToLogin')}
+          </Link>
+        </Text>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ForgotPasswordPage;
+export default ForgotPasswordPage

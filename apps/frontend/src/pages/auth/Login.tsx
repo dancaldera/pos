@@ -175,7 +175,7 @@ const LoginPage: React.FC = () => {
       <div className="mt-6 text-center">
         <Text>
           <Link href="/forgot-password" className="text-blue-600 hover:text-blue-500">
-            Forgot your password?
+            {translate.auth('forgotPassword')}
           </Link>
         </Text>
       </div>

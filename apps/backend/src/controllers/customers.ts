@@ -40,10 +40,61 @@ export const getCustomers = async (req: Request, res: Response, next: NextFuncti
 
     // Build the order clause
     let orderClause: any = null
+    const validSortFields = ['id', 'name', 'email', 'phone', 'address', 'createdAt', 'updatedAt']
+    const actualSortBy = validSortFields.includes(sortBy) ? sortBy : 'name'
+    
     if (sortOrder.toLowerCase() === 'asc') {
-      orderClause = asc(customers[sortBy as keyof typeof customers])
+      switch (actualSortBy) {
+        case 'id':
+          orderClause = asc(customers.id)
+          break
+        case 'name':
+          orderClause = asc(customers.name)
+          break
+        case 'email':
+          orderClause = asc(customers.email)
+          break
+        case 'phone':
+          orderClause = asc(customers.phone)
+          break
+        case 'address':
+          orderClause = asc(customers.address)
+          break
+        case 'createdAt':
+          orderClause = asc(customers.createdAt)
+          break
+        case 'updatedAt':
+          orderClause = asc(customers.updatedAt)
+          break
+        default:
+          orderClause = asc(customers.name)
+      }
     } else {
-      orderClause = desc(customers[sortBy as keyof typeof customers])
+      switch (actualSortBy) {
+        case 'id':
+          orderClause = desc(customers.id)
+          break
+        case 'name':
+          orderClause = desc(customers.name)
+          break
+        case 'email':
+          orderClause = desc(customers.email)
+          break
+        case 'phone':
+          orderClause = desc(customers.phone)
+          break
+        case 'address':
+          orderClause = desc(customers.address)
+          break
+        case 'createdAt':
+          orderClause = desc(customers.createdAt)
+          break
+        case 'updatedAt':
+          orderClause = desc(customers.updatedAt)
+          break
+        default:
+          orderClause = desc(customers.name)
+      }
     }
 
     // Get the total count

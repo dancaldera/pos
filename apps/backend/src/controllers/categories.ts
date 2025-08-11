@@ -36,10 +36,49 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
     // Build the order clause
     let orderClause: any = null
+    const validSortFields = ['id', 'name', 'description', 'createdAt', 'updatedAt']
+    const actualSortBy = validSortFields.includes(sortBy) ? sortBy : 'name'
+    
     if (sortOrder.toLowerCase() === 'asc') {
-      orderClause = asc(categories[sortBy as keyof typeof categories])
+      switch (actualSortBy) {
+        case 'id':
+          orderClause = asc(categories.id)
+          break
+        case 'name':
+          orderClause = asc(categories.name)
+          break
+        case 'description':
+          orderClause = asc(categories.description)
+          break
+        case 'createdAt':
+          orderClause = asc(categories.createdAt)
+          break
+        case 'updatedAt':
+          orderClause = asc(categories.updatedAt)
+          break
+        default:
+          orderClause = asc(categories.name)
+      }
     } else {
-      orderClause = desc(categories[sortBy as keyof typeof categories])
+      switch (actualSortBy) {
+        case 'id':
+          orderClause = desc(categories.id)
+          break
+        case 'name':
+          orderClause = desc(categories.name)
+          break
+        case 'description':
+          orderClause = desc(categories.description)
+          break
+        case 'createdAt':
+          orderClause = desc(categories.createdAt)
+          break
+        case 'updatedAt':
+          orderClause = desc(categories.updatedAt)
+          break
+        default:
+          orderClause = desc(categories.name)
+      }
     }
 
     // Get the categories with product counts

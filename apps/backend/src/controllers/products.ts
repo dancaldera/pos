@@ -79,6 +79,9 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 
     // Build the order clause
     let orderClause: any = null
+    const validSortFields = ['id', 'name', 'description', 'price', 'cost', 'sku', 'barcode', 'categoryId', 'imageUrl', 'stock', 'lowStockAlert', 'active', 'hasVariants', 'createdAt', 'updatedAt']
+    const actualSortBy = validSortFields.includes(sortBy) ? sortBy : 'name'
+    
     // Special case for category sorting
     if (sortBy === 'category') {
       if (sortOrder.toLowerCase() === 'asc') {
@@ -88,9 +91,105 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       }
     } else {
       if (sortOrder.toLowerCase() === 'asc') {
-        orderClause = asc(products[sortBy as keyof typeof products])
+        switch (actualSortBy) {
+          case 'id':
+            orderClause = asc(products.id)
+            break
+          case 'name':
+            orderClause = asc(products.name)
+            break
+          case 'description':
+            orderClause = asc(products.description)
+            break
+          case 'price':
+            orderClause = asc(products.price)
+            break
+          case 'cost':
+            orderClause = asc(products.cost)
+            break
+          case 'sku':
+            orderClause = asc(products.sku)
+            break
+          case 'barcode':
+            orderClause = asc(products.barcode)
+            break
+          case 'categoryId':
+            orderClause = asc(products.categoryId)
+            break
+          case 'imageUrl':
+            orderClause = asc(products.imageUrl)
+            break
+          case 'stock':
+            orderClause = asc(products.stock)
+            break
+          case 'lowStockAlert':
+            orderClause = asc(products.lowStockAlert)
+            break
+          case 'active':
+            orderClause = asc(products.active)
+            break
+          case 'hasVariants':
+            orderClause = asc(products.hasVariants)
+            break
+          case 'createdAt':
+            orderClause = asc(products.createdAt)
+            break
+          case 'updatedAt':
+            orderClause = asc(products.updatedAt)
+            break
+          default:
+            orderClause = asc(products.name)
+        }
       } else {
-        orderClause = desc(products[sortBy as keyof typeof products])
+        switch (actualSortBy) {
+          case 'id':
+            orderClause = desc(products.id)
+            break
+          case 'name':
+            orderClause = desc(products.name)
+            break
+          case 'description':
+            orderClause = desc(products.description)
+            break
+          case 'price':
+            orderClause = desc(products.price)
+            break
+          case 'cost':
+            orderClause = desc(products.cost)
+            break
+          case 'sku':
+            orderClause = desc(products.sku)
+            break
+          case 'barcode':
+            orderClause = desc(products.barcode)
+            break
+          case 'categoryId':
+            orderClause = desc(products.categoryId)
+            break
+          case 'imageUrl':
+            orderClause = desc(products.imageUrl)
+            break
+          case 'stock':
+            orderClause = desc(products.stock)
+            break
+          case 'lowStockAlert':
+            orderClause = desc(products.lowStockAlert)
+            break
+          case 'active':
+            orderClause = desc(products.active)
+            break
+          case 'hasVariants':
+            orderClause = desc(products.hasVariants)
+            break
+          case 'createdAt':
+            orderClause = desc(products.createdAt)
+            break
+          case 'updatedAt':
+            orderClause = desc(products.updatedAt)
+            break
+          default:
+            orderClause = desc(products.name)
+        }
       }
     }
 
